@@ -1,4 +1,4 @@
-﻿namespace EmulatorRC.API.Model
+﻿namespace EmulatorRC.Entities
 {
     public class Emulator : IEquatable<Emulator?>
     {

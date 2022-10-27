@@ -1,4 +1,4 @@
-﻿namespace EmulatorRC.API.Services
+﻿namespace EmulatorRC.Services
 {
     public interface IEmulatorDataRepository
     {

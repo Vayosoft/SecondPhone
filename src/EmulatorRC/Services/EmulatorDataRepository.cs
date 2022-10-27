@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 
-namespace EmulatorRC.API.Services
+namespace EmulatorRC.Services
 {
     public class EmulatorDataRepository : IEmulatorDataRepository
     {

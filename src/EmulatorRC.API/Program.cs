@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using EmulatorRC.API.Hubs;
-using EmulatorRC.API.Services;
+using EmulatorRC.Services;
 using Microsoft.AspNetCore.Http.Features;
 using Serilog;
 
@@ -18,6 +18,7 @@ public class Program
         {
             var builder = WebApplication.CreateBuilder(args);
             {
+                builder.WebHost.ConfigureKestrel(options => { options.AddServerHeader = false; });
                 builder.Host.UseSerilog((context, services, configuration) => configuration
                         .ReadFrom.Configuration(context.Configuration)
                         .ReadFrom.Services(services)

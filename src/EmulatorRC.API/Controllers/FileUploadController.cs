@@ -1,16 +1,14 @@
 ﻿using EmulatorRC.API.Hubs;
-using EmulatorRC.API.Services;
+using EmulatorRC.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace EmulatorRC.API.Controllers
 {
 
-    [ApiController]
     [Route("api")]
-    public class FileUploadController : ControllerBase
+    public class FileUploadController : ApiControllerBase
     {
 
         private readonly IHubContext<ImagesHub> _hubContext;
@@ -52,79 +50,57 @@ namespace EmulatorRC.API.Controllers
         [HttpGet]
         public async Task<IActionResult> LastScreen()
         {
-            try
+            var id = _emulatorDataRepository.GetLastScreenId(GetDeviceId());
+            if (id is null)
             {
-                var id = _emulatorDataRepository.GetLastScreenId(GetDeviceId());
-                if (id is null) {
-                    return NotFound();
-                }
-
-                await _hubContext.Clients.All.SendAsync("ImageMessage", $"{id}");
-
-                return Ok("THANKS");
+                return NotFound();
             }
-            catch(Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex}");
 
-            }
+            await _hubContext.Clients.All.SendAsync("ImageMessage", $"{id}");
+
+            return Ok("THANKS");
         }
 
         [Route("screen/{id}")]
         [HttpGet]
         public IActionResult GetScreen(string id)
         {
-            try
+            var deviceId = GetDeviceId();
+
+            var bytes = _emulatorDataRepository.GetScreen(deviceId, id);
+            if (bytes is null)
             {
-                var deviceId = GetDeviceId();
-                
-                var bytes = _emulatorDataRepository.GetScreen(deviceId, id);
+                if (id == _emulatorDataRepository.GetLastScreenId(deviceId))
+                    bytes = _emulatorDataRepository.GetLastScreen(deviceId);
                 if (bytes is null)
-                {
-                    if (id == _emulatorDataRepository.GetLastScreenId(deviceId))
-                        bytes = _emulatorDataRepository.GetLastScreen(deviceId);
-                    if (bytes is null)
-                        return NotFound();
-                }
-                return File(bytes, "image/jpeg");
+                    return NotFound();
             }
-            catch(Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex}");
-            }
+            return File(bytes, "image/jpeg");
         }
 
         [Route("upload")]
         [HttpPost, DisableRequestSizeLimit]
         public async Task<IActionResult> UploadAsync()
         {
-            try
+            var deviceId = RefreshAndGetDeviceId();
+
+            var id = DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond;
+
+            using (var memoryStream = new MemoryStream())
             {
-                var deviceId = RefreshAndGetDeviceId();
-
-                var id = DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond;
-
-                using (var memoryStream = new MemoryStream())
-                {
-                    await Request.Body.CopyToAsync(memoryStream);
-                    var array = memoryStream.ToArray();
-                    _emulatorDataRepository.SetScreen(deviceId, $"{id}", array);
-                    _emulatorDataRepository.SetLastScreenId(deviceId, $"{id}");
-                    _emulatorDataRepository.SetLastScreen(deviceId, array);
-                }
-
-                if (ImagesHub.Devices.TryGetValue(deviceId, out var clientIds) && clientIds.Count > 0)
-                {
-                    await _hubContext.Clients.Clients(clientIds.ToArray()).SendAsync("ImageMessage", $"{id}");
-                }
-
-                return Ok("THANKS");
-             
+                await Request.Body.CopyToAsync(memoryStream);
+                var array = memoryStream.ToArray();
+                _emulatorDataRepository.SetScreen(deviceId, $"{id}", array);
+                _emulatorDataRepository.SetLastScreenId(deviceId, $"{id}");
+                _emulatorDataRepository.SetLastScreen(deviceId, array);
             }
-            catch (Exception ex)
+
+            if (ImagesHub.Devices.TryGetValue(deviceId, out var clientIds) && clientIds.Count > 0)
             {
-                return StatusCode(500, $"Internal server error: {ex}");
+                await _hubContext.Clients.Clients(clientIds.ToArray()).SendAsync("ImageMessage", $"{id}");
             }
+
+            return Ok("THANKS");
         }
 
 
