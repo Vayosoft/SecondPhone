@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace MySignalRTest.Hubs
+namespace EmulatorRC.API.Hubs
 {
     public class TouchEventsHub : Hub
     {

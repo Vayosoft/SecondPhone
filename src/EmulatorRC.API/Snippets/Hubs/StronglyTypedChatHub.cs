@@ -1,7 +1,6 @@
-﻿using System;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 
-namespace MySignalRTest.Snippets.Hubs
+namespace EmulatorRC.API.Snippets.Hubs
 {
     // <snippet_Class>
     public class StronglyTypedChatHub : Hub<IChatClient>

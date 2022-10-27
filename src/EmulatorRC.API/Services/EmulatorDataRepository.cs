@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 
-namespace MySignalRTest.Services
+namespace EmulatorRC.API.Services
 {
     public class EmulatorDataRepository : IEmulatorDataRepository
     {

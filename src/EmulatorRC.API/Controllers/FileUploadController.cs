@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using EmulatorRC.API.Hubs;
+using EmulatorRC.API.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using MySignalRTest.Hubs;
-using MySignalRTest.Services;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace MySignalRTest.Controllers
+namespace EmulatorRC.API.Controllers
 {
 
     [ApiController]

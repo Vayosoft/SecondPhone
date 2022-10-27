@@ -1,5 +1,4 @@
-﻿using System;
-namespace MySignalRTest.Snippets.Hubs
+﻿namespace EmulatorRC.API.Snippets.Hubs
 {
     // <snippet_Interface>
     public interface IChatClient

@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "MySignalRTest": {
+    "EmulatorRC.API": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",

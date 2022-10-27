@@ -1,5 +1,4 @@
-﻿using System;
-namespace MySignalRTest.Model
+﻿namespace EmulatorRC.API.Model
 {
     public class Emulator : IEquatable<Emulator?>
     {

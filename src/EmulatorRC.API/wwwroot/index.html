@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>EmulatorRC</title>
+    <style>
+        div {
+            width: 30px;
+            height: 30px;
+            background-color: red;
+            position: relative;
+            animation-name: rc;
+            animation-duration: 4s;
+            animation-iteration-count: infinite;
+        }
+
+        @keyframes rc {
+            0% {
+                background-color: red;
+                left: 0px;
+                top: 0px;
+            }
+
+            25% {
+                background-color: yellow;
+                left: 100%;
+                top: 0px;
+            }
+
+            50% {
+                background-color: blue;
+                left: 50%;
+                top: 100%;
+            }
+
+            75% {
+                background-color: green;
+                left: 0px;
+                top: 100%;
+            }
+
+            100% {
+                background-color: red;
+                left: 0px;
+                top: 0px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div></div>
+</body>
+</html>

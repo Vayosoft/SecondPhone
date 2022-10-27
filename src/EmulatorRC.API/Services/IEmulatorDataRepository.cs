@@ -1,5 +1,4 @@
-﻿using System;
-namespace MySignalRTest.Services
+﻿namespace EmulatorRC.API.Services
 {
     public interface IEmulatorDataRepository
     {

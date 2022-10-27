@@ -1,8 +1,6 @@
-﻿using System;
-using Microsoft.AspNetCore.SignalR;
-using System.Text.RegularExpressions;
+﻿using Microsoft.AspNetCore.SignalR;
 
-namespace MySignalRTest.Snippets.Hubs
+namespace EmulatorRC.API.Snippets.Hubs
 {
     public class ChatHub : Hub
     {
