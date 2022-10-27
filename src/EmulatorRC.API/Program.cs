@@ -52,6 +52,8 @@ public class Program
                     app.UseSwaggerUI();
                 }
 
+                app.UseExceptionHandler("/error");
+
                 app.UseStaticFiles();
                 app.UseSerilogRequestLogging();
                 //app.UseHttpsRedirection();
