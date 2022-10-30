@@ -1,5 +1,4 @@
 using System.Net;
-using Vayosoft.Core.SharedKernel.Exceptions;
 
 namespace EmulatorRC.API.Errors
 {
@@ -19,8 +18,6 @@ namespace EmulatorRC.API.Errors
                 NotImplementedException _ => HttpStatusCode.NotImplemented,
                 InvalidOperationException _ => HttpStatusCode.Conflict,
                 ArgumentException _ => HttpStatusCode.BadRequest,
-                ValidationException _ => HttpStatusCode.BadRequest,
-                AggregateNotFoundException _ => HttpStatusCode.NotFound,
                 _ => HttpStatusCode.InternalServerError
             };
 
