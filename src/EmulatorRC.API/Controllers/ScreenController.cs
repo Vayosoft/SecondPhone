@@ -37,6 +37,21 @@ namespace EmulatorRC.API.Controllers
             return Ok("THANKS");
         }
 
+        [Route("getLast")]
+        [HttpGet]
+        public IActionResult GetLastScreen()
+        {
+            var deviceId = Request.GetDeviceId();
+
+            var bytes = _emulatorDataRepository.GetLastScreen(deviceId);
+            if (bytes is null)
+            {
+                return NotFound();
+            }
+
+            return File(bytes, "image/jpeg");
+        }
+
         [Route("{id}")]
         [HttpGet]
         public IActionResult GetScreen(string id)
