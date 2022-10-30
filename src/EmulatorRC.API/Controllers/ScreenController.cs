@@ -22,11 +22,12 @@ namespace EmulatorRC.API.Controllers
 
         }
 
-        [Route("sendLast")]
-        [HttpGet]
+        [HttpGet("sendLast")]
         public async Task<IActionResult> LastScreen()
         {
-            var imageId = _emulatorDataRepository.GetLastScreenId(Request.GetDeviceId());
+            var deviceId = Request.GetDeviceId();
+
+            var imageId = _emulatorDataRepository.GetLastScreenId(deviceId);
             if (imageId is null)
             {
                 return NotFound();
@@ -37,8 +38,7 @@ namespace EmulatorRC.API.Controllers
             return Ok("THANKS");
         }
 
-        [Route("getLast")]
-        [HttpGet]
+        [HttpGet("getLast")]
         public IActionResult GetLastScreen()
         {
             var deviceId = Request.GetDeviceId();
@@ -52,8 +52,7 @@ namespace EmulatorRC.API.Controllers
             return File(bytes, "image/jpeg");
         }
 
-        [Route("{id}")]
-        [HttpGet]
+        [HttpGet("{id}")]
         public IActionResult GetScreen(string id)
         {
             var deviceId = Request.GetDeviceId();
