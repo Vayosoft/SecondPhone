@@ -25,7 +25,7 @@ namespace EmulatorRC.API.Controllers
         [HttpGet("sendLast")]
         public async Task<IActionResult> LastScreen()
         {
-            var deviceId = Request.GetDeviceId();
+            var deviceId = Request.GetDeviceIdOrDefault("DEFAULT");
 
             var imageId = _emulatorDataRepository.GetLastScreenId(deviceId);
             if (imageId is null)
@@ -41,7 +41,7 @@ namespace EmulatorRC.API.Controllers
         [HttpGet("getLast")]
         public IActionResult GetLastScreen()
         {
-            var deviceId = Request.GetDeviceId();
+            var deviceId = Request.GetDeviceIdOrDefault("DEFAULT");
 
             var bytes = _emulatorDataRepository.GetLastScreen(deviceId);
             if (bytes is null)
@@ -55,7 +55,7 @@ namespace EmulatorRC.API.Controllers
         [HttpGet("{id}")]
         public IActionResult GetScreen(string id)
         {
-            var deviceId = Request.GetDeviceId();
+            var deviceId = Request.GetDeviceIdOrDefault("DEFAULT");
 
             var bytes = _emulatorDataRepository.GetScreen(deviceId, id);
             if (bytes is null)
