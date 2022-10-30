@@ -29,7 +29,7 @@ namespace EmulatorRC.Services
 
         public void SetLastScreenId(string deviceId, string id)
         {
-            _memoryCache.Set($"{deviceId}->LastScreenId", $"{id}");
+            _memoryCache.Set($"{deviceId}->LastScreenId", id);
         }
 
         public void SetLastScreen(string deviceId, byte[] screen)
