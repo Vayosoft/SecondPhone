@@ -22,7 +22,6 @@ namespace EmulatorRC.API.Controllers
 
         }
 
-        [Route("")]
         [HttpPost, DisableRequestSizeLimit]
         public async Task<IActionResult> PostAsync()
         {
