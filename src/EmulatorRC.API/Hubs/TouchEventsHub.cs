@@ -4,63 +4,70 @@ namespace EmulatorRC.API.Hubs
 {
     public class TouchEventsHub : Hub
     {
-        public static Dictionary<string, HashSet<string>> Devices = new Dictionary<string, HashSet<string>>();
+        private readonly ILogger<ImagesHub> _logger;
+        public static readonly Dictionary<string, HashSet<string>> Devices = new();
+        public TouchEventsHub(ILogger<ImagesHub> logger)
+        {
+            _logger = logger;
+        }
+
         public override Task OnConnectedAsync()
         {
             try
             {
-                string? deviceId = Context.GetHttpContext()?.Request.Headers["X-DEVICE-ID"].FirstOrDefault() ?? null;
+                var deviceId = Context.GetHttpContext()?.Request.Headers["X-DEVICE-ID"].FirstOrDefault() ?? null;
                 if (deviceId != null)
                 {
-                    string connectionId = Context.ConnectionId;
+                    var connectionId = Context.ConnectionId;
 
-                    HashSet<string>? clientIds;
-                    if (!Devices.TryGetValue(deviceId, out clientIds))
+                    if (!Devices.TryGetValue(deviceId, out _))
                     {
                         Devices.Add(deviceId, new HashSet<string>());
                     }
-                    Console.WriteLine($"ADDED TE {deviceId} > {connectionId}");
+                    _logger.LogInformation("ADDED TE {deviceId} > {connectionId}", deviceId, connectionId);
+
                     Devices[deviceId].Add(connectionId);
                 }
             }catch(Exception e)
             {
-                string s = e.Message;
+                _logger.LogError(e.Message);
             }
+
             return base.OnConnectedAsync();
         }
 
         public override Task OnDisconnectedAsync(Exception? exception)
         {
-
-            string? deviceId = Context.GetHttpContext()?.Request.Headers["X-DEVICE-ID"].FirstOrDefault() ?? null;
-            if (deviceId != null)
+            try
             {
-                string connectionId = Context.ConnectionId;
-
-                HashSet<string>? clientIds;
-                if (Devices.TryGetValue(deviceId, out clientIds))
+                var deviceId = Context.GetHttpContext()?.Request.Headers["X-DEVICE-ID"].FirstOrDefault() ?? null;
+                if (deviceId != null)
                 {
-                    Console.WriteLine($"REMOVED TE {deviceId} > {connectionId}");
-                    clientIds.Remove(connectionId);
+                    var connectionId = Context.ConnectionId;
+
+                    if (Devices.TryGetValue(deviceId, out var clientIds))
+                    {
+                        _logger.LogInformation("REMOVED TE {deviceId} > {connectionId}", deviceId, connectionId);
+
+                        clientIds.Remove(connectionId);
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+            }
+            
             return base.OnDisconnectedAsync(exception);
-        }
-        public TouchEventsHub()
-        {
         }
 
         public async Task SendMessage(string deviceId, string message)
         {
-            HashSet<string>? clientIds;
-            if (Devices.TryGetValue(deviceId, out clientIds) && clientIds.Count > 0)
+            if (Devices.TryGetValue(deviceId, out var clientIds) && clientIds.Count > 0)
             {
                 await Clients.Clients(clientIds.ToArray()).SendAsync("ReceiveMessage", deviceId, message);
             }
         }
-
-
-
     }
 }
 

@@ -63,7 +63,9 @@ namespace EmulatorRC.API.Controllers
                 if (id == _emulatorDataRepository.GetLastScreenId(deviceId))
                     bytes = _emulatorDataRepository.GetLastScreen(deviceId);
                 if (bytes is null)
+                {
                     return NotFound();
+                }
             }
             return File(bytes, "image/jpeg");
         }
