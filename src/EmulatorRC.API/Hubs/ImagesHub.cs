@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using EmulatorRC.API.Extensions;
 using Microsoft.AspNetCore.SignalR;
 
 namespace EmulatorRC.API.Hubs
@@ -17,7 +18,7 @@ namespace EmulatorRC.API.Hubs
         {
             try
             {
-                var deviceId = Context.GetHttpContext()?.Request.Headers["X-DEVICE-ID"].FirstOrDefault() ?? null;
+                var deviceId = Context.GetHttpContext()?.Request.GetDeviceIdOrDefault();
                 if (deviceId is not null)
                 {
                     var connectionId = Context.ConnectionId;
@@ -44,7 +45,7 @@ namespace EmulatorRC.API.Hubs
         {
             try
             {
-                var deviceId = Context.GetHttpContext()?.Request.Headers["X-DEVICE-ID"].FirstOrDefault() ?? null;
+                var deviceId = Context.GetHttpContext()?.Request.GetDeviceIdOrDefault();
                 if (deviceId is not null)
                 {
                     var connectionId = Context.ConnectionId;
