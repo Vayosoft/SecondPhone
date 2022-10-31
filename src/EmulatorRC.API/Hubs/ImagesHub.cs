@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using EmulatorRC.API.Extensions;
+using EmulatorRC.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace EmulatorRC.API.Hubs
@@ -7,11 +8,13 @@ namespace EmulatorRC.API.Hubs
     public sealed class ImagesHub : Hub
     {
         private readonly ILogger<ImagesHub> _logger;
+        private readonly IEmulatorDataRepository _emulatorDataRepository;
         public static readonly ConcurrentDictionary<string, HashSet<string>> Devices = new();
 
-        public ImagesHub(ILogger<ImagesHub> logger)
+        public ImagesHub(ILogger<ImagesHub> logger, IEmulatorDataRepository emulatorDataRepository)
         {
             _logger = logger;
+            _emulatorDataRepository = emulatorDataRepository;
         }
 
         public override Task OnConnectedAsync()
@@ -64,6 +67,19 @@ namespace EmulatorRC.API.Hubs
             }
             
             return base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task GetLastScreen()
+        {
+            var deviceId = Context.GetHttpContext()?.Request.GetDeviceIdOrDefault();
+            if (deviceId is not null)
+            {
+                var bytes = _emulatorDataRepository.GetLastScreen(deviceId);
+                if (bytes is not null)
+                {
+                    await Clients.Caller.SendAsync("OnGetLastScreen", bytes);
+                }
+            }
         }
     }
 }

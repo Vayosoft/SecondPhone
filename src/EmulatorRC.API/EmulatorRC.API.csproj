@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Hubs\" />
     <Folder Include="Model\" />
     <Folder Include="Snippets\" />
     <Folder Include="Snippets\Hubs\" />
