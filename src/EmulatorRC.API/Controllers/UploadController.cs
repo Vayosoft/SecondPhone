@@ -25,7 +25,7 @@ namespace EmulatorRC.API.Controllers
         [HttpPost, DisableRequestSizeLimit]
         public async Task<IActionResult> PostAsync()
         {
-            var deviceId = Request.GetDeviceIdOrDefault("DEFAULT");
+            var deviceId = Request.GetDeviceIdOrDefault("DEFAULT")!;
             var imageId = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString();
 
             using (var memoryStream = new MemoryStream())
