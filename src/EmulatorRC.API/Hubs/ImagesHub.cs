@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Text;
 using EmulatorRC.API.Extensions;
 using EmulatorRC.Services;
 using Microsoft.AspNetCore.SignalR;
