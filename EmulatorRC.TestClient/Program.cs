@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
+using System.Collections;
 
  var connection = new HubConnectionBuilder()
     .WithUrl("http://localhost:5000/zub")
-    .Build();
+.Build();
 
 
-connection.On<string>("OnGetLastScreen", data => Console.WriteLine("Got data {0}", data));
+connection.On<byte[]>("OnGetLastScreen", data => Console.WriteLine("Got data '{0}'", BitConverter.ToString(data)));
 
  var producer = Task.Run(async () =>
  {

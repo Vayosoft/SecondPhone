@@ -72,15 +72,15 @@ namespace EmulatorRC.API.Hubs
 
         public async Task GetLastScreen()
         {
+            byte[]? bytes = null;
+
             var deviceId = Context.GetHttpContext()?.Request.GetDeviceIdOrDefault();
             if (deviceId is not null)
             {
-                var bytes = _emulatorDataRepository.GetLastScreen(deviceId);
-                if (bytes is not null)
-                {
-                    await Clients.Caller.SendAsync("OnGetLastScreen", bytes);
-                }
+                bytes = _emulatorDataRepository.GetLastScreen(deviceId);
             }
+
+            await Clients.Caller.SendAsync("OnGetLastScreen", bytes ?? Array.Empty<byte>());
         }
     }
 }
