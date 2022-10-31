@@ -11,11 +11,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D1F78C27
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC", "src\EmulatorRC\EmulatorRC.csproj", "{70708D76-DC47-46C9-9525-FBA84010D6BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorRC.IntegrationTests", "EmulatorRC.IntegrationTests\EmulatorRC.IntegrationTests.csproj", "{D4AD959C-3ED2-4EC6-8063-689D30FD5FBD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorRC.IntegrationTests", "tests\EmulatorRC.IntegrationTests\EmulatorRC.IntegrationTests.csproj", "{D4AD959C-3ED2-4EC6-8063-689D30FD5FBD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorRC.TestClient", "EmulatorRC.TestClient\EmulatorRC.TestClient.csproj", "{558B2648-FFF5-43DC-BF91-42AC09E6E2CE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorRC.Benchmarks", "tests\EmulatorRC.Benchmarks\EmulatorRC.Benchmarks.csproj", "{558B2648-FFF5-43DC-BF91-42AC09E6E2CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorRC.UnitTests", "EmulatorRC.UnitTests\EmulatorRC.UnitTests.csproj", "{F815B2F8-FE5E-4ABE-9A96-46DF2E3D85E7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorRC.UnitTests", "tests\EmulatorRC.UnitTests\EmulatorRC.UnitTests.csproj", "{F815B2F8-FE5E-4ABE-9A96-46DF2E3D85E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
