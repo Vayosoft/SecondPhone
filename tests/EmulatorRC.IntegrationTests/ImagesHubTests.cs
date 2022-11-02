@@ -20,16 +20,22 @@ namespace EmulatorRC.IntegrationTests
                 .Build();
 
             var counter = 0;
-            connection.On<byte[]>("OnGetLastScreen", async data =>
+            connection.On<ScreenMessage>("OnGetScreen", async message =>
             {
-                _helper.WriteLine("[{0}]Got data '{1}'", counter++, BitConverter.ToString(data));
-                await connection.InvokeAsync("GetLastScreen");
+                _helper.WriteLine("[{0}] DATA => '{1}'", counter++, BitConverter.ToString(message.Image));
+                await connection.InvokeAsync("GetScreen");
             });
 
             await connection.StartAsync();
-            await connection.InvokeAsync("GetLastScreen");
+            await connection.InvokeAsync("GetScreen");
 
             await Task.Delay(1000);
         }
+    }
+
+    public class ScreenMessage
+    {
+        public string Id { get; set; } = null!;
+        public byte[] Image { get; init; } = null!;
     }
 }

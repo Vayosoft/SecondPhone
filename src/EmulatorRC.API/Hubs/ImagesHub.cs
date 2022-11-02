@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
 using EmulatorRC.API.Extensions;
+using EmulatorRC.API.Model;
 using EmulatorRC.Services;
 using Microsoft.AspNetCore.SignalR;
 
@@ -70,17 +71,20 @@ namespace EmulatorRC.API.Hubs
             return base.OnDisconnectedAsync(exception);
         }
 
-        public async Task GetLastScreen()
+        public async Task GetScreen()
         {
             byte[]? bytes = null;
-
             var deviceId = Context.GetHttpContext()?.Request.GetDeviceIdOrDefault();
             if (deviceId is not null)
             {
                 bytes = _emulatorDataRepository.GetLastScreen(deviceId);
             }
 
-            await Clients.Caller.SendAsync("OnGetLastScreen", bytes ?? Array.Empty<byte>());
+            var message = new ScreenMessage
+            {
+                Image = bytes ?? Array.Empty<byte>()
+            };
+            await Clients.Caller.SendAsync("OnGetScreen", message);
         }
     }
 }
