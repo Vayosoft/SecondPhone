@@ -60,7 +60,8 @@ namespace EmulatorRC.API.Services
 
                 var response = new ScreenReply
                 {
-                    Image = ByteString.CopyFrom(bytes ?? Array.Empty<byte>())
+                    //Image = ByteString.CopyFrom(bytes ?? Array.Empty<byte>())
+                    Image = UnsafeByteOperations.UnsafeWrap(bytes ?? Array.Empty<byte>())
                 };
 
                 await responseStream.WriteAsync(response);

@@ -3,8 +3,31 @@
 using EmulatorRC.Client.Protos;
 using Grpc.Core;
 using Grpc.Net.Client;
+using Grpc.Net.Client.Configuration;
 
-var channel = GrpcChannel.ForAddress("http://localhost:5001");
+var defaultMethodConfig = new MethodConfig
+{
+    Names = {MethodName.Default},
+    RetryPolicy = new RetryPolicy
+    {
+        MaxAttempts = 5,
+        InitialBackoff = TimeSpan.FromSeconds(1),
+        MaxBackoff = TimeSpan.FromSeconds(5),
+        BackoffMultiplier = 1.5,
+        RetryableStatusCodes = {StatusCode.Unavailable}
+    }
+};
+
+var channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
+{
+    Credentials = ChannelCredentials.Insecure,
+    ServiceConfig = new ServiceConfig
+    {
+        LoadBalancingConfigs = { new RoundRobinConfig() },
+        MethodConfigs = { defaultMethodConfig }
+    }
+});
+
 var client = new Screener.ScreenerClient(channel);
 
 //foreach (var i in Enumerable.Range(0, 2))
