@@ -51,11 +51,11 @@ public class Program
             builder.Services.AddGrpc();
             builder.WebHost.ConfigureKestrel(options =>
             {
-                options.Listen(IPAddress.Any, 5000, listenOptions =>
+                options.Listen(IPAddress.Any, 5003, listenOptions =>
                 {
                     listenOptions.Protocols = HttpProtocols.Http1;
                 });
-                options.Listen(IPAddress.Any, 5001, listenOptions =>
+                options.Listen(IPAddress.Any, 5004, listenOptions =>
                 {
                     listenOptions.Protocols = HttpProtocols.Http2;
                     //listenOptions.UseHttps("<path to .pfx file>", "<certificate password>");
