@@ -8,6 +8,7 @@
   </PropertyGroup>
     
   <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.49.0" />
     <PackageReference Include="LanguageExt.Core" Version="4.2.9" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
     <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
@@ -19,6 +20,10 @@
     <Folder Include="Snippets\" />
     <Folder Include="Snippets\Hubs\" />
   </ItemGroup>
+
+	<ItemGroup>
+		<Protobuf Include="Protos\screen.proto" GrpcServices="Server" />
+	</ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\EmulatorRC\EmulatorRC.csproj" />

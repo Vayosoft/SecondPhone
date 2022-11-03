@@ -11,11 +11,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D1F78C27
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC", "src\EmulatorRC\EmulatorRC.csproj", "{70708D76-DC47-46C9-9525-FBA84010D6BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorRC.IntegrationTests", "tests\EmulatorRC.IntegrationTests\EmulatorRC.IntegrationTests.csproj", "{D4AD959C-3ED2-4EC6-8063-689D30FD5FBD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.IntegrationTests", "tests\EmulatorRC.IntegrationTests\EmulatorRC.IntegrationTests.csproj", "{D4AD959C-3ED2-4EC6-8063-689D30FD5FBD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorRC.Benchmarks", "tests\EmulatorRC.Benchmarks\EmulatorRC.Benchmarks.csproj", "{558B2648-FFF5-43DC-BF91-42AC09E6E2CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.Benchmarks", "tests\EmulatorRC.Benchmarks\EmulatorRC.Benchmarks.csproj", "{558B2648-FFF5-43DC-BF91-42AC09E6E2CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorRC.UnitTests", "tests\EmulatorRC.UnitTests\EmulatorRC.UnitTests.csproj", "{F815B2F8-FE5E-4ABE-9A96-46DF2E3D85E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.UnitTests", "tests\EmulatorRC.UnitTests\EmulatorRC.UnitTests.csproj", "{F815B2F8-FE5E-4ABE-9A96-46DF2E3D85E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorRC.Client", "EmulatorRC.Client\EmulatorRC.Client.csproj", "{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +45,10 @@ Global
 		{F815B2F8-FE5E-4ABE-9A96-46DF2E3D85E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F815B2F8-FE5E-4ABE-9A96-46DF2E3D85E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F815B2F8-FE5E-4ABE-9A96-46DF2E3D85E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -53,6 +59,7 @@ Global
 		{D4AD959C-3ED2-4EC6-8063-689D30FD5FBD} = {D1F78C27-B9B6-4D71-8E24-0407634BEF6E}
 		{558B2648-FFF5-43DC-BF91-42AC09E6E2CE} = {D1F78C27-B9B6-4D71-8E24-0407634BEF6E}
 		{F815B2F8-FE5E-4ABE-9A96-46DF2E3D85E7} = {D1F78C27-B9B6-4D71-8E24-0407634BEF6E}
+		{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A} = {D1F78C27-B9B6-4D71-8E24-0407634BEF6E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC8D204D-5A9E-4019-AAE1-96FA5B8A99BB}

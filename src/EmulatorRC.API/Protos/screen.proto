@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option csharp_namespace = "EmulatorRC.API.Protos";
+
+service Screener {
+  rpc GetScreen (ScreenRequest) returns (ScreenReply);
+  rpc GetScreenStream (ScreenRequest) returns (stream ScreenReply);
+}
+
+message ScreenRequest {
+  string id = 1;
+}
+
+message ScreenReply {
+  bytes image = 1;
+}

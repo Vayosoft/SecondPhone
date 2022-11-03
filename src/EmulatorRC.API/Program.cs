@@ -1,7 +1,10 @@
 ﻿using System.Diagnostics;
+using System.Net;
 using EmulatorRC.API.Hubs;
+using EmulatorRC.API.Services;
 using EmulatorRC.Services;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Serilog;
 
 namespace EmulatorRC.API;
@@ -45,6 +48,20 @@ public class Program
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
             }
 
+            builder.Services.AddGrpc();
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.Listen(IPAddress.Any, 5000, listenOptions =>
+                {
+                    listenOptions.Protocols = HttpProtocols.Http1;
+                });
+                options.Listen(IPAddress.Any, 5001, listenOptions =>
+                {
+                    listenOptions.Protocols = HttpProtocols.Http2;
+                    //listenOptions.UseHttps("<path to .pfx file>", "<certificate password>");
+                });
+            });
+
             var app = builder.Build();
             {
                 //if (app.Environment.IsDevelopment())
@@ -56,15 +73,18 @@ public class Program
                 app.UseExceptionHandler("/error");
 
                 app.UseStaticFiles();
-                app.UseSerilogRequestLogging();
+                if (app.Environment.IsDevelopment())
+                {
+                    app.UseSerilogRequestLogging();
+                }
                 //app.UseHttpsRedirection();
 
                 app.UseAuthorization();
 
+                app.MapGrpcService<ScreenService>();
                 app.MapControllers();
                 app.MapHub<TouchEventsHub>("/chathub");
                 app.MapHub<ImagesHub>("/zub");
-
                 app.MapFallbackToFile("/index.html");
 
                 app.Run();
