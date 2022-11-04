@@ -44,7 +44,12 @@ var client = new Screener.ScreenerClient(channel);
 //}
 
 //***************************************************************************************
-using var call = client.GetScreen2Stream();
+var metadata = new Metadata
+{
+    { "X-DEVICE-ID", "TEST_DEV" }
+};
+
+using var call = client.GetScreen2Stream(metadata);
 Console.WriteLine("Starting background task to receive messages");
 var readTask = Task.Run(async () =>
 {

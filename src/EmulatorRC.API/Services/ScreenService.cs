@@ -4,6 +4,7 @@ using EmulatorRC.API.Protos;
 using EmulatorRC.Services;
 using Google.Protobuf;
 using Grpc.Core;
+using LanguageExt;
 
 namespace EmulatorRC.API.Services
 {
@@ -44,6 +45,8 @@ namespace EmulatorRC.API.Services
         {
             var httpContext = context.GetHttpContext();
             var deviceId = httpContext.Request.GetDeviceIdOrDefault();
+            //var requesterHeader = context.RequestHeaders.FirstOrDefault(e => e.Key.Equals("x-device-id", StringComparison.InvariantCulture));
+            //context.ResponseTrailers.Add("X-SERVER-NAME", "");
 
             _logger.LogInformation("Connected for {deviceId}", deviceId);
 
