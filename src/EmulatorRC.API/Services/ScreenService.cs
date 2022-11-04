@@ -92,12 +92,12 @@ namespace EmulatorRC.API.Services
             //await AwaitCancellation(context.CancellationToken);
         }
 
-        private static Task AwaitCancellation(CancellationToken token)
-        {
-            var completion = new TaskCompletionSource<object>();
-            token.Register(() => completion.SetResult(null!));
-            return completion.Task;
-        }
+        //private static Task AwaitCancellation(CancellationToken token)
+        //{
+        //    var completion = new TaskCompletionSource<object>();
+        //    token.Register(() => completion.SetResult(null!));
+        //    return completion.Task;
+        //}
 
         private static bool TryValidateUser(ClaimsPrincipal principal)
         {
