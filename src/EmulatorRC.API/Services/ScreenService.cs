@@ -56,11 +56,11 @@ namespace EmulatorRC.API.Services
             var user = httpContext.User;
             if (!TryValidateUser(user))
             {
-                var metadata = new Metadata
+                var headers = new Metadata
                 {
                     { "user", user.Identity?.Name ?? string.Empty }
                 };
-                throw new RpcException(new Status(StatusCode.PermissionDenied, "Permission denied"), metadata);
+                throw new RpcException(new Status(StatusCode.PermissionDenied, "Permission denied"), headers);
             }
 
             _logger.LogInformation("Connected for {deviceId}", deviceId);
