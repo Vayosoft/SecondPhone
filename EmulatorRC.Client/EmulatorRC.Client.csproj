@@ -8,7 +8,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<Protobuf Include="Protos\screen.proto" />
+		<Protobuf Include="Protos\screen.proto" GrpcServices="Client" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -18,6 +18,10 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Vayosoft.gRPC\Vayosoft.gRPC.csproj" />
 	</ItemGroup>
 
 </Project>

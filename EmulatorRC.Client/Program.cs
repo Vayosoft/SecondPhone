@@ -1,38 +1,56 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using EmulatorRC.Client;
 using EmulatorRC.Client.Protos;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Configuration;
+using Vayosoft.gRPC.Reactive;
 
-var defaultMethodConfig = new MethodConfig
+await using var screenClient = new GrpcStub();
+Console.WriteLine("Starting to send messages");
+Console.WriteLine("Type a message to echo then press enter.");
+while (true)
 {
-    Names = {MethodName.Default},
-    RetryPolicy = new RetryPolicy
-    {
-        MaxAttempts = 5,
-        InitialBackoff = TimeSpan.FromSeconds(1),
-        MaxBackoff = TimeSpan.FromSeconds(5),
-        BackoffMultiplier = 1.5,
-        RetryableStatusCodes = {StatusCode.Unavailable}
-    }
-};
+    var result = Console.ReadLine();
+    if (string.IsNullOrEmpty(result)) break;
+    await screenClient.SendAsync("1");
+}
 
-var channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
-{
-    Credentials = ChannelCredentials.Insecure,
-    ServiceConfig = new ServiceConfig
-    {
-        LoadBalancingConfigs = { new RoundRobinConfig() },
-        MethodConfigs = { defaultMethodConfig }
-    }
-});
+Console.WriteLine("Done!");
 
-var client = new Screener.ScreenerClient(channel);
+//AsymmetricKey.Create();
+
+//----------------------------------------------------------
+
+//var defaultMethodConfig = new MethodConfig
+//{
+//    Names = { MethodName.Default },
+//    RetryPolicy = new RetryPolicy
+//    {
+//        MaxAttempts = 5,
+//        InitialBackoff = TimeSpan.FromSeconds(1),
+//        MaxBackoff = TimeSpan.FromSeconds(5),
+//        BackoffMultiplier = 1.5,
+//        RetryableStatusCodes = { StatusCode.Unavailable }
+//    }
+//};
+
+//var channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
+//{
+//    Credentials = ChannelCredentials.Insecure,
+//    ServiceConfig = new ServiceConfig
+//    {
+//        LoadBalancingConfigs = { new RoundRobinConfig() },
+//        MethodConfigs = { defaultMethodConfig }
+//    }
+//});
+
+//var client = new Screener.ScreenerClient(channel);
 
 //foreach (var i in Enumerable.Range(0, 2))
 //{
-//    var response = await client.GetScreenAsync(new ScreenRequest() { Id = $"ID_{i}" });
+//    var response = await client.GetScreenAsync(new ScreenRequest { Id = $"ID_{i}" });
 //    Console.WriteLine("Screen: " + response.Image.ToStringUtf8());
 //    await Task.Delay(1000);
 //}
@@ -44,34 +62,51 @@ var client = new Screener.ScreenerClient(channel);
 //}
 
 //***************************************************************************************
-var metadata = new Metadata
-{
-    { "X-DEVICE-ID", "TEST_DEV" }
-};
 
-using var call = client.GetScreen2Stream(metadata);
-Console.WriteLine("Starting background task to receive messages");
-var readTask = Task.Run(async () =>
+//var metadata = new Metadata
+//{
+//    { "X-DEVICE-ID", "TEST_DEV" }
+//};
+
+//using var call = client.Connect(metadata);
+//Console.WriteLine("Starting background task to receive messages");
+//var readTask = Task.Run(async () =>
+//{
+//    await foreach (var response in call.ResponseStream.ReadAllAsync())
+//    {
+//        Console.WriteLine("Screen2Stream: " + response.Image.ToStringUtf8());
+//    }
+//});
+
+//Console.WriteLine("Starting to send messages");
+//Console.WriteLine("Type a message to echo then press enter.");
+//while (true)
+//{
+//    var result = Console.ReadLine();
+//    if (string.IsNullOrEmpty(result)) break;
+//    await call.RequestStream.WriteAsync(new ScreenRequest() { Id = "1" });
+//}
+
+//Console.WriteLine("Disconnecting");
+//await call.RequestStream.CompleteAsync();
+//await readTask;
+
+//***************************************************************************************
+
+class TestObservable : IObserver<ScreenReply>
 {
-    await foreach (var response in call.ResponseStream.ReadAllAsync())
+    public void OnCompleted()
     {
-        Console.WriteLine("Screen2Stream: " + response.Image.ToStringUtf8());
+        Console.WriteLine("Completed!");
     }
-});
 
-Console.WriteLine("Starting to send messages");
-Console.WriteLine("Type a message to echo then press enter.");
-while (true)
-{
-    var result = Console.ReadLine();
-    if (string.IsNullOrEmpty(result))
+    public void OnError(Exception error)
     {
-        break;
+        Console.WriteLine("Error: " + error.Message);
     }
 
-    await call.RequestStream.WriteAsync(new ScreenRequest() { Id = "1" });
+    public void OnNext(ScreenReply value)
+    {
+        Console.WriteLine("ScreenStream: " + value.Image.ToStringUtf8());
+    }
 }
-
-Console.WriteLine("Disconnecting");
-await call.RequestStream.CompleteAsync();
-await readTask;

@@ -1,10 +1,14 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Security.Claims;
+using System.Text;
 using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using EmulatorRC.Services;
 using Google.Protobuf;
 using Grpc.Core;
 using LanguageExt;
+using LanguageExt.Pipes;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EmulatorRC.API.Services
 {
@@ -41,34 +45,63 @@ namespace EmulatorRC.API.Services
             }
         }
 
-        public override async Task GetScreen2Stream(IAsyncStreamReader<ScreenRequest> requestStream, IServerStreamWriter<ScreenReply> responseStream, ServerCallContext context)
+        [Authorize]
+        public override async Task Connect(IAsyncStreamReader<ScreenRequest> requestStream, IServerStreamWriter<ScreenReply> responseStream, ServerCallContext context)
         {
             var httpContext = context.GetHttpContext();
             var deviceId = httpContext.Request.GetDeviceIdOrDefault();
-            //var requesterHeader = context.RequestHeaders.FirstOrDefault(e => e.Key.Equals("x-device-id", StringComparison.InvariantCulture));
+            //var requesterHeader = context.RequestHeaders.FirstOrDefault(e => e.Key.Equals("x-device-id", StringComparison.InvariantCultureIgnoreCase));
             //context.ResponseTrailers.Add("X-SERVER-NAME", "");
+
+            var user = httpContext.User;
+            if (!TryValidateUser(user))
+            {
+                var metadata = new Metadata
+                {
+                    { "user", user.Identity?.Name ?? string.Empty }
+                };
+                throw new RpcException(new Status(StatusCode.PermissionDenied, "Permission denied"), metadata);
+            }
 
             _logger.LogInformation("Connected for {deviceId}", deviceId);
 
-            while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
+            try
             {
-                var id = requestStream.Current.Id;
-                Console.WriteLine("Stream request " + id);
-
-                byte[]? bytes = null;
-                if (deviceId is not null)
+                while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
                 {
-                    bytes = _emulatorDataRepository.GetLastScreen(deviceId);
+                    var id = requestStream.Current.Id;
+                    Console.WriteLine("Stream request " + id);
+
+                    byte[]? bytes = null;
+                    if (deviceId is not null)
+                    {
+                        bytes = _emulatorDataRepository.GetLastScreen(deviceId);
+                    }
+
+                    var response = new ScreenReply
+                    {
+                        //Image = ByteString.CopyFrom(bytes ?? Array.Empty<byte>())
+                        Image = UnsafeByteOperations.UnsafeWrap(bytes ?? Array.Empty<byte>())
+                    };
+
+                    await responseStream.WriteAsync(response);
                 }
-
-                var response = new ScreenReply
-                {
-                    //Image = ByteString.CopyFrom(bytes ?? Array.Empty<byte>())
-                    Image = UnsafeByteOperations.UnsafeWrap(bytes ?? Array.Empty<byte>())
-                };
-
-                await responseStream.WriteAsync(response);
             }
+            catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled) { /*ignored*/ }
+
+            //await AwaitCancellation(context.CancellationToken);
+        }
+
+        private static Task AwaitCancellation(CancellationToken token)
+        {
+            var completion = new TaskCompletionSource<object>();
+            token.Register(() => completion.SetResult(null!));
+            return completion.Task;
+        }
+
+        private static bool TryValidateUser(ClaimsPrincipal principal)
+        {
+            return false;
         }
     }
 }

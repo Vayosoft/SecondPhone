@@ -5,7 +5,7 @@ option csharp_namespace = "EmulatorRC.Client.Protos";
 service Screener {
   rpc GetScreen (ScreenRequest) returns (ScreenReply);
   rpc GetScreenStream (ScreenRequest) returns (stream ScreenReply);
-  rpc GetScreen2Stream (stream ScreenRequest) returns (stream ScreenReply);
+  rpc Connect (stream ScreenRequest) returns (stream ScreenReply);
 }
 
 message ScreenRequest {

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -6,11 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	<InvariantGlobalization>true</InvariantGlobalization>
 	<EnablePreviewFeatures>true</EnablePreviewFeatures>
+    <UserSecretsId>33e7411f-e434-4fde-b366-de9194c8a492</UserSecretsId>
   </PropertyGroup>
     
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.49.0" />
     <PackageReference Include="LanguageExt.Core" Version="4.2.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.10" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
     <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />

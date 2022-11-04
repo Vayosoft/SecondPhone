@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.Benchmarks", "te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.UnitTests", "tests\EmulatorRC.UnitTests\EmulatorRC.UnitTests.csproj", "{F815B2F8-FE5E-4ABE-9A96-46DF2E3D85E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorRC.Client", "EmulatorRC.Client\EmulatorRC.Client.csproj", "{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.Client", "EmulatorRC.Client\EmulatorRC.Client.csproj", "{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vayosoft.gRPC", "Vayosoft.gRPC\Vayosoft.gRPC.csproj", "{02E6491B-88EF-4CDC-9A1B-480563F70A68}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,6 +51,10 @@ Global
 		{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02E6491B-88EF-4CDC-9A1B-480563F70A68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02E6491B-88EF-4CDC-9A1B-480563F70A68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02E6491B-88EF-4CDC-9A1B-480563F70A68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02E6491B-88EF-4CDC-9A1B-480563F70A68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,10 +1,14 @@
 ﻿using System.Diagnostics;
 using System.Net;
+using System.Security.Claims;
+using System.Text;
 using EmulatorRC.API.Hubs;
 using EmulatorRC.API.Services;
 using EmulatorRC.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
 namespace EmulatorRC.API;
@@ -21,6 +25,8 @@ public class Program
         {
             var builder = WebApplication.CreateBuilder(args);
             {
+                var configuration = builder.Configuration;
+
                 builder.WebHost.ConfigureKestrel(options => { options.AddServerHeader = false; });
                 builder.Host.UseSerilog((context, services, configuration) => configuration
                         .ReadFrom.Configuration(context.Configuration)
@@ -46,21 +52,64 @@ public class Program
                 });
                 builder.Services.AddMemoryCache();
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
-            }
 
-            builder.Services.AddGrpc();
-            builder.WebHost.ConfigureKestrel(options =>
-            {
-                options.Listen(IPAddress.Any, 5003, listenOptions =>
+                builder.Services.AddGrpc();
+                builder.WebHost.ConfigureKestrel(options =>
                 {
-                    listenOptions.Protocols = HttpProtocols.Http1;
+                    options.Listen(IPAddress.Any, 5003, listenOptions =>
+                    {
+                        listenOptions.Protocols = HttpProtocols.Http1;
+                    });
+                    options.Listen(IPAddress.Any, 5004, listenOptions =>
+                    {
+                        listenOptions.Protocols = HttpProtocols.Http2;
+                        //listenOptions.UseHttps("<path to .pfx file>", "<certificate password>");
+                    });
                 });
-                options.Listen(IPAddress.Any, 5004, listenOptions =>
+
+                //Authentication
+                //var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Symmetric:Key"]));
+                var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("qwertyuiopasdfghjklzxcvbnm123456"));
+                builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(options =>
+                    {
+                        options.IncludeErrorDetails = true; // <- great for debugging
+
+                        // Configure the actual Bearer validation
+                        options.TokenValidationParameters = 
+                            new TokenValidationParameters
+                        {
+                            IssuerSigningKey = signingKey,
+                            ValidAudience = "jwt-test",
+                            ValidIssuer = "jwt-test",
+                            RequireSignedTokens = true,
+                            RequireExpirationTime = true, // <- JWTs are required to have "exp" property set
+                            ValidateLifetime = true, // <- the "exp" will be validated
+                            ValidateAudience = true,
+                            ValidateIssuer = true,
+                        };
+
+                        //options.TokenValidationParameters =
+                        //    new TokenValidationParameters
+                        //    {
+                        //        ValidateAudience = false,
+                        //        ValidateIssuer = false,
+                        //        ValidateActor = false,
+                        //        ValidateLifetime = true,
+                        //        IssuerSigningKey = signingKey
+                        //    };
+                    });
+                //Authorization
+                builder.Services.AddAuthorization(options =>
                 {
-                    listenOptions.Protocols = HttpProtocols.Http2;
-                    //listenOptions.UseHttps("<path to .pfx file>", "<certificate password>");
+                    options.AddPolicy(JwtBearerDefaults.AuthenticationScheme, policy =>
+                    {
+                        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+                        policy.RequireClaim(ClaimTypes.Name);
+                    });
                 });
-            });
+
+            }
 
             var app = builder.Build();
             {
@@ -79,6 +128,8 @@ public class Program
                 }
                 //app.UseHttpsRedirection();
 
+                // Authenticate, then Authorize
+                app.UseAuthentication();
                 app.UseAuthorization();
 
                 app.MapGrpcService<ScreenService>();
