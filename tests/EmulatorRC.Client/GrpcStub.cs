@@ -9,7 +9,7 @@ namespace EmulatorRC.Client;
 public class GrpcStub : IAsyncDisposable
 {
     private const string _token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYW50b25AdmF5b3NvZnQuY29tIiwibmJmIjoxNjY3NjQwMTk0LCJleHAiOjE2Njc2NDM3OTQsImlzcyI6Imp3dC10ZXN0IiwiYXVkIjoiand0LXRlc3QifQ.2zxXxjeyLA8pct3KgH9LgmQIjOmBJ-upY_bm9UBlNxI";
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYW50b25AdmF5b3NvZnQuY29tIiwibmJmIjoxNjY3NjY1MzMxLCJleHAiOjE2Njc2Njg5MzEsImlzcyI6Imp3dC10ZXN0IiwiYXVkIjoiand0LXRlc3QifQ._YqCdYeOSFyc2OEWORFsIEyxysaDklvFBxFQgpRDP3E";
 
     private readonly GrpcChannel _channel;
     private readonly Screener.ScreenerClient _client;
