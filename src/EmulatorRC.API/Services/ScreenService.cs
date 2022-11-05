@@ -100,7 +100,7 @@ namespace EmulatorRC.API.Services
 
         private static bool TryValidateUser(ClaimsPrincipal principal)
         {
-            return false;
+            return true;
         }
     }
 }
