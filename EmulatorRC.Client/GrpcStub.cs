@@ -48,7 +48,7 @@ public class GrpcStub : IAsyncDisposable
 
         var headers = new Metadata
         {
-            { "Authorization", $"Bearer {"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYW50b25AdmF5b3NvZnQuY29tIiwibmJmIjoxNjY3NTg2MTIxLCJleHAiOjE2Njc1ODk3MjEsImlzcyI6Imp3dC10ZXN0IiwiYXVkIjoiand0LXRlc3QifQ.00LJtfCA2PPSHKi55FZ7AWKzoDVZj8KGGlllMesdFGM"}" },
+            { "Authorization", $"Bearer {"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYW50b25AdmF5b3NvZnQuY29tIiwibmJmIjoxNjY3NjI5Mzg2LCJleHAiOjE2Njc2MzI5ODYsImlzcyI6Imp3dC10ZXN0IiwiYXVkIjoiand0LXRlc3QifQ.vWzZWGAUxU5PtQw6OycwfJuYUVWgFxcIima40E9j9-A"}" },
             { "X-DEVICE-ID", "TEST_DEV" }
         };
 
