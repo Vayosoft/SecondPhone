@@ -8,6 +8,9 @@ namespace EmulatorRC.Client;
 
 public class GrpcStub : IAsyncDisposable
 {
+    private const string _token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYW50b25AdmF5b3NvZnQuY29tIiwibmJmIjoxNjY3NjQwMTk0LCJleHAiOjE2Njc2NDM3OTQsImlzcyI6Imp3dC10ZXN0IiwiYXVkIjoiand0LXRlc3QifQ.2zxXxjeyLA8pct3KgH9LgmQIjOmBJ-upY_bm9UBlNxI";
+
     private readonly GrpcChannel _channel;
     private readonly Screener.ScreenerClient _client;
     private readonly AsyncDuplexStreamingCall<ScreenRequest, ScreenReply> _stream;
@@ -48,7 +51,7 @@ public class GrpcStub : IAsyncDisposable
 
         var headers = new Metadata
         {
-            { "Authorization", $"Bearer {"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYW50b25AdmF5b3NvZnQuY29tIiwibmJmIjoxNjY3NjI5Mzg2LCJleHAiOjE2Njc2MzI5ODYsImlzcyI6Imp3dC10ZXN0IiwiYXVkIjoiand0LXRlc3QifQ.vWzZWGAUxU5PtQw6OycwfJuYUVWgFxcIima40E9j9-A"}" },
+            { "Authorization", $"Bearer {_token}" },
             { "X-DEVICE-ID", "TEST_DEV" }
         };
 
