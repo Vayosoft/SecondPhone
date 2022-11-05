@@ -1,8 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Net;
+using System.Net.Security;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using EmulatorRC.API.Hubs;
+using EmulatorRC.API.Protos;
 using EmulatorRC.API.Services;
 using EmulatorRC.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -55,6 +58,22 @@ public class Program
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
 
                 builder.Services.AddGrpc();
+                //builder.Services.AddGrpcClient<Screener.ScreenerBase>((sp, o) =>
+                //    {
+                //        o.Address = new Uri("");
+                //    })
+                //    .ConfigurePrimaryHttpMessageHandler(_ => new SocketsHttpHandler
+                //    {
+                //        SslOptions = new SslClientAuthenticationOptions
+                //        {
+                //            ClientCertificates = new X509CertificateCollection { TryGetSertificate() }
+                //        },
+                //        PooledConnectionIdleTimeout = Timeout.InfiniteTimeSpan,
+                //        KeepAlivePingDelay = TimeSpan.FromSeconds(10),
+                //        KeepAlivePingTimeout = TimeSpan.FromSeconds(15),
+                //        ConnectTimeout = TimeSpan.FromSeconds(30),
+                //        EnableMultipleHttp2Connections = true
+                //    });
                 //builder.WebHost.ConfigureKestrel(options =>
                 //{
                 //    //options.AllowSynchronousIO = false;
@@ -68,8 +87,8 @@ public class Program
                 //    });
 
                 //    options.Limits.Http2.MaxStreamsPerConnection = 100;
-                //    options.Limits.Http2.KeepAlivePingDelay = TimeSpan.FromSeconds(30);
-                //    options.Limits.Http2.KeepAlivePingTimeout = TimeSpan.FromMinutes(1);
+                //    options.Limits.Http2.KeepAlivePingDelay = TimeSpan.FromSeconds(10);
+                //    options.Limits.Http2.KeepAlivePingTimeout = TimeSpan.FromSeconds(15);
                 //    options.Listen(IPAddress.Any, 5004, listenOptions =>
                 //    {
                 //        listenOptions.Protocols = HttpProtocols.Http2;
