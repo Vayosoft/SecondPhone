@@ -9,6 +9,7 @@ using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
+//choco install bloomrpc
 namespace EmulatorRC.API.Services
 {
     public class ScreenService : Screener.ScreenerBase
