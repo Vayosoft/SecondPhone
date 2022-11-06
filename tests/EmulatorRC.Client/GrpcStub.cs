@@ -33,9 +33,10 @@ public class GrpcStub : IAsyncDisposable
             }
         };
 
-        _channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
+        _channel = GrpcChannel.ForAddress("https://localhost:5004", new GrpcChannelOptions
         {
-            Credentials = ChannelCredentials.Insecure,
+            //Credentials = ChannelCredentials.Insecure,
+            Credentials = ChannelCredentials.SecureSsl,
             ServiceConfig = new ServiceConfig
             {
                 LoadBalancingConfigs = { new RoundRobinConfig() },
@@ -48,7 +49,7 @@ public class GrpcStub : IAsyncDisposable
         var headers = new Metadata
         {
             { "Authorization", $"Bearer {authToken}" },
-            { "X-DEVICE-ID", "TEST_DEV" }
+            { "X-DEVICE-ID", Guid.NewGuid().ToString() }
         };
 
         _stream = _client.Connect(headers);
