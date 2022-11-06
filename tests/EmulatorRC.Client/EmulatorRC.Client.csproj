@@ -7,8 +7,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Protos\uploader.proto" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<Protobuf Include="Protos\screen.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\uploader.proto" GrpcServices="Client" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -159,6 +159,7 @@ public class Program
                 app.UseAuthorization();
 
                 app.MapGrpcService<ScreenService>();
+                app.MapGrpcService<UploaderService>();
                 app.MapControllers();
                 app.MapHub<TouchEventsHub>("/chathub");
                 app.MapHub<ImagesHub>("/zub");

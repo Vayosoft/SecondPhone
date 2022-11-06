@@ -49,7 +49,7 @@ public class GrpcStub : IAsyncDisposable
         var headers = new Metadata
         {
             { "Authorization", $"Bearer {authToken}" },
-            { "X-DEVICE-ID", Guid.NewGuid().ToString() }
+            { "X-DEVICE-ID", "Default" }
         };
 
         _stream = _client.Connect(headers);

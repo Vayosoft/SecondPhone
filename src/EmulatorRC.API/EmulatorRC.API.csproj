@@ -26,6 +26,7 @@
 
 	<ItemGroup>
 		<Protobuf Include="Protos\screen.proto" GrpcServices="Server" />
+		<Protobuf Include="Protos\uploader.proto" GrpcServices="Server" />
 	</ItemGroup>
 
   <ItemGroup>

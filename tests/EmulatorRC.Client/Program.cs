@@ -6,9 +6,38 @@ using EmulatorRC.Client.Tokens;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Configuration;
+using System.Threading.Channels;
+using EmulatorRC.API.Protos;
+using Google.Protobuf;
 using Vayosoft.gRPC.Reactive;
 
 var tokenResult = JwtUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456");
+
+
+var uploadTask = Task.Run(async () =>
+{
+    var channel = GrpcChannel.ForAddress("https://localhost:5004", new GrpcChannelOptions
+    {
+        //Credentials = ChannelCredentials.Insecure,
+        Credentials = ChannelCredentials.SecureSsl
+    });
+
+    var client = new Uploader.UploaderClient(channel);
+    var headers = new Metadata
+    {
+        { "X-DEVICE-ID", "Default" }
+    };
+    using var call = client.UploadMessage(headers);
+    foreach (var enumerateFile in Directory.EnumerateFiles("C:\\Users\\anton\\OneDrive\\Pictures"))
+    {
+        var image = await File.ReadAllBytesAsync(enumerateFile);
+        await 1000;
+        await call.RequestStream.WriteAsync(new UploadMessageRequest
+        {
+            Image = ByteString.CopyFrom(image)
+        });
+    }
+});
 
 await using var screenClient = new GrpcStub(tokenResult.Token);
 Console.WriteLine("Starting to send messages");
@@ -17,9 +46,11 @@ while (true)
 {
     var result = Console.ReadLine();
     if (string.IsNullOrEmpty(result)) break;
+
     await screenClient.SendAsync(result);
 }
 
+await uploadTask;
 Console.WriteLine("Done!");
 
 //AsymmetricKey.Create();
