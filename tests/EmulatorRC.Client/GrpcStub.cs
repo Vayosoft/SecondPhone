@@ -33,10 +33,10 @@ public class GrpcStub : IAsyncDisposable
             }
         };
 
-        _channel = GrpcChannel.ForAddress("https://localhost:5004", new GrpcChannelOptions
+        _channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
         {
-            //Credentials = ChannelCredentials.Insecure,
-            Credentials = ChannelCredentials.SecureSsl,
+            Credentials = ChannelCredentials.Insecure,
+            //Credentials = ChannelCredentials.SecureSsl,
             ServiceConfig = new ServiceConfig
             {
                 LoadBalancingConfigs = { new RoundRobinConfig() },

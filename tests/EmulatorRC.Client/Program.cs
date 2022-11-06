@@ -13,13 +13,13 @@ using Vayosoft.gRPC.Reactive;
 
 var tokenResult = JwtUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456");
 
-
+using var cts = new CancellationTokenSource();
 var uploadTask = Task.Run(async () =>
 {
-    var channel = GrpcChannel.ForAddress("https://localhost:5004", new GrpcChannelOptions
+    var channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
     {
-        //Credentials = ChannelCredentials.Insecure,
-        Credentials = ChannelCredentials.SecureSsl
+        Credentials = ChannelCredentials.Insecure,
+        //Credentials = ChannelCredentials.SecureSsl
     });
 
     var client = new Uploader.UploaderClient(channel);
@@ -30,6 +30,7 @@ var uploadTask = Task.Run(async () =>
     using var call = client.UploadMessage(headers);
     foreach (var enumerateFile in Directory.EnumerateFiles("C:\\Users\\anton\\OneDrive\\Pictures"))
     {
+        if (cts.IsCancellationRequested) break;
         var image = await File.ReadAllBytesAsync(enumerateFile);
         await 1000;
         await call.RequestStream.WriteAsync(new UploadMessageRequest
@@ -50,6 +51,7 @@ while (true)
     await screenClient.SendAsync(result);
 }
 
+cts.Cancel();
 await uploadTask;
 Console.WriteLine("Done!");
 
