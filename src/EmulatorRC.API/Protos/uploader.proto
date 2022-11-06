@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option csharp_namespace = "EmulatorRC.API.Protos";
+
+service Uploader {
+	rpc UploadMessage(stream UploadMessageRequest) returns (Ack);
+}
+
+message UploadMessageRequest {
+	bytes image = 1;
+}
+
+message Ack {}
