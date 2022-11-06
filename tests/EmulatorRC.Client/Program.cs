@@ -2,19 +2,22 @@
 
 using EmulatorRC.Client;
 using EmulatorRC.Client.Protos;
+using EmulatorRC.Client.Tokens;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Configuration;
 using Vayosoft.gRPC.Reactive;
 
-await using var screenClient = new GrpcStub();
+var tokenResult = JwtUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456");
+
+await using var screenClient = new GrpcStub(tokenResult.Token);
 Console.WriteLine("Starting to send messages");
 Console.WriteLine("Type a message to echo then press enter.");
 while (true)
 {
     var result = Console.ReadLine();
     if (string.IsNullOrEmpty(result)) break;
-    await screenClient.SendAsync("1");
+    await screenClient.SendAsync(result);
 }
 
 Console.WriteLine("Done!");

@@ -2,27 +2,23 @@
 using Grpc.Core;
 using Grpc.Net.Client.Configuration;
 using Grpc.Net.Client;
-using Vayosoft.gRPC.Reactive;
 
 namespace EmulatorRC.Client;
 
 public class GrpcStub : IAsyncDisposable
 {
-    private const string _token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYW50b25AdmF5b3NvZnQuY29tIiwibmJmIjoxNjY3NjY1MzMxLCJleHAiOjE2Njc2Njg5MzEsImlzcyI6Imp3dC10ZXN0IiwiYXVkIjoiand0LXRlc3QifQ._YqCdYeOSFyc2OEWORFsIEyxysaDklvFBxFQgpRDP3E";
-
     private readonly GrpcChannel _channel;
     private readonly Screener.ScreenerClient _client;
     private readonly AsyncDuplexStreamingCall<ScreenRequest, ScreenReply> _stream;
     private readonly CancellationTokenSource _cts;
     private readonly Task _readTask;
 
-    public static GrpcStub Create<T>() where T : ClientBase
+    public static GrpcStub Create<T>(string authToken) where T : ClientBase
     {
-        return new GrpcStub();
+        return new GrpcStub(authToken);
     }
 
-    public GrpcStub()
+    public GrpcStub(string authToken)
     {
         var defaultMethodConfig = new MethodConfig
         {
@@ -51,7 +47,7 @@ public class GrpcStub : IAsyncDisposable
 
         var headers = new Metadata
         {
-            { "Authorization", $"Bearer {_token}" },
+            { "Authorization", $"Bearer {authToken}" },
             { "X-DEVICE-ID", "TEST_DEV" }
         };
 
