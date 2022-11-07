@@ -34,7 +34,7 @@ namespace EmulatorRC.API.Controllers
 
                 _emulatorDataRepository.SetScreen(deviceId, imageId, array);
                 _emulatorDataRepository.SetLastScreenId(deviceId, imageId);
-                _emulatorDataRepository.SetLastScreen(deviceId, array);
+                _emulatorDataRepository.SetLastScreen(deviceId, new Screen(imageId, array));
             }
 
             if (ImagesHub.Devices.TryGetValue(deviceId, out var clientIds) && clientIds.Count > 0)

@@ -23,7 +23,7 @@ namespace EmulatorRC.API.Services
         public override async Task<Ack> UploadMessage(IAsyncStreamReader<UploadMessageRequest> requestStream, ServerCallContext context)
         {
             var httpContext = context.GetHttpContext();
-            var deviceId = httpContext.Request.GetDeviceIdOrDefault("Default")!;
+            var deviceId = httpContext.Request.GetDeviceIdOrDefault("default")!;
 
             try
             {
@@ -37,7 +37,7 @@ namespace EmulatorRC.API.Services
 
                     _emulatorDataRepository.SetScreen(deviceId, imageId, image);
                     _emulatorDataRepository.SetLastScreenId(deviceId, imageId);
-                    _emulatorDataRepository.SetLastScreen(deviceId, image);
+                    _emulatorDataRepository.SetLastScreen(deviceId, new Screen(imageId, image));
 
                     if (ImagesHub.Devices.TryGetValue(deviceId, out var clientIds) && clientIds.Count > 0)
                     {

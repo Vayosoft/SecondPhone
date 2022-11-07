@@ -49,7 +49,7 @@ public class GrpcStub : IAsyncDisposable
         var headers = new Metadata
         {
             { "Authorization", $"Bearer {authToken}" },
-            { "X-DEVICE-ID", "Default" }
+            { "X-DEVICE-ID", "default" }
         };
 
         _stream = _client.Connect(headers);
@@ -73,7 +73,7 @@ public class GrpcStub : IAsyncDisposable
 
             await foreach (var response in _stream.ResponseStream.ReadAllAsync(cancellationToken: token))
             {
-                Console.WriteLine("Screen {0} bites", response.Image.Length);
+                Console.WriteLine("Screen {0} {1} bites", response.Id, response.Image.Length);
             }
         }
         catch (RpcException ex) when (ex.StatusCode == StatusCode.PermissionDenied)

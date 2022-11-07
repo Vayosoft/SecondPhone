@@ -77,7 +77,8 @@ namespace EmulatorRC.API.Hubs
             var deviceId = Context.GetHttpContext()?.Request.GetDeviceIdOrDefault();
             if (deviceId is not null)
             {
-                bytes = _emulatorDataRepository.GetLastScreen(deviceId);
+                var screen = _emulatorDataRepository.GetLastScreen(deviceId);
+                bytes = screen?.Image;
             }
 
             var message = new ScreenMessage

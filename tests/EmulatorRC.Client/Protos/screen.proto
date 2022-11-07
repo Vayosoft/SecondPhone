@@ -3,8 +3,6 @@ syntax = "proto3";
 option csharp_namespace = "EmulatorRC.Client.Protos";
 
 service Screener {
-  rpc GetScreen (ScreenRequest) returns (ScreenReply);
-  rpc GetScreenStream (ScreenRequest) returns (stream ScreenReply);
   rpc Connect (stream ScreenRequest) returns (stream ScreenReply);
 }
 
@@ -13,5 +11,6 @@ message ScreenRequest {
 }
 
 message ScreenReply {
-  bytes image = 1;
+    string id = 1;
+    bytes image = 2;
 }

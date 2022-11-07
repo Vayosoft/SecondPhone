@@ -25,7 +25,7 @@ var uploadTask = Task.Run(async () =>
     var client = new Uploader.UploaderClient(channel);
     var headers = new Metadata
     {
-        { "X-DEVICE-ID", "Default" }
+        { "X-DEVICE-ID", "default" }
     };
     using var call = client.UploadMessage(headers);
     foreach (var enumerateFile in Directory.EnumerateFiles("C:\\Users\\anton\\OneDrive\\Pictures"))

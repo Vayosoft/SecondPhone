@@ -43,13 +43,13 @@ namespace EmulatorRC.API.Controllers
         {
             var deviceId = Request.GetDeviceIdOrDefault("DEFAULT")!;
 
-            var bytes = _emulatorDataRepository.GetLastScreen(deviceId);
-            if (bytes is null)
+            var screen = _emulatorDataRepository.GetLastScreen(deviceId);
+            if (screen is null)
             {
                 return NotFound();
             }
 
-            return File(bytes, "image/jpeg");
+            return File(screen.Image, "image/jpeg");
         }
 
         [HttpGet("{id}")]
@@ -61,7 +61,11 @@ namespace EmulatorRC.API.Controllers
             if (bytes is null)
             {
                 if (id == _emulatorDataRepository.GetLastScreenId(deviceId))
-                    bytes = _emulatorDataRepository.GetLastScreen(deviceId);
+                {
+                    var screen = _emulatorDataRepository.GetLastScreen(deviceId);
+                    bytes = screen?.Image;
+                }
+
                 if (bytes is null)
                 {
                     return NotFound();

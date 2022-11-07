@@ -57,7 +57,17 @@ public class Program
                 builder.Services.AddMemoryCache();
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
 
-                builder.Services.AddGrpc();
+                builder.Services.AddGrpc(options =>
+                    {
+                        options.EnableDetailedErrors = true;
+                        options.MaxReceiveMessageSize = 2 * 1024 * 1024; // 2 MB
+                        options.MaxSendMessageSize = 5 * 1024 * 1024; // 5 MB
+                    })
+                    .AddServiceOptions<UploaderService>(options =>
+                    {
+                        options.EnableDetailedErrors = true;
+                        options.MaxReceiveMessageSize = 5 * 1024 * 1024; // 2 MB
+                    });
                 //builder.Services.AddGrpcClient<Screener.ScreenerBase>((sp, o) =>
                 //    {
                 //        o.Address = new Uri("");

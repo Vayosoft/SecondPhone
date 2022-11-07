@@ -17,9 +17,9 @@ namespace EmulatorRC.Services
             return _memoryCache.Get<string>($"{deviceId}->LastScreenId");
         }
 
-        public byte[]? GetLastScreen(string deviceId)
+        public Screen? GetLastScreen(string deviceId)
         {
-            return _memoryCache.Get<byte[]>($"{deviceId}->LastScreen");
+            return _memoryCache.Get<Screen>($"{deviceId}->LastScreen");
         }
 
         public byte[]? GetScreen(string deviceId, string id)
@@ -32,7 +32,7 @@ namespace EmulatorRC.Services
             _memoryCache.Set($"{deviceId}->LastScreenId", id);
         }
 
-        public void SetLastScreen(string deviceId, byte[] screen)
+        public void SetLastScreen(string deviceId, Screen screen)
         {
             _memoryCache.Set($"{deviceId}->LastScreen", screen);
         }
@@ -42,5 +42,7 @@ namespace EmulatorRC.Services
             _memoryCache.Set($"{deviceId}->{id}.jpg", screen, new MemoryCacheEntryOptions { SlidingExpiration = TimeSpan.FromMinutes(1) });
         }
     }
+
+    public record Screen(string Id, byte[] Image);
 }
 
