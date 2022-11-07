@@ -1,18 +1,14 @@
 ﻿using System.Diagnostics;
-using System.Net;
-using System.Net.Security;
 using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using EmulatorRC.API.Hubs;
-using EmulatorRC.API.Protos;
 using EmulatorRC.API.Services;
 using EmulatorRC.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using Vayosoft.Identity;
 
 namespace EmulatorRC.API;
 
@@ -106,44 +102,11 @@ public class Program
                 //    });
                 //});
 
-                //Authentication
-                //https://blog.devgenius.io/jwt-authentication-in-asp-net-core-e67dca9ae3e8
-                //var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Symmetric:Key"]));
-                var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("qwertyuiopasdfghjklzxcvbnm123456"));
-                builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddJwtBearer(options =>
-                    {
-                        options.IncludeErrorDetails = true; // <- great for debugging
-
-                        // Configure the actual Bearer validation
-                        options.TokenValidationParameters =
-                            new TokenValidationParameters
-                            {
-                                ValidateActor = false,
-
-                                ValidateAudience = false,
-                                ValidAudience = "jwt-test",
-
-                                ValidateIssuer = false,
-                                ValidIssuer = "jwt-test",
-
-                                RequireExpirationTime = true, // <- JWTs are required to have "exp" property set
-                                ValidateLifetime = true, // <- the "exp" will be validated
-
-                                RequireSignedTokens = true,
-                                IssuerSigningKey = signingKey,
-                            };
-                    });
-                //Authorization
-                builder.Services.AddAuthorization(options =>
-                {
-                    options.AddPolicy(JwtBearerDefaults.AuthenticationScheme, policy =>
-                    {
-                        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
-                        policy.RequireClaim(ClaimTypes.Name);
-                    });
-                });
-
+                //Authentication && Authorization
+                var symmetricKey = "qwertyuiopasdfghjklzxcvbnm123456"; //configuration["Jwt:Symmetric:Key"];
+                builder.Services
+                    .AddTokenAuthentication(symmetricKey)
+                    .AddTokenAuthorization();
             }
 
             var app = builder.Build();

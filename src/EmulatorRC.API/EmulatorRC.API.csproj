@@ -30,6 +30,7 @@
 	</ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Identity\Vayosoft.Identity.csproj" />
     <ProjectReference Include="..\..\src\EmulatorRC\EmulatorRC.csproj" />
   </ItemGroup>
 </Project>
