@@ -15,10 +15,4 @@
     <ProjectReference Include="..\EmulatorHub\EmulatorHub.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Extensions\" />
-    <Folder Include="Model\" />
-    <Folder Include="Services\" />
-  </ItemGroup>
-
 </Project>
