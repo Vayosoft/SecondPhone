@@ -68,18 +68,18 @@ namespace EmulatorRC.API.Services
             {
                 while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
                 {
-                    var lastId = requestStream.Current.Id;
+                    var id = requestStream.Current.Id;
 
-                    _logger.LogDebug("Stream request => lastId: {lastId}", lastId);
+                    _logger.LogDebug("Stream request => lastId: {lastId}", id);
 
                     var screen = _emulatorDataRepository.GetLastScreen(deviceId);
-                    if (screen is null || screen.Id == lastId) continue;
-                    var response = new ScreenReply
-                    {
-                        Id = screen.Id,
-                        //Image = ByteString.CopyFrom(bytes)
-                        Image = UnsafeByteOperations.UnsafeWrap(screen.Image)
-                    };
+                    var response = screen is null || screen.Id.Equals(id, StringComparison.Ordinal) 
+                        ? new ScreenReply() 
+                        : new ScreenReply
+                        {
+                            Id = screen.Id,
+                            Image = UnsafeByteOperations.UnsafeWrap(screen.Image)
+                        };
 
                     await responseStream.WriteAsync(response);
                 }
