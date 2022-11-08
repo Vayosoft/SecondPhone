@@ -10,7 +10,7 @@ using EmulatorHub.Tokens;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
 
-var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456");
+var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 
 using var cts = new CancellationTokenSource();
 var uploadTask = Task.Run(async () =>

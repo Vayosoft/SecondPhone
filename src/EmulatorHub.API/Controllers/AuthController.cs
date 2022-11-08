@@ -1,11 +1,16 @@
-//using Microsoft.AspNetCore.Mvc;
-//using Vayosoft.Web.Controllers;
+using EmulatorHub.Tokens;
+using Microsoft.AspNetCore.Mvc;
 
-//namespace Hub.API.Controllers
-//{
-//    [Route("[controller]")]
-//    public class AuthController : ApiControllerBase
-//    {
-       
-//    }
-//}
+namespace EmulatorHub.API.Controllers
+{
+    [ApiController]
+    [Route("[controller]")]
+    public class AuthController : ControllerBase
+    {
+        [HttpGet("getToken")]
+        public IActionResult GetToken()
+        {
+            return Ok(TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(60)));
+        }
+    }
+}

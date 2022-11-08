@@ -5,6 +5,7 @@ using EmulatorRC.API.Model;
 
 namespace EmulatorRC.API.Controllers
 {
+    [ApiController]
     public sealed class ErrorsController : ControllerBase
     {
         [Route("/error")]

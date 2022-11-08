@@ -6,7 +6,7 @@ using EmulatorRC.API.Extensions;
 
 namespace EmulatorRC.API.Controllers
 {
-
+    [ApiController]
     [Route("api/[Controller]")]
     public class UploadController : ControllerBase
     {

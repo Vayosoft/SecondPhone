@@ -7,10 +7,10 @@ namespace EmulatorHub.Tokens
 {
     public static class TokenUtils
     {
-        public static TokenResult GenerateToken(string key)
+        public static TokenResult GenerateToken(string signingKey, TimeSpan timeout)
         {
             var signingCredentials = new SigningCredentials(
-                key: new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                key: new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
                 algorithm: SecurityAlgorithms.HmacSha256);
 
             var jwtDate = DateTime.Now;
@@ -21,10 +21,10 @@ namespace EmulatorHub.Tokens
 
                 // Add whatever claims you'd want the generated token to include
                 claims: new List<Claim> {
-                    new(ClaimTypes.Name, "test_client@vayosoft.com"),
+                    new(ClaimTypes.Name, Guid.NewGuid().ToString("N")),
                 },
                 notBefore: jwtDate,
-                expires: jwtDate.AddSeconds(300), // Should be short lived. For logins, it's may be fine to use 24h
+                expires: jwtDate.Add(timeout), // Should be short lived. For logins, it's may be fine to use 24h
 
                 // Provide a cryptographic key used to sign the token.
                 // When dealing with symmetric keys then this must be

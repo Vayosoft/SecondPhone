@@ -7,7 +7,7 @@ using EmulatorRC.API.Extensions;
 
 namespace EmulatorRC.API.Controllers
 {
-
+    [ApiController]
     [Route("api/[Controller]")]
     public class ScreenController : ControllerBase 
     {
