@@ -1,6 +1,5 @@
-﻿using System.Net;
-using System.Security.Claims;
-using System.Text;
+﻿using System.Security.Claims;
+using System.Threading.Channels;
 using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using EmulatorRC.Services;
@@ -22,29 +21,7 @@ namespace EmulatorRC.API.Services
             _emulatorDataRepository = emulatorDataRepository;
         }
 
-        //public override Task<ScreenReply> GetScreen(ScreenRequest request, ServerCallContext context)
-        //{
-        //    _logger.LogInformation("Saying hello to {Name}", request.Id);
-        //    return Task.FromResult(new ScreenReply
-        //    {
-        //       Image = ByteString.CopyFrom(Encoding.UTF8.GetBytes("GetScreen"))
-        //    });
-        //}
-
-        //public override async Task GetScreenStream(ScreenRequest request, IServerStreamWriter<ScreenReply> responseStream, ServerCallContext context)
-        //{
-        //    foreach (var x in Enumerable.Range(1, 2))
-        //    {
-        //        await responseStream.WriteAsync(new ScreenReply
-        //        {
-        //            Image = ByteString.CopyFrom(Encoding.UTF8.GetBytes("GetScreenStream"))
-        //        });
-
-        //        await Task.Delay(200);
-        //    }
-        //}
-
-        [Authorize]
+        //[Authorize]
         public override async Task Connect(IAsyncStreamReader<ScreenRequest> requestStream, IServerStreamWriter<ScreenReply> responseStream, ServerCallContext context)
         {
             var httpContext = context.GetHttpContext();
@@ -101,6 +78,60 @@ namespace EmulatorRC.API.Services
         private static bool TryValidateUser(ClaimsPrincipal principal)
         {
             return true;
+        }
+    }
+
+    public class ScreenChannel : IObservable<ScreenReply>
+    {
+        private const int MAX_QUEUE = 5;
+
+        private readonly Channel<byte[]> _channel;
+
+        public ScreenChannel()
+        {
+            var options = new BoundedChannelOptions(MAX_QUEUE)
+            {
+                SingleWriter = true,
+                SingleReader = false,
+                FullMode = BoundedChannelFullMode.DropOldest
+            };
+            _channel = Channel.CreateBounded<byte[]>(options);
+        }
+
+        public async ValueTask Enqueue(byte[] image, CancellationToken cancellationToken = default)
+        {
+            await _channel.Writer.WriteAsync(image, cancellationToken);
+        }
+
+
+        public IDisposable Subscribe(IObserver<ScreenReply> observer)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class ScreenObserver : IObserver<ScreenReply>
+    {
+        private readonly IAsyncStreamWriter<ScreenReply> _writer;
+
+        public ScreenObserver(IAsyncStreamWriter<ScreenReply> writer)
+        {
+            _writer = writer;
+        }
+
+        public void OnCompleted()
+        {
+            Console.WriteLine("Completed!");
+        }
+
+        public void OnError(Exception error)
+        {
+            Console.WriteLine("Error: " + error.Message);
+        }
+
+        public void OnNext(ScreenReply value)
+        {
+            Console.WriteLine("ScreenStream: " + value.Image.ToStringUtf8());
         }
     }
 }
