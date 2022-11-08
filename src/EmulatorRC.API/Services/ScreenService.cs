@@ -50,7 +50,6 @@ namespace EmulatorRC.API.Services
             var httpContext = context.GetHttpContext();
             var deviceId = httpContext.Request.GetDeviceIdOrDefault("default")!;
             //var requesterHeader = context.RequestHeaders.FirstOrDefault(e => e.Key.Equals("x-device-id", StringComparison.InvariantCultureIgnoreCase));
-            //context.ResponseTrailers.Add("X-SERVER-NAME", "");
 
             var user = httpContext.User;
             if (!TryValidateUser(user))
@@ -70,7 +69,10 @@ namespace EmulatorRC.API.Services
                 {
                     var id = requestStream.Current.Id;
 
-                    _logger.LogDebug("Stream request => lastId: {lastId}", id);
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug("Stream request => handledId: {handledId}", id);
+                    }
 
                     var screen = _emulatorDataRepository.GetLastScreen(deviceId);
                     var response = screen is null || screen.Id.Equals(id, StringComparison.Ordinal) 

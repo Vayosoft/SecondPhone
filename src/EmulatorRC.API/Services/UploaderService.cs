@@ -31,7 +31,10 @@ namespace EmulatorRC.API.Services
                 {
                     var image = requestStream.Current.Image.ToByteArray();
 
-                    _logger.LogDebug("Stream request {0} bytes", image.Length);
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug("Screen uploaded => {0} bytes", image.Length);
+                    }
 
                     var imageId = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString();
 
