@@ -29,6 +29,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hub.API", "src\Hub.API\Hub.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Identity", "..\Vayosoft\src\Vayosoft.Identity\Vayosoft.Identity.csproj", "{4E02441D-0AAF-47D2-ADCA-72F51118BFE6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Web", "..\Vayosoft\src\Vayosoft.Web\Vayosoft.Web.csproj", "{0908F7F1-96EF-46BF-B503-76C9862AE47F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{4E02441D-0AAF-47D2-ADCA-72F51118BFE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E02441D-0AAF-47D2-ADCA-72F51118BFE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E02441D-0AAF-47D2-ADCA-72F51118BFE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0908F7F1-96EF-46BF-B503-76C9862AE47F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0908F7F1-96EF-46BF-B503-76C9862AE47F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0908F7F1-96EF-46BF-B503-76C9862AE47F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0908F7F1-96EF-46BF-B503-76C9862AE47F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -90,6 +96,7 @@ Global
 		{4FEE9568-CBB0-4C1A-8DF1-C1781FC669F4} = {E0353DBC-A15E-4CAF-A036-4A97BFD01D36}
 		{1C2C24F6-4625-4342-8B36-BF7F4D636B4A} = {E0353DBC-A15E-4CAF-A036-4A97BFD01D36}
 		{4E02441D-0AAF-47D2-ADCA-72F51118BFE6} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
+		{0908F7F1-96EF-46BF-B503-76C9862AE47F} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC8D204D-5A9E-4019-AAE1-96FA5B8A99BB}
