@@ -63,43 +63,6 @@ public class Program
                         options.EnableDetailedErrors = true;
                         options.MaxReceiveMessageSize = 5 * 1024 * 1024; // 2 MB
                     });
-                //builder.Services.AddGrpcClient<Screener.ScreenerBase>((sp, o) =>
-                //    {
-                //        o.Address = new Uri("");
-                //    })
-                //    .ConfigurePrimaryHttpMessageHandler(_ => new SocketsHttpHandler
-                //    {
-                //        SslOptions = new SslClientAuthenticationOptions
-                //        {
-                //            ClientCertificates = new X509CertificateCollection { TryGetSertificate() }
-                //        },
-                //        PooledConnectionIdleTimeout = Timeout.InfiniteTimeSpan,
-                //        KeepAlivePingDelay = TimeSpan.FromSeconds(10),
-                //        KeepAlivePingTimeout = TimeSpan.FromSeconds(15),
-                //        ConnectTimeout = TimeSpan.FromSeconds(30),
-                //        EnableMultipleHttp2Connections = true
-                //    });
-                //builder.WebHost.ConfigureKestrel(options =>
-                //{
-                //    //options.AllowSynchronousIO = false;
-                //    //options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
-                //    //options.Limits.MaxConcurrentConnections = 100;
-                //    //options.Limits.MaxConcurrentUpgradedConnections = 100;
-                //    //options.Limits.MaxRequestBodySize = 100_000_000; //[RequestSizeLimit(100_000_000)]
-                //    options.Listen(IPAddress.Any, 5003, listenOptions =>
-                //    {
-                //        listenOptions.Protocols = HttpProtocols.Http1;
-                //    });
-
-                //    options.Limits.Http2.MaxStreamsPerConnection = 100;
-                //    options.Limits.Http2.KeepAlivePingDelay = TimeSpan.FromSeconds(10);
-                //    options.Limits.Http2.KeepAlivePingTimeout = TimeSpan.FromSeconds(15);
-                //    options.Listen(IPAddress.Any, 5004, listenOptions =>
-                //    {
-                //        listenOptions.Protocols = HttpProtocols.Http2;
-                //        //listenOptions.UseHttps("<path to .pfx file>", "<certificate password>");
-                //    });
-                //});
 
                 //Authentication && Authorization
                 var symmetricKey = "qwertyuiopasdfghjklzxcvbnm123456"; //configuration["Jwt:Symmetric:Key"];
@@ -113,16 +76,12 @@ public class Program
                             new TokenValidationParameters
                             {
                                 ValidateActor = false,
-
                                 ValidateAudience = false,
                                 ValidAudience = "Vayosoft",
-
                                 ValidateIssuer = false,
                                 ValidIssuer = "Vayosoft",
-
                                 RequireExpirationTime = true, // <- JWTs are required to have "exp" property set
                                 ValidateLifetime = true, // <- the "exp" will be validated
-
                                 RequireSignedTokens = true,
                                 IssuerSigningKey = signingKey,
                             };

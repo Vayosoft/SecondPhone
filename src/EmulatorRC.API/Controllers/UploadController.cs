@@ -8,7 +8,7 @@ namespace EmulatorRC.API.Controllers
 {
 
     [Route("api/[Controller]")]
-    public class UploadController : ApiControllerBase
+    public class UploadController : ControllerBase
     {
 
         private readonly IHubContext<ImagesHub> _imageHub;

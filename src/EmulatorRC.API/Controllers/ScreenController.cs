@@ -9,7 +9,7 @@ namespace EmulatorRC.API.Controllers
 {
 
     [Route("api/[Controller]")]
-    public class ScreenController : ApiControllerBase 
+    public class ScreenController : ControllerBase 
     {
 
         private readonly IHubContext<ImagesHub> _imageHub;
