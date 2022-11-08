@@ -33,7 +33,7 @@ namespace EmulatorRC.API.Services
 
                     if (_logger.IsEnabled(LogLevel.Debug))
                     {
-                        _logger.LogDebug("Screen uploaded => {0} bytes", image.Length);
+                        _logger.LogDebug("Screen uploaded => {length} bytes", image.Length);
                     }
 
                     var imageId = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString();
