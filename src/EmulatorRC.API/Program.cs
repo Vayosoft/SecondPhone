@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using Vayosoft.Identity;
 
 namespace EmulatorRC.API;
 
@@ -104,9 +103,38 @@ public class Program
 
                 //Authentication && Authorization
                 var symmetricKey = "qwertyuiopasdfghjklzxcvbnm123456"; //configuration["Jwt:Symmetric:Key"];
-                builder.Services
-                    .AddTokenAuthentication(symmetricKey)
-                    .AddTokenAuthorization();
+                var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(symmetricKey));
+                builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(options =>
+                    {
+                        options.IncludeErrorDetails = true; // <- for debugging
+
+                        options.TokenValidationParameters =
+                            new TokenValidationParameters
+                            {
+                                ValidateActor = false,
+
+                                ValidateAudience = false,
+                                ValidAudience = "Vayosoft",
+
+                                ValidateIssuer = false,
+                                ValidIssuer = "Vayosoft",
+
+                                RequireExpirationTime = true, // <- JWTs are required to have "exp" property set
+                                ValidateLifetime = true, // <- the "exp" will be validated
+
+                                RequireSignedTokens = true,
+                                IssuerSigningKey = signingKey,
+                            };
+                    });
+                builder.Services.AddAuthorization(options =>
+                {
+                    options.AddPolicy(JwtBearerDefaults.AuthenticationScheme, policy =>
+                    {
+                        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+                        policy.RequireClaim(ClaimTypes.Name);
+                    });
+                });
             }
 
             var app = builder.Build();

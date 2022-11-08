@@ -9,7 +9,6 @@ using Grpc.Net.Client.Configuration;
 using System.Threading.Channels;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
-using Vayosoft.gRPC.Reactive;
 
 var tokenResult = JwtUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456");
 
