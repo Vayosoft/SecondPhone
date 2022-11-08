@@ -21,9 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.Client", "tests\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{9DE71ED2-5278-49CE-989F-1E9B591E266B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hub", "src\Hub\Hub.csproj", "{4FEE9568-CBB0-4C1A-8DF1-C1781FC669F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmultatorHub", "src\EmulatorHub\EmultatorHub.csproj", "{4FEE9568-CBB0-4C1A-8DF1-C1781FC669F4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hub.API", "src\Hub.API\Hub.API.csproj", "{1C2C24F6-4625-4342-8B36-BF7F4D636B4A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorHub.API", "src\EmulatorHub.API\EmulatorHub.API.csproj", "{1C2C24F6-4625-4342-8B36-BF7F4D636B4A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
