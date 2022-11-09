@@ -51,7 +51,11 @@ namespace EmulatorRC.API.Services
                     await responseStream.WriteAsync(response);
                 }
             }
-            catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled) { /*ignored*/ }
+            catch (OperationCanceledException) { }
+            catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+            {
+                /*ignored*/
+            }
         }
 
         //[Authorize]

@@ -2,6 +2,7 @@
 using Grpc.Core;
 using Grpc.Net.Client.Configuration;
 using Grpc.Net.Client;
+using LanguageExt.Common;
 
 namespace EmulatorRC.Client;
 
@@ -75,6 +76,7 @@ public class GrpcStub : IAsyncDisposable
             await foreach (var response in _stream.ResponseStream.ReadAllAsync(cancellationToken: token))
             {
                 Console.WriteLine("[{0}] Screen {1} {2} bites", _stubId, response.Id, response.Image.Length);
+                await SendAsync(string.Empty);
             }
         }
         catch (RpcException ex) when (ex.StatusCode == StatusCode.PermissionDenied)

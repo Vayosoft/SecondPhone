@@ -5,6 +5,7 @@ using EmulatorRC.Services;
 using Grpc.Core;
 using Microsoft.AspNetCore.SignalR;
 using System.Threading.Channels;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace EmulatorRC.API.Services
 {
@@ -55,7 +56,7 @@ namespace EmulatorRC.API.Services
             }
             catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
             {
-                /*ignored*/
+                _logger.LogDebug("Canceled stream");
             }
 
             return new Ack();

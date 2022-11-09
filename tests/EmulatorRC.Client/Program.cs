@@ -37,6 +37,7 @@ var uploadTask = Task.Run(async () =>
             Image = ByteString.CopyFrom(image)
         });
     }
+
     channel.Dispose();
 });
 
