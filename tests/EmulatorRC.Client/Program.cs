@@ -41,7 +41,6 @@ var uploadTask = Task.Run(async () =>
 });
 
 await using var screenClient = new GrpcStub(tokenResult.Token);
-await using var screenClient2 = new GrpcStub(tokenResult.Token);
 Console.WriteLine("Starting to send messages");
 Console.WriteLine("Type a message to echo then press enter.");
 while (true)

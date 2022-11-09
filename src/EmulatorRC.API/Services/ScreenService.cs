@@ -125,16 +125,16 @@ namespace EmulatorRC.API.Services
 
     public class ScreenChannel
     {
-        private const int MAX_QUEUE = 2;
+        private const int MAX_QUEUE = 1;
 
         private readonly Channel<byte[]> _channel;
 
         public ScreenChannel()
         {
-            var options = new BoundedChannelOptions(MAX_QUEUE)
+            var options = new BoundedChannelOptions(1)
             {
                 SingleWriter = true,
-                SingleReader = false,
+                SingleReader = true,
                 FullMode = BoundedChannelFullMode.DropOldest
             };
             _channel = Channel.CreateBounded<byte[]>(options);
