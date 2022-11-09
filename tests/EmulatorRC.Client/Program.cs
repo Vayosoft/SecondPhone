@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Numerics;
 using EmulatorRC.Client;
 using EmulatorRC.Client.Protos;
 using Grpc.Core;
@@ -13,7 +14,6 @@ using LanguageExt.Pipes;
 
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 
-using var cts = new CancellationTokenSource();
 var uploadTask = Task.Run(async () =>
 {
     var channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
@@ -28,31 +28,31 @@ var uploadTask = Task.Run(async () =>
         { "X-DEVICE-ID", "default" }
     };
     using var call = client.UploadMessage(headers);
-    foreach (var enumerateFile in Directory.EnumerateFiles("C:\\Users\\anton\\OneDrive\\Pictures"))
+    foreach (var enumerateFile in Enumerable.Range(0, 100))
     {
-        if (cts.IsCancellationRequested) break;
-        var image = await File.ReadAllBytesAsync(enumerateFile);
+        var image = new byte[enumerateFile];
         await 100;
         await call.RequestStream.WriteAsync(new UploadMessageRequest
         {
             Image = ByteString.CopyFrom(image)
         });
     }
+    channel.Dispose();
 });
 
-await using var screenClient = new GrpcStub(tokenResult.Token);
+var screenClient = new GrpcStub(tokenResult.Token);
 Console.WriteLine("Starting to send messages");
 Console.WriteLine("Type a message to echo then press enter.");
 while (true)
 {
     var result = Console.ReadLine();
-    if (string.IsNullOrEmpty(result)) break;
+    if(result is "1") break;
 
-    await screenClient.SendAsync(result);
+    await screenClient.SendAsync(result ?? string.Empty);
 }
 
-cts.Cancel();
 await uploadTask;
+await screenClient.DisposeAsync();
 Console.WriteLine("Done!");
 
 //AsymmetricKey.Create();

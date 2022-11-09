@@ -26,17 +26,6 @@ namespace EmulatorRC.API.Services
         {
             var httpContext = context.GetHttpContext();
             var deviceId = httpContext.Request.GetDeviceIdOrDefault("default")!;
-            //var requesterHeader = context.RequestHeaders.FirstOrDefault(e => e.Key.Equals("x-device-id", StringComparison.InvariantCultureIgnoreCase));
-
-            var user = httpContext.User;
-            if (!TryValidateUser(user))
-            {
-                var headers = new Metadata
-                {
-                    { "user", user.Identity?.Name ?? string.Empty }
-                };
-                throw new RpcException(new Status(StatusCode.PermissionDenied, "Permission denied"), headers);
-            }
 
             _logger.LogInformation("Connected for {deviceId}", deviceId);
             var reader = _screenChannel.Subscribe();
