@@ -31,7 +31,7 @@ var uploadTask = Task.Run(async () =>
     foreach (var enumerateFile in Enumerable.Range(0, 100))
     {
         var image = new byte[enumerateFile];
-        await 100;
+        await 50;
         await call.RequestStream.WriteAsync(new UploadMessageRequest
         {
             Image = ByteString.CopyFrom(image)

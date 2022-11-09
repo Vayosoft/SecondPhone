@@ -46,7 +46,7 @@ namespace EmulatorRC.API.Services
                     _emulatorDataRepository.SetLastScreenId(deviceId, imageId);
                     _emulatorDataRepository.SetLastScreen(deviceId, new Screen(imageId, image));
 
-                    await _screenChannel.Enqueue(image);
+                    await _screenChannel.WriteAsync(image);
 
                     if (ImagesHub.Devices.TryGetValue(deviceId, out var clientIds) && clientIds.Count > 0)
                     {
