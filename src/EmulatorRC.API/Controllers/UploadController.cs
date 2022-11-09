@@ -3,6 +3,7 @@ using EmulatorRC.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using EmulatorRC.API.Extensions;
+using EmulatorRC.API.Services;
 
 namespace EmulatorRC.API.Controllers
 {

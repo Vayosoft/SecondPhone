@@ -94,6 +94,8 @@ public class Program
                         policy.RequireClaim(ClaimTypes.Name);
                     });
                 });
+
+                builder.Services.AddSingleton<ScreenChannel>();
             }
 
             var app = builder.Build();

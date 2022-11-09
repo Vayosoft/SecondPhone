@@ -9,6 +9,7 @@ using System.Threading.Channels;
 using EmulatorHub.Tokens;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
+using LanguageExt.Pipes;
 
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 
@@ -31,7 +32,7 @@ var uploadTask = Task.Run(async () =>
     {
         if (cts.IsCancellationRequested) break;
         var image = await File.ReadAllBytesAsync(enumerateFile);
-        await 1000;
+        await 100;
         await call.RequestStream.WriteAsync(new UploadMessageRequest
         {
             Image = ByteString.CopyFrom(image)
@@ -40,6 +41,7 @@ var uploadTask = Task.Run(async () =>
 });
 
 await using var screenClient = new GrpcStub(tokenResult.Token);
+await using var screenClient2 = new GrpcStub(tokenResult.Token);
 Console.WriteLine("Starting to send messages");
 Console.WriteLine("Type a message to echo then press enter.");
 while (true)

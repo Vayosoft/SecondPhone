@@ -12,6 +12,7 @@ public class GrpcStub : IAsyncDisposable
     private readonly AsyncDuplexStreamingCall<ScreenRequest, ScreenReply> _stream;
     private readonly CancellationTokenSource _cts;
     private readonly Task _readTask;
+    private readonly string _stubId = Guid.NewGuid().ToString("N");
 
     public static GrpcStub Create<T>(string authToken) where T : ClientBase
     {
@@ -73,7 +74,7 @@ public class GrpcStub : IAsyncDisposable
 
             await foreach (var response in _stream.ResponseStream.ReadAllAsync(cancellationToken: token))
             {
-                Console.WriteLine("Screen {0} {1} bites", response.Id, response.Image.Length);
+                Console.WriteLine("[{0}] Screen {1} {2} bites", _stubId, response.Id, response.Image.Length);
             }
         }
         catch (RpcException ex) when (ex.StatusCode == StatusCode.PermissionDenied)
