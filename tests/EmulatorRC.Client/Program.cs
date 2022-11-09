@@ -16,7 +16,8 @@ var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", T
 
 var uploadTask = Task.Run(async () =>
 {
-    var channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
+    var cts = new CancellationTokenSource();
+    using var channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
     {
         Credentials = ChannelCredentials.Insecure,
         //Credentials = ChannelCredentials.SecureSsl
@@ -35,10 +36,11 @@ var uploadTask = Task.Run(async () =>
         await call.RequestStream.WriteAsync(new UploadMessageRequest
         {
             Image = ByteString.CopyFrom(image)
-        });
+        }, cts.Token);
     }
-
-    channel.Dispose();
+    cts.Cancel();
+    await 500;
+    cts.Dispose();
 });
 
 var screenClient = new GrpcStub(tokenResult.Token);

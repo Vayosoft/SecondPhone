@@ -1,5 +1,4 @@
-﻿using Google.Protobuf;
-using System.Threading.Channels;
+﻿using System.Threading.Channels;
 using EmulatorRC.API.Protos;
 
 namespace EmulatorRC.API.Services
@@ -20,12 +19,13 @@ namespace EmulatorRC.API.Services
             _channel = Channel.CreateBounded<ScreenReply>(options);
         }
 
-        public async ValueTask WriteAsync(byte[] data, CancellationToken cancellationToken = default)
+        public async ValueTask WriteAsync(UploadMessageRequest message, CancellationToken cancellationToken = default)
         {
             var screen = new ScreenReply
             {
                 Id = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString(),
-                Image = UnsafeByteOperations.UnsafeWrap(data)
+                Image = message.Image
+                //Image = UnsafeByteOperations.UnsafeWrap(data)
             };
             await _channel.Writer.WriteAsync(screen, cancellationToken);
         } 

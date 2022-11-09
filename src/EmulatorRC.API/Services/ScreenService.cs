@@ -3,7 +3,6 @@ using System.Threading.Channels;
 using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using EmulatorRC.Services;
-using Google.Protobuf;
 using Grpc.Core;
 
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
@@ -28,7 +27,7 @@ namespace EmulatorRC.API.Services
             var deviceId = httpContext.Request.GetDeviceIdOrDefault("default")!;
 
             _logger.LogInformation("Connected for {deviceId}", deviceId);
- 
+
             try
             {
                 while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
@@ -36,10 +35,14 @@ namespace EmulatorRC.API.Services
                     await responseStream.WriteAsync(await _channel.ReadAsync(context.CancellationToken));
                 }
             }
-            catch (OperationCanceledException) { }
-            catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+            catch (RpcException ex) // when (ex.StatusCode == StatusCode.Cancelled)
             {
-                /*ignored*/
+                _logger.LogWarning(ex.Message);
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
             }
         }
 
@@ -85,7 +88,8 @@ namespace EmulatorRC.API.Services
         //            await responseStream.WriteAsync(response);
         //        }
         //    }
-        //    catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled) { /*ignored*/ }
+        //    catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled) { /*ignored*/
+       // }
         //}
 
         //private static Task AwaitCancellation(CancellationToken token)
