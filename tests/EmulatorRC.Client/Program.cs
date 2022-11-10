@@ -16,6 +16,7 @@ var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", T
 
 var uploadTask = Task.Run(async () =>
 {
+    //var channel = GrpcChannel.ForAddress("http://192.168.10.6:5006", new GrpcChannelOptions
     var channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
     {
         Credentials = ChannelCredentials.Insecure,

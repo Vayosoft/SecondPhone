@@ -36,6 +36,7 @@ public class GrpcStub : IAsyncDisposable
         };
 
         _channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
+       // _channel = GrpcChannel.ForAddress("http://192.168.10.6:5006", new GrpcChannelOptions
         {
             Credentials = ChannelCredentials.Insecure,
             //Credentials = ChannelCredentials.SecureSsl,
