@@ -11,6 +11,7 @@ using EmulatorHub.Tokens;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
 using LanguageExt.Pipes;
+using static EmulatorRC.Client.Protos.Screener;
 
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 
@@ -39,6 +40,8 @@ var uploadTask = Task.Run(async () =>
                 Image = ByteString.CopyFrom(image)
             }, CancellationToken.None);
         }
+
+        await call.RequestStream.CompleteAsync();
     }
     catch (Exception e)
     {
@@ -47,14 +50,21 @@ var uploadTask = Task.Run(async () =>
 });
 
 var screenClient = new GrpcStub(tokenResult.Token);
-Console.WriteLine("Starting to send messages");
-Console.WriteLine("Type a message to echo then press enter.");
-while (true)
+try
 {
-    var result = Console.ReadLine();
-    if(result is "1") break;
+    Console.WriteLine("Starting to send messages");
+    Console.WriteLine("Type a message to echo then press enter.");
+    while (true)
+    {
+        var result = Console.ReadLine();
+        if (result is "1") break;
 
-    await screenClient.SendAsync(result ?? string.Empty);
+        await screenClient.SendAsync(result ?? string.Empty);
+    }
+}
+catch (Exception e)
+{
+    Console.WriteLine(e.Message);
 }
 
 await uploadTask;

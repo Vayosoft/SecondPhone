@@ -1,8 +1,5 @@
-﻿using System.Security.Claims;
-using System.Threading.Channels;
-using EmulatorRC.API.Extensions;
+﻿using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
-using EmulatorRC.Services;
 using Grpc.Core;
 
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
@@ -11,86 +8,53 @@ namespace EmulatorRC.API.Services
     public class ScreenService : Screener.ScreenerBase
     {
         private readonly ILogger<ScreenService> _logger;
-        private readonly IEmulatorDataRepository _emulatorDataRepository;
         private readonly ScreenChannel _channel;
 
-        public ScreenService(ILogger<ScreenService> logger, IEmulatorDataRepository emulatorDataRepository, ScreenChannel channel)
+        public ScreenService(ILogger<ScreenService> logger, ScreenChannel channel)
         {
             _logger = logger;
-            _emulatorDataRepository = emulatorDataRepository;
             _channel = channel;
         }
 
+        //[Authorize]
         public override async Task Connect(IAsyncStreamReader<ScreenRequest> requestStream, IServerStreamWriter<ScreenReply> responseStream, ServerCallContext context)
         {
             var httpContext = context.GetHttpContext();
-            var deviceId = httpContext.Request.GetDeviceIdOrDefault("default")!;
+            //var user = httpContext.User;
+            //if (!TryValidateUser(user))
+            //{
+            //    var headers = new Metadata
+            //        {
+            //            { "user", user.Identity?.Name ?? string.Empty }
+            //        };
+            //    throw new RpcException(new Status(StatusCode.PermissionDenied, "Permission denied"), headers);
+            //}
 
-            _logger.LogInformation("Connected for {deviceId}", deviceId);
+            var deviceId = httpContext.Request.GetDeviceIdOrDefault("default")!;
+            //var requesterHeader = context.RequestHeaders.FirstOrDefault(e => e.Key.Equals("x-device-id", StringComparison.InvariantCultureIgnoreCase));
+            
+            _logger.LogInformation("[CLIENT:--] Connected for device: {deviceId}", deviceId);
 
             try
             {
-                while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
+                await foreach (var request in requestStream.ReadAllAsync(context.CancellationToken))
                 {
-                    await responseStream.WriteAsync(await _channel.ReadAsync(context.CancellationToken));
+                    var response = await _channel.ReadAsync(context.CancellationToken);
+                    await responseStream.WriteAsync(response, context.CancellationToken);
                 }
             }
             catch (RpcException ex) // when (ex.StatusCode == StatusCode.Cancelled)
             {
-                _logger.LogWarning(ex.Message);
+                _logger.LogWarning("ScreenService| {status} {message}", ex.StatusCode, ex.Message);
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError("ScreenService| {type}| {message}",ex.GetType(), ex.Message);
             }
+
+            _logger.LogInformation("[CLIENT:--] Stream closed");
         }
-
-        //[Authorize]
-        //public override async Task Connect(IAsyncStreamReader<ScreenRequest> requestStream, IServerStreamWriter<ScreenReply> responseStream, ServerCallContext context)
-        //{
-        //    var httpContext = context.GetHttpContext();
-        //    var deviceId = httpContext.Request.GetDeviceIdOrDefault("default")!;
-        //    //var requesterHeader = context.RequestHeaders.FirstOrDefault(e => e.Key.Equals("x-device-id", StringComparison.InvariantCultureIgnoreCase));
-
-        //    var user = httpContext.User;
-        //    if (!TryValidateUser(user))
-        //    {
-        //        var headers = new Metadata
-        //        {
-        //            { "user", user.Identity?.Name ?? string.Empty }
-        //        };
-        //        throw new RpcException(new Status(StatusCode.PermissionDenied, "Permission denied"), headers);
-        //    }
-
-        //    _logger.LogInformation("Connected for {deviceId}", deviceId);
-
-        //    try
-        //    {
-        //        while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
-        //        {
-        //            var id = requestStream.Current.Id;
-
-        //            if (_logger.IsEnabled(LogLevel.Debug))
-        //            {
-        //                _logger.LogDebug("Stream request => handledId: {handledId}", id);
-        //            }
-
-        //            var screen = _emulatorDataRepository.GetLastScreen(deviceId);
-        //            var response = screen is null || screen.Id.Equals(id, StringComparison.Ordinal)
-        //                ? new ScreenReply()
-        //                : new ScreenReply
-        //                {
-        //                    Id = screen.Id,
-        //                    Image = UnsafeByteOperations.UnsafeWrap(screen.Image)
-        //                };
-
-        //            await responseStream.WriteAsync(response);
-        //        }
-        //    }
-        //    catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled) { /*ignored*/
-       // }
-        //}
 
         //private static Task AwaitCancellation(CancellationToken token)
         //{
@@ -99,9 +63,9 @@ namespace EmulatorRC.API.Services
         //    return completion.Task;
         //}
 
-        private static bool TryValidateUser(ClaimsPrincipal principal)
-        {
-            return true;
-        }
+        //private static bool TryValidateUser(ClaimsPrincipal principal)
+        //{
+        //    return true;
+        //}
     }
 }
