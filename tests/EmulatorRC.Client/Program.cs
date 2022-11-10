@@ -14,11 +14,12 @@ using LanguageExt.Pipes;
 using static EmulatorRC.Client.Protos.Screener;
 
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
-
+//var url = "http://192.168.10.6:5006";
+var url = "http://localhost:5004";
 var uploadTask = Task.Run(async () =>
 {
     try{
-        var channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
+        var channel = GrpcChannel.ForAddress(url, new GrpcChannelOptions
     
         {
             Credentials = ChannelCredentials.Insecure,
@@ -49,7 +50,7 @@ var uploadTask = Task.Run(async () =>
     }
 });
 
-var screenClient = new GrpcStub(tokenResult.Token);
+var screenClient = new GrpcStub(url, tokenResult.Token);
 try
 {
     Console.WriteLine("Starting to send messages");

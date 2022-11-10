@@ -15,12 +15,12 @@ public class GrpcStub : IAsyncDisposable
     private readonly Task _readTask;
     private readonly string _stubId = Guid.NewGuid().ToString("N");
 
-    public static GrpcStub Create<T>(string authToken) where T : ClientBase
+    public static GrpcStub Create<T>(string url, string authToken) where T : ClientBase
     {
-        return new GrpcStub(authToken);
+        return new GrpcStub(url, authToken);
     }
 
-    public GrpcStub(string authToken)
+    public GrpcStub(string url, string authToken)
     {
         var defaultMethodConfig = new MethodConfig
         {
@@ -35,8 +35,7 @@ public class GrpcStub : IAsyncDisposable
             }
         };
 
-        _channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
-       // _channel = GrpcChannel.ForAddress("http://192.168.10.6:5006", new GrpcChannelOptions
+        _channel = GrpcChannel.ForAddress(url, new GrpcChannelOptions
         {
             Credentials = ChannelCredentials.Insecure,
             //Credentials = ChannelCredentials.SecureSsl,

@@ -13,7 +13,7 @@ namespace EmulatorRC.API.Services
             {
                 SingleWriter = true,
                 SingleReader = true,
-                AllowSynchronousContinuations = false,
+                AllowSynchronousContinuations = true,
                 FullMode = BoundedChannelFullMode.DropOldest
             };
             _channel = Channel.CreateBounded<ScreenReply>(options);
