@@ -16,30 +16,34 @@ var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", T
 
 var uploadTask = Task.Run(async () =>
 {
-    //var channel = GrpcChannel.ForAddress("http://192.168.10.6:5006", new GrpcChannelOptions
-    var channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
-    {
-        Credentials = ChannelCredentials.Insecure,
-        //Credentials = ChannelCredentials.SecureSsl
-    });
-
-    var client = new Uploader.UploaderClient(channel);
-    var headers = new Metadata
-    {
-        { "X-DEVICE-ID", "default" }
-    };
-    using var call = client.UploadMessage(headers);
-    foreach (var enumerateFile in Enumerable.Range(0, 100))
-    {
-        var image = new byte[enumerateFile];
-        await 100;
-        await call.RequestStream.WriteAsync(new UploadMessageRequest
+    try{
+        var channel = GrpcChannel.ForAddress("http://localhost:5004", new GrpcChannelOptions
+    
         {
-            Image = ByteString.CopyFrom(image)
+            Credentials = ChannelCredentials.Insecure,
+            //Credentials = ChannelCredentials.SecureSsl
         });
-    }
 
-    channel.Dispose();
+        var client = new Uploader.UploaderClient(channel);
+        var headers = new Metadata
+        {
+            { "X-DEVICE-ID", "default" }
+        };
+        using var call = client.UploadMessage(headers);
+        foreach (var enumerateFile in Enumerable.Range(0, 100))
+        {
+            var image = new byte[enumerateFile];
+            await 50;
+            await call.RequestStream.WriteAsync(new UploadMessageRequest
+            {
+                Image = ByteString.CopyFrom(image)
+            }, CancellationToken.None);
+        }
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine(e.Message);
+    }
 });
 
 var screenClient = new GrpcStub(tokenResult.Token);

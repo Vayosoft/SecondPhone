@@ -3,7 +3,6 @@ using System.Threading.Channels;
 using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using EmulatorRC.Services;
-using Google.Protobuf;
 using Grpc.Core;
 
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
@@ -13,13 +12,13 @@ namespace EmulatorRC.API.Services
     {
         private readonly ILogger<ScreenService> _logger;
         private readonly IEmulatorDataRepository _emulatorDataRepository;
-        private readonly ScreenChannel _screenChannel;
+        private readonly ScreenChannel _channel;
 
-        public ScreenService(ILogger<ScreenService> logger, IEmulatorDataRepository emulatorDataRepository, ScreenChannel screenChannel)
+        public ScreenService(ILogger<ScreenService> logger, IEmulatorDataRepository emulatorDataRepository, ScreenChannel channel)
         {
             _logger = logger;
             _emulatorDataRepository = emulatorDataRepository;
-            _screenChannel = screenChannel;
+            _channel = channel;
         }
 
         public override async Task Connect(IAsyncStreamReader<ScreenRequest> requestStream, IServerStreamWriter<ScreenReply> responseStream, ServerCallContext context)
@@ -28,33 +27,22 @@ namespace EmulatorRC.API.Services
             var deviceId = httpContext.Request.GetDeviceIdOrDefault("default")!;
 
             _logger.LogInformation("Connected for {deviceId}", deviceId);
-            var reader = _screenChannel.Subscribe();
 
             try
             {
                 while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
                 {
-                    var id = requestStream.Current.Id;
-
-                    if (_logger.IsEnabled(LogLevel.Debug))
-                    {
-                        _logger.LogDebug("Stream request => handledId: {handledId}", id);
-                    }
-
-                    var screen = await reader.ReadAsync(context.CancellationToken);
-                    var response = new ScreenReply
-                    {
-                        Id = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString(),
-                        Image = UnsafeByteOperations.UnsafeWrap(screen)
-                    };
-
-                    await responseStream.WriteAsync(response);
+                    await responseStream.WriteAsync(await _channel.ReadAsync(context.CancellationToken));
                 }
             }
-            catch (OperationCanceledException) { }
-            catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+            catch (RpcException ex) // when (ex.StatusCode == StatusCode.Cancelled)
             {
-                /*ignored*/
+                _logger.LogWarning(ex.Message);
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
             }
         }
 
@@ -100,7 +88,8 @@ namespace EmulatorRC.API.Services
         //            await responseStream.WriteAsync(response);
         //        }
         //    }
-        //    catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled) { /*ignored*/ }
+        //    catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled) { /*ignored*/
+       // }
         //}
 
         //private static Task AwaitCancellation(CancellationToken token)
@@ -113,39 +102,6 @@ namespace EmulatorRC.API.Services
         private static bool TryValidateUser(ClaimsPrincipal principal)
         {
             return true;
-        }
-    }
-
-    public class ScreenChannel
-    {
-        private const int MAX_QUEUE = 1;
-
-        private readonly Channel<byte[]> _channel;
-
-        public ScreenChannel()
-        {
-            var options = new BoundedChannelOptions(1)
-            {
-                SingleWriter = true,
-                SingleReader = true,
-                FullMode = BoundedChannelFullMode.DropOldest
-            };
-            _channel = Channel.CreateBounded<byte[]>(options);
-        }
-
-        public async ValueTask Enqueue(byte[] image, CancellationToken cancellationToken = default)
-        {
-            await _channel.Writer.WriteAsync(image, cancellationToken);
-        }
-
-        public void Complete()
-        {
-            _channel.Writer.Complete();
-        }
-
-        public ChannelReader<byte[]> Subscribe()
-        {
-            return _channel.Reader;
         }
     }
 }
