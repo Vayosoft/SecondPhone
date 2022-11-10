@@ -1,11 +1,14 @@
-﻿using EmulatorRC.API.Extensions;
+﻿using System.Collections.Concurrent;
+using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using Grpc.Core;
 
 namespace EmulatorRC.API.Services
 {
     public class UploaderService : Uploader.UploaderBase
-    {
+    {   
+        public static readonly ConcurrentDictionary<string, object> Devices = new();
+
         private readonly ILogger<UploaderService> _logger;
         private readonly ScreenChannel _channel;
 
@@ -20,7 +23,8 @@ namespace EmulatorRC.API.Services
             var httpContext = context.GetHttpContext();
             var deviceId = httpContext.Request.GetDeviceIdOrDefault("default")!;
 
-            _logger.LogInformation("[DEV:{deviceId}] Connected", deviceId);
+            AddDevice(deviceId);
+            _logger.LogInformation("DEV:[{deviceId}] Connected.", deviceId);
 
             try
             {
@@ -39,9 +43,22 @@ namespace EmulatorRC.API.Services
                 _logger.LogError("UploaderService| {type}| {message}", ex.GetType(), ex.Message);
             }
 
-            _logger.LogInformation("[DEV:{deviceId}] Stream closed", deviceId);
+            RemoveDevice(deviceId);
+            _logger.LogInformation("DEV:[{deviceId}] Stream closed.", deviceId);
 
             return new Ack();
         }
+
+        public void AddDevice(string name)
+        {
+            if (Devices.Any())
+            {
+                throw new RpcException(new Status(StatusCode.AlreadyExists, "Device already exists"));
+            }
+
+            Devices.TryAdd(name, string.Empty);
+        }
+
+        public void RemoveDevice(string name) => Devices.TryRemove(name, out var device);
     }
 }

@@ -1,12 +1,15 @@
 ﻿using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using Grpc.Core;
+using System.Collections.Concurrent;
 
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
 namespace EmulatorRC.API.Services
 {
     public class ScreenService : Screener.ScreenerBase
     {
+        public static readonly ConcurrentDictionary<string, IServerStreamWriter<ScreenReply>> Clients = new();
+
         private readonly ILogger<ScreenService> _logger;
         private readonly ScreenChannel _channel;
 
@@ -33,7 +36,8 @@ namespace EmulatorRC.API.Services
             var deviceId = httpContext.Request.GetDeviceIdOrDefault("default")!;
             //var requesterHeader = context.RequestHeaders.FirstOrDefault(e => e.Key.Equals("x-device-id", StringComparison.InvariantCultureIgnoreCase));
             
-            _logger.LogInformation("[CLIENT:--] Connected for device: {deviceId}", deviceId);
+            AddClient("default", responseStream);
+            _logger.LogInformation("CLIENT:[default] Connected for device: {deviceId}.", deviceId);
 
             try
             {
@@ -53,8 +57,21 @@ namespace EmulatorRC.API.Services
                 _logger.LogError("ScreenService| {type}| {message}",ex.GetType(), ex.Message);
             }
 
-            _logger.LogInformation("[CLIENT:--] Stream closed");
+            RemoveClient("default");
+            _logger.LogInformation("CLIENT:[default] Stream closed.");
         }
+
+        public void AddClient(string name, IServerStreamWriter<ScreenReply> stream)
+        {
+            if (Clients.Any())
+            {
+                throw new RpcException(new Status(StatusCode.AlreadyExists, "Client already exists"));
+            }
+
+            Clients.TryAdd(name, stream);
+        }
+
+        public void RemoveClient(string name) => Clients.TryRemove(name, out var client);
 
         //private static Task AwaitCancellation(CancellationToken token)
         //{
