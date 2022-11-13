@@ -2,17 +2,11 @@ using System.Net;
 
 namespace EmulatorRC.API.Model
 {
-    public record HttpStatus(HttpStatusCode Code, string Message)
+    public static class HttpStatusExtensions
     {
-        public static HttpStatus Create(HttpStatusCode code, string message) =>
-            new(code, message);
-    }
-
-    public static class HttpStatusCodeInfoExtensions
-    {
-        public static HttpStatus GetHttpStatus(this Exception exception)
+        public static HttpStatusCode ToHttpStatusCode(this Exception exception)
         {
-            var code = exception switch
+            return exception switch
             {
                 UnauthorizedAccessException _ => HttpStatusCode.Unauthorized,
                 NotImplementedException _ => HttpStatusCode.NotImplemented,
@@ -20,8 +14,6 @@ namespace EmulatorRC.API.Model
                 ArgumentException _ => HttpStatusCode.BadRequest,
                 _ => HttpStatusCode.InternalServerError
             };
-
-            return new HttpStatus(code, exception.Message);
         }
     }
 }
