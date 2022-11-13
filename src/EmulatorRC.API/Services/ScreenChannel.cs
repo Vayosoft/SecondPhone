@@ -19,14 +19,8 @@ namespace EmulatorRC.API.Services
             _channel = Channel.CreateBounded<ScreenReply>(options);
         }
 
-        public async ValueTask WriteAsync(UploadMessageRequest message, CancellationToken cancellationToken = default)
+        public async ValueTask WriteAsync(ScreenReply screen, CancellationToken cancellationToken = default)
         {
-            var screen = new ScreenReply
-            {
-                Id = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString(),
-                Image = message.Image
-                //Image = UnsafeByteOperations.UnsafeWrap(data)
-            };
             await _channel.Writer.WriteAsync(screen, cancellationToken);
         } 
         

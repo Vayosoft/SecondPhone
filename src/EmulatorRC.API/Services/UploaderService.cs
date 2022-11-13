@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
+using EmulatorRC.Services;
 using Grpc.Core;
 
 namespace EmulatorRC.API.Services
@@ -11,11 +12,13 @@ namespace EmulatorRC.API.Services
 
         private readonly ILogger<UploaderService> _logger;
         private readonly ScreenChannel _channel;
+        private readonly IEmulatorDataRepository _emulatorDataRepository;
 
-        public UploaderService(ILogger<UploaderService> logger, ScreenChannel channel)
+        public UploaderService(ILogger<UploaderService> logger, ScreenChannel channel, IEmulatorDataRepository emulatorDataRepository)
         {
             _logger = logger;
             _channel = channel;
+            _emulatorDataRepository = emulatorDataRepository;
         }
 
         public override async Task<Ack> UploadMessage(IAsyncStreamReader<UploadMessageRequest> requestStream, ServerCallContext context)
@@ -30,7 +33,15 @@ namespace EmulatorRC.API.Services
             {
                 await foreach(var request in requestStream.ReadAllAsync(context.CancellationToken))
                 {
-                    await _channel.WriteAsync(request);
+                    var screen = new ScreenReply
+                    {
+                        Id = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString(),
+                        Image = request.Image
+                        //Image = UnsafeByteOperations.UnsafeWrap(data)
+                    };
+                    await _channel.WriteAsync(screen);
+
+                    _emulatorDataRepository.SetLastScreen(deviceId, new Screen(screen.Id, screen.Image.ToByteArray()));
                 }
             }
             catch (RpcException ex) // when (ex.StatusCode == StatusCode.Cancelled)

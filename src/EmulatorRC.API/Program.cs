@@ -2,6 +2,7 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using EmulatorRC.API.Hubs;
 using EmulatorRC.API.Model;
 using EmulatorRC.API.Services;
 using EmulatorRC.Services;
@@ -37,6 +38,7 @@ public class Program
                 );
 
                 builder.Services.AddMemoryCache();
+                builder.Services.AddSignalR();
 
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
                 builder.Services.AddSingleton<ScreenChannel>();
@@ -102,6 +104,8 @@ public class Program
 
                 app.MapGrpcService<ScreenService>();
                 app.MapGrpcService<UploaderService>();
+
+                app.MapHub<TouchEventsHub>("/chathub");
 
                 app.MapGet("/", () => "👍");
                 app.MapGet("/error", (HttpContext httpContext) =>

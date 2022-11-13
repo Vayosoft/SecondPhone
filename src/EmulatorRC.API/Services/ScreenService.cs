@@ -2,6 +2,8 @@
 using EmulatorRC.API.Protos;
 using Grpc.Core;
 using System.Collections.Concurrent;
+using EmulatorRC.Services;
+using Google.Protobuf;
 
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
 namespace EmulatorRC.API.Services
@@ -12,11 +14,14 @@ namespace EmulatorRC.API.Services
 
         private readonly ILogger<ScreenService> _logger;
         private readonly ScreenChannel _channel;
+        private readonly IEmulatorDataRepository _emulatorDataRepository;
+        private int _screenId;
 
-        public ScreenService(ILogger<ScreenService> logger, ScreenChannel channel)
+        public ScreenService(ILogger<ScreenService> logger, ScreenChannel channel, IEmulatorDataRepository emulatorDataRepository)
         {
             _logger = logger;
             _channel = channel;
+            _emulatorDataRepository = emulatorDataRepository;
         }
 
         //[Authorize]
@@ -43,6 +48,20 @@ namespace EmulatorRC.API.Services
             {
                 await foreach (var request in requestStream.ReadAllAsync(context.CancellationToken))
                 {
+                    if (Interlocked.Exchange(ref _screenId, 1) == 0)
+                    {
+                        var screen = _emulatorDataRepository.GetLastScreen(deviceId);
+                        if (screen != null)
+                        {
+                            await responseStream.WriteAsync(new ScreenReply
+                            {
+                                Id = screen.Id,
+                                Image = UnsafeByteOperations.UnsafeWrap(screen.Image),
+                            }, context.CancellationToken);
+                            continue;
+                        }
+                    }
+
                     var response = await _channel.ReadAsync(context.CancellationToken);
                     await responseStream.WriteAsync(response, context.CancellationToken);
                 }
