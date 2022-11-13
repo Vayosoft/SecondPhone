@@ -12,13 +12,11 @@ namespace EmulatorRC.API.Services
 
         private readonly ILogger<UploaderService> _logger;
         private readonly ScreenChannel _channel;
-        private readonly IEmulatorDataRepository _emulatorDataRepository;
 
         public UploaderService(ILogger<UploaderService> logger, ScreenChannel channel, IEmulatorDataRepository emulatorDataRepository)
         {
             _logger = logger;
             _channel = channel;
-            _emulatorDataRepository = emulatorDataRepository;
         }
 
         public override async Task<Ack> UploadMessage(IAsyncStreamReader<UploadMessageRequest> requestStream, ServerCallContext context)
@@ -33,15 +31,7 @@ namespace EmulatorRC.API.Services
             {
                 await foreach(var request in requestStream.ReadAllAsync(context.CancellationToken))
                 {
-                    var screen = new ScreenReply
-                    {
-                        Id = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString(),
-                        Image = request.Image
-                        //Image = UnsafeByteOperations.UnsafeWrap(data)
-                    };
-                    await _channel.WriteAsync(screen);
-
-                    _emulatorDataRepository.SetLastScreen(deviceId, new Screen(screen.Id, screen.Image.ToByteArray()));
+                    await _channel.WriteAsync(deviceId, request);
                 }
             }
             catch (RpcException ex) // when (ex.StatusCode == StatusCode.Cancelled)

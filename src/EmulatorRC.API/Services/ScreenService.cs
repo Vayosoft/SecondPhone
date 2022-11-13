@@ -15,7 +15,6 @@ namespace EmulatorRC.API.Services
         private readonly ILogger<ScreenService> _logger;
         private readonly ScreenChannel _channel;
         private readonly IEmulatorDataRepository _emulatorDataRepository;
-        private int _screenId;
 
         public ScreenService(ILogger<ScreenService> logger, ScreenChannel channel, IEmulatorDataRepository emulatorDataRepository)
         {
@@ -48,21 +47,7 @@ namespace EmulatorRC.API.Services
             {
                 await foreach (var request in requestStream.ReadAllAsync(context.CancellationToken))
                 {
-                    if (Interlocked.Exchange(ref _screenId, 1) == 0)
-                    {
-                        var screen = _emulatorDataRepository.GetLastScreen(deviceId);
-                        if (screen != null)
-                        {
-                            await responseStream.WriteAsync(new ScreenReply
-                            {
-                                Id = screen.Id,
-                                Image = UnsafeByteOperations.UnsafeWrap(screen.Image),
-                            }, context.CancellationToken);
-                            continue;
-                        }
-                    }
-
-                    var response = await _channel.ReadAsync(context.CancellationToken);
+                    var response = await _channel.ReadAsync(deviceId, request.Id, context.CancellationToken);
                     await responseStream.WriteAsync(response, context.CancellationToken);
                 }
             }
