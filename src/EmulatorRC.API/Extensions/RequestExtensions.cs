@@ -1,13 +1,17 @@
-﻿namespace EmulatorRC.API.Extensions
+﻿using Grpc.Core;
+
+namespace EmulatorRC.API.Extensions
 {
     public static class RequestExtensions
     {
-        public static string? GetDeviceIdOrDefault(this HttpRequest request, string? defaultValue = null)
+        public static string? GetDeviceIdOrDefault(this HttpContext httpContext, string? defaultValue = null)
         {
-            var deviceId = request.Headers["X-DEVICE-ID"].FirstOrDefault(defaultValue);
-            //TryGetValue("X-DEVICE-ID", out deviceId);
-            //_memoryCache.Set(deviceId, "{}", new MemoryCacheEntryOptions { SlidingExpiration = TimeSpan.FromSeconds(90) });
-            return deviceId;
+            return httpContext.Request.Headers["X-DEVICE-ID"].FirstOrDefault(defaultValue);
+        }
+
+        public static string? GetDeviceIdOrDefault(this ServerCallContext context, string? defaultValue = null)
+        {
+            return context.GetHttpContext().GetDeviceIdOrDefault(defaultValue);
         }
     }
 }

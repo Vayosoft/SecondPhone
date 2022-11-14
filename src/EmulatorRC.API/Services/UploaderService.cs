@@ -24,8 +24,7 @@ namespace EmulatorRC.API.Services
             IAsyncStreamReader<UploadMessageRequest> requestStream,
             ServerCallContext context)
         {
-            var httpContext = context.GetHttpContext();
-            var deviceId = httpContext.Request.GetDeviceIdOrDefault("default")!;
+            var deviceId = context.GetDeviceIdOrDefault("default")!;
 
             _logger.LogInformation("DEV:[{deviceId}] Connected.", deviceId);
 

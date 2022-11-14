@@ -27,19 +27,7 @@ namespace EmulatorRC.API.Services
             IServerStreamWriter<ScreenReply> responseStream,
             ServerCallContext context)
         {
-            var httpContext = context.GetHttpContext();
-            //var user = httpContext.User;
-            //if (!TryValidateUser(user))
-            //{
-            //    var headers = new Metadata
-            //        {
-            //            { "user", user.Identity?.Name ?? string.Empty }
-            //        };
-            //    throw new RpcException(new Status(StatusCode.PermissionDenied, "Permission denied"), headers);
-            //}
-
-            var deviceId = httpContext.Request.GetDeviceIdOrDefault("default")!;
-            //var requesterHeader = context.RequestHeaders.FirstOrDefault(e => e.Key.Equals("x-device-id", StringComparison.InvariantCultureIgnoreCase));
+            var deviceId = context.GetDeviceIdOrDefault("default")!;
 
             _logger.LogInformation("CLIENT:[default] Connected for device: {deviceId}.", deviceId);
 
@@ -62,17 +50,5 @@ namespace EmulatorRC.API.Services
 
             _logger.LogInformation("CLIENT:[default] Stream closed.");
         }
-
-        //private static Task AwaitCancellation(CancellationToken token)
-        //{
-        //    var completion = new TaskCompletionSource<object>();
-        //    token.Register(() => completion.SetResult(null!));
-        //    return completion.Task;
-        //}
-
-        //private static bool TryValidateUser(ClaimsPrincipal principal)
-        //{
-        //    return true;
-        //}
     }
 }
