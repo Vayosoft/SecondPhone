@@ -1,0 +1,52 @@
+version: '3.8'
+services:
+  db:
+    image: 'mysql:latest'
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: emurc
+      MYSQL_USER: emurc
+      MYSQL_PASSWORD: 1q2w3e4r
+      MYSQL_ROOT_PASSWORD: 1q2w3e4r
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - 'db-data:/var/lib/mysql'
+  mongo:
+    image: 'mongo:latest'
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    expose:
+      - '27017'
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    expose:
+      - '6379'
+  seq:
+    image: 'datalust/seq:latest'
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 14G
+        reservations:
+          memory: 14G
+    environment:
+      ACCEPT_EULA: Y
+    ports:
+      - '5341:5341'
+      - '8080:80'
+    expose:
+      - '8080'
+    volumes:
+      - 'seq-data:/data'
+          
+volumes:
+  db-data: null
+  seq-data: null
