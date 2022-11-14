@@ -1,6 +1,7 @@
 using EmulatorHub.Infrastructure;
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 {
@@ -24,9 +25,9 @@ var app = builder.Build();
 
     app.MapControllers();
 
-    app.MapGet("/", ([FromServices] HubDbContext dbContext) =>
+    app.MapGet("/users", async ([FromServices] HubDbContext dbContext) =>
     {
-        return dbContext.Users.ToList();
+        return await dbContext.Users.ToListAsync();
     });
 }
 

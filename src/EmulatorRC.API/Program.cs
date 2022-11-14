@@ -48,6 +48,8 @@ public class Program
                     options.EnableDetailedErrors = true;
                     options.MaxReceiveMessageSize = 2 * 1024 * 1024; // 2 MB
                     options.MaxSendMessageSize = 5 * 1024 * 1024; // 5 MB
+                    // Small performance benefit to not add catch-all routes to handle UNIMPLEMENTED for unknown services
+                    options.IgnoreUnknownServices = true;
                 })
                 .AddServiceOptions<UploaderService>(options =>
                 {
