@@ -13,6 +13,12 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
         {
             public override void Configure(EntityTypeBuilder<UserEntity> builder)
             {
+                builder
+                    .Property(t => t.Username);
+
+                builder
+                    .HasIndex(u => u.Username).IsUnique();
+
                 builder.HasData(
                     new UserEntity("su")
                     {
@@ -31,7 +37,8 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
 
         public override void Configure(EntityTypeBuilder<RefreshToken> builder)
         {
-            builder.HasKey(t => new { t.UserId, t.Token });
+            builder
+                .HasKey(t => new { t.UserId, t.Token });
             builder
                 .HasOne(t => t.User as UserEntity)
                 .WithMany(t => t.RefreshTokens)

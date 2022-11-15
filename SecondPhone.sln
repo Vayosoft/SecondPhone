@@ -39,6 +39,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{9CACD2
 		docker\docker-compose.yml = docker\docker-compose.yml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmulatorHub.MySqlMigrations", "data\EmulatorHub.MySqlMigrations\EmulatorHub.MySqlMigrations.csproj", "{04B59EFB-EE4E-44A9-9380-759BFA23DB07}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "data", "data", "{02ABA0C0-9B55-4791-B615-7286E4DA11E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +97,10 @@ Global
 		{C6255CFB-8540-468A-B4AA-6FC4405CA919}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6255CFB-8540-468A-B4AA-6FC4405CA919}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6255CFB-8540-468A-B4AA-6FC4405CA919}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04B59EFB-EE4E-44A9-9380-759BFA23DB07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04B59EFB-EE4E-44A9-9380-759BFA23DB07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04B59EFB-EE4E-44A9-9380-759BFA23DB07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04B59EFB-EE4E-44A9-9380-759BFA23DB07}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -110,6 +118,7 @@ Global
 		{AF71FCB0-9C21-4FC6-A3E2-48CA1485587E} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 		{503ACA0D-3F5A-441A-AADC-CDCD4B0700B7} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 		{C6255CFB-8540-468A-B4AA-6FC4405CA919} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
+		{04B59EFB-EE4E-44A9-9380-759BFA23DB07} = {02ABA0C0-9B55-4791-B615-7286E4DA11E2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC8D204D-5A9E-4019-AAE1-96FA5B8A99BB}
