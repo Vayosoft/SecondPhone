@@ -75,7 +75,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "CultureId", "Deregistered", "Email", "LogLevel", "PasswordHash", "Phone", "ProviderId", "Registered", "Type", "Username" },
-                values: new object[] { 1L, "ru-RU", null, "su@vayosoft.com", null, "VBbXzW7xlaD3YiqcVrVehA==", "0500000000", 1000L, new DateTime(2022, 11, 15, 10, 59, 15, 103, DateTimeKind.Utc).AddTicks(2734), 4, "su" });
+                values: new object[] { 1L, "ru-RU", null, "su@vayosoft.com", null, "VBbXzW7xlaD3YiqcVrVehA==", "0500000000", 1000L, new DateTime(2022, 11, 15, 0, 0, 0, 0, DateTimeKind.Utc), 4, "su" });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

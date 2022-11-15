@@ -19,13 +19,6 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4")
                 .OldAnnotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.UpdateData(
-                table: "Users",
-                keyColumn: "Id",
-                keyValue: 1L,
-                column: "Registered",
-                value: new DateTime(2022, 11, 15, 11, 12, 47, 141, DateTimeKind.Utc).AddTicks(3341));
-
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Username",
                 table: "Users",
@@ -48,13 +41,6 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                 oldType: "varchar(255)")
                 .Annotation("MySql:CharSet", "utf8mb4")
                 .OldAnnotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.UpdateData(
-                table: "Users",
-                keyColumn: "Id",
-                keyValue: 1L,
-                column: "Registered",
-                value: new DateTime(2022, 11, 15, 10, 59, 15, 103, DateTimeKind.Utc).AddTicks(2734));
         }
     }
 }

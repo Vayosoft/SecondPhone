@@ -27,7 +27,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
                         Phone = "0500000000",
                         Email = "su@vayosoft.com",
                         Type = UserType.Supervisor,
-                        Registered = DateTime.UtcNow,
+                        Registered = new DateTime(2022, 11, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                         CultureId = "ru-RU",
                         ProviderId = 1000,
                     }
