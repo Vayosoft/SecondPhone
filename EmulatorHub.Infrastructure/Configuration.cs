@@ -13,6 +13,7 @@ namespace EmulatorHub.Infrastructure
             services.AddMySqlContext<HubDbContext>(configuration);
             services
                 .AddScoped<IUnitOfWork>(s => s.GetRequiredService<HubDbContext>())
+                .AddScoped<IDataProvider>(s => s.GetRequiredService<HubDbContext>())
                 .AddScoped<ILinqProvider>(s => s.GetRequiredService<HubDbContext>());
 
             return services;

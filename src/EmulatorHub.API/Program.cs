@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using EmulatorHub.Entities;
 using EmulatorHub.Infrastructure;
 using EmulatorHub.Infrastructure.Persistence;
@@ -5,7 +6,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Vayosoft.Identity;
+using Vayosoft.Identity.Tokens;
 using Vayosoft.Persistence;
+using Vayosoft.Specifications;
 
 var builder = WebApplication.CreateBuilder(args);
 {
@@ -38,7 +42,7 @@ public static class V1ApiGroup
 {
     public static IEndpointRouteBuilder MapApiV1(this IEndpointRouteBuilder routes)
     {
-        routes.MapGet("/v1/items", GetAllItems);
+        routes.MapGet("/v1/items", GetAllUsers);
         routes.MapGet("/v1/items/{id}", GetItem);
         routes.MapPost("/v1/update", UpdateItem);
 
@@ -49,7 +53,33 @@ public static class V1ApiGroup
     {
         return TypedResults.Ok(await db.Users.ToListAsync());
     }
-    
+
+    public static async Task<Ok<List<UserEntity>>> GetAllUsers(IDataProvider db)
+    {
+        var userSpec = new UserByTokenSpec("ff79465d-0f75-4995-a121-574f292e9406");
+
+        var user = await db.ListAsync(userSpec);
+        return TypedResults.Ok(user);
+    }
+
+
+    public class UserByTokenSpec : Specification<UserEntity>
+    {
+        public UserByTokenSpec(string token)
+        {
+            Include(u => u.RefreshTokens);
+            Where(u => u.RefreshTokens.Any(t => t.Token == token));
+        }
+    }
+
+    public class UserByNameSpec : Specification<UserEntity>
+    {
+        public UserByNameSpec(string name)
+        {
+            Where(u => u.Username == name);
+        }
+    }
+
     public static async Task<Results<Ok<UserEntity>, NotFound>> GetItem(long id, IUnitOfWork db)
     {
         return await db.FindAsync<UserEntity>(id) is UserEntity item
@@ -59,11 +89,13 @@ public static class V1ApiGroup
 
     public static async Task<Results<Ok, NotFound>> UpdateItem(UserEntity entity, IUnitOfWork db)
     {
-        var user = await db.FindAsync<UserEntity>(entity.Id);
+        var user = await db.FindAsync<UserEntity>(1);
         if (user is UserEntity item)
         {
-            item.Email = entity.Email;
-            db.Update(item);
+            item.Email = "su@vayosoft.com";
+
+            
+            //db.Update(item);
             await db.CommitAsync();
 
             return TypedResults.Ok();
