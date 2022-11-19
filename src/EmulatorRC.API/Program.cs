@@ -83,7 +83,7 @@ public class Program
                     options.AddPolicy(JwtBearerDefaults.AuthenticationScheme, policy =>
                     {
                         policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
-                        policy.RequireClaim(ClaimTypes.Name);
+                        policy.RequireClaim(ClaimTypes.NameIdentifier);
                     });
                 });
             }
