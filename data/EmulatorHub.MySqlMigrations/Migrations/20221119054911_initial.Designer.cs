@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmulatorHub.MySqlMigrations.Migrations
 {
     [DbContext(typeof(HubDbContext))]
-    [Migration("20221115105915_Initial")]
-    partial class Initial
+    [Migration("20221119054911_initial")]
+    partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -25,46 +25,62 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
 
                     b.Property<string>("CultureId")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("culture_id");
 
                     b.Property<DateTime?>("Deregistered")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("deregistered");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("email");
 
                     b.Property<int?>("LogLevel")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("log_level");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("password_hash");
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("phone");
 
                     b.Property<long>("ProviderId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("provider_id");
 
                     b.Property<DateTime?>("Registered")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("registered");
 
                     b.Property<int>("Type")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("type");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("username");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_users");
 
-                    b.ToTable("Users");
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_username");
+
+                    b.ToTable("users", (string)null);
 
                     b.HasData(
                         new
@@ -75,7 +91,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                             PasswordHash = "VBbXzW7xlaD3YiqcVrVehA==",
                             Phone = "0500000000",
                             ProviderId = 1000L,
-                            Registered = new DateTime(2022, 11, 15, 10, 59, 15, 103, DateTimeKind.Utc).AddTicks(2734),
+                            Registered = new DateTime(2022, 11, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             Type = 4,
                             Username = "su"
                         });
@@ -84,35 +100,45 @@ namespace EmulatorHub.MySqlMigrations.Migrations
             modelBuilder.Entity("Vayosoft.Identity.Tokens.RefreshToken", b =>
                 {
                     b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
 
                     b.Property<string>("Token")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("token");
 
                     b.Property<DateTime>("Created")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created");
 
                     b.Property<string>("CreatedByIp")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("created_by_ip");
 
                     b.Property<DateTime>("Expires")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("expires");
 
                     b.Property<string>("ReasonRevoked")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("reason_revoked");
 
                     b.Property<string>("ReplacedByToken")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("replaced_by_token");
 
                     b.Property<DateTime?>("Revoked")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("revoked");
 
                     b.Property<string>("RevokedByIp")
-                        .HasColumnType("longtext");
+                        .HasColumnType("longtext")
+                        .HasColumnName("revoked_by_ip");
 
-                    b.HasKey("UserId", "Token");
+                    b.HasKey("UserId", "Token")
+                        .HasName("pk_refresh_token");
 
-                    b.ToTable("RefreshToken");
+                    b.ToTable("refresh_token", (string)null);
                 });
 
             modelBuilder.Entity("Vayosoft.Identity.Tokens.RefreshToken", b =>
@@ -121,7 +147,8 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_refresh_token_users_user_entity_id");
 
                     b.Navigation("User");
                 });

@@ -10,6 +10,8 @@ dotnet ef migrations list
 ## To delete an existing database 
 dotnet ef database update 0 --context HubDbContext 
 
+dotnet ef database drop -f -v
+
 ## To remove existing migrations 
 dotnet ef migrations remove --context HubDbContext 
 

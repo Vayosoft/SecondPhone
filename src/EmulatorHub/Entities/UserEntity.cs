@@ -27,4 +27,12 @@ namespace EmulatorHub.Entities
         public LogEventType? LogLevel { get; set; }
         public List<RefreshToken> RefreshTokens { get; } = new();
     }
+
+    public class TestEntity : EntityBase<long>
+    {
+        public DateTime Timestamp { get; set; }
+        public string TestProperty { get; set; }
+
+        public bool SoftDeleted { get; set; }
+    }
 }
