@@ -1,4 +1,5 @@
-﻿using EmulatorHub.Infrastructure.Persistence;
+﻿using EmulatorHub.Application.Services;
+using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vayosoft.Persistence;
@@ -15,6 +16,15 @@ namespace EmulatorHub.Infrastructure
                 .AddScoped<IUnitOfWork>(s => s.GetRequiredService<HubDbContext>())
                 .AddScoped<IDataProvider>(s => s.GetRequiredService<HubDbContext>())
                 .AddScoped<ILinqProvider>(s => s.GetRequiredService<HubDbContext>());
+
+            return services;
+        }
+
+        public static IServiceCollection AddHubServices(this IServiceCollection services, IConfiguration configuration)
+        {
+           
+            services
+                .AddScoped<IUserContext, UserContext>();
 
             return services;
         }

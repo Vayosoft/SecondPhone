@@ -4,9 +4,9 @@ using EmulatorRC.Client;
 using EmulatorRC.Client.Protos;
 using Grpc.Core;
 using Grpc.Net.Client;
-using EmulatorHub.Tokens;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
+using EmulatorHub.Application.Services.Tokens;
 
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 //var url = "http://192.168.10.6:5006";

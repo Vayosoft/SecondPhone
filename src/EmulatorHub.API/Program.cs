@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using EmulatorHub.Entities;
+using EmulatorHub.Domain.Entities;
 using EmulatorHub.Infrastructure;
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -21,7 +21,10 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
+    builder.Services.AddHttpContextAccessor();
+
     builder.Services.AddHubDataContext(builder.Configuration);
+    builder.Services.AddHubServices(builder.Configuration);
 }
 
 var app = builder.Build();
@@ -45,16 +48,16 @@ public static class V1ApiGroup
 {
     public static IEndpointRouteBuilder MapApiV1(this IEndpointRouteBuilder routes)
     {
-        routes.MapGet("/v1/items", GetAllUsers);
+        routes.MapGet("/v1/items", GetAllItems);
         routes.MapGet("/v1/items/{id}", GetItem);
         routes.MapPost("/v1/update", UpdateItem);
 
         return routes;
     }
 
-    public static async Task<Ok<List<UserEntity>>> GetAllItems(HubDbContext db)
+    public static async Task<Ok<List<TestEntity>>> GetAllItems(HubDbContext db)
     {
-        return TypedResults.Ok(await db.Users.ToListAsync());
+        return TypedResults.Ok(await db.Set<TestEntity>().ToListAsync());
     }
 
     public static async Task<Ok<List<UserEntity>>> GetAllUsers(IDataProvider db)
@@ -125,17 +128,14 @@ public static class V1ApiGroup
             var testEntity = new TestEntity
             {
                 Timestamp = DateTime.UtcNow,
-                TestProperty = "0"
+                TestProperty = "yyy",
+                ProviderId = 0
             };
-            //db.Add(testEntity);
-
-            user.Email = "1";
-            await db.CommitAsync();
-
-            user.Email = "2";
+            db.Add(testEntity);
 
             await db.CommitAsync();
 
+          
             //logger.LogInformation($"commit: {testEntity.ToJson()}");
 
             return TypedResults.Ok(testEntity);

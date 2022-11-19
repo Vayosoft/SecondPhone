@@ -20,13 +20,10 @@ namespace EmulatorHub.MySqlMigrations
             dbContextOptions.UseMySql(connectionString, serverVersion, 
                 b => b.MigrationsAssembly("EmulatorHub.MySqlMigrations"))
 
-                .UseSnakeCaseNamingConvention()   //full_name
-                //.UseLowerCaseNamingConvention() //fullname
-                //.UseCamelCaseNamingConvention() //fullName
-                //.UseUpperCaseNamingConvention() //FULLNAME
+                .UseSnakeCaseNamingConvention()
             ;
 
-            return new HubDbContext(dbContextOptions.Options);
+            return new HubDbContext(dbContextOptions.Options, null);
         }
     }
 }

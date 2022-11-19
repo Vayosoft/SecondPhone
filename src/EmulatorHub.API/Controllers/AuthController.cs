@@ -1,4 +1,4 @@
-using EmulatorHub.Tokens;
+using EmulatorHub.Application.Services.Tokens;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmulatorHub.API.Controllers
