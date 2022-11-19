@@ -105,6 +105,7 @@ public static class V1ApiGroup
 
     public static async Task<Results<Ok<TestEntity>, NotFound>> UpdateItem(UserEntity entity, IUnitOfWork db, [FromServices]ILogger<TestEntity> logger)
     {
+      
         var user = await db.FindAsync<UserEntity>(1);
         if (user is UserEntity item)
         {

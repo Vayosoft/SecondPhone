@@ -1,6 +1,6 @@
 ﻿using EmulatorHub.Entities;
 using Microsoft.EntityFrameworkCore;
-using Vayosoft.EF.MySQL;
+using Vayosoft.Persistence.EF.MySQL;
 
 namespace EmulatorHub.Infrastructure.Persistence
 {

@@ -1,9 +1,9 @@
 ﻿using EmulatorHub.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
-using Vayosoft.EF.MySQL;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Tokens;
+using Vayosoft.Persistence.EF.MySQL;
 
 namespace EmulatorHub.Infrastructure.Persistence.Mapping
 {

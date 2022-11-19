@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Vayosoft\src\Vayosoft.EF.MySQL\Vayosoft.EF.MySQL.csproj" />
+    <ProjectReference Include="..\..\Vayosoft\src\Vayosoft.Persistence.EF.MySQL\Vayosoft.Persistence.EF.MySQL.csproj" />
     <ProjectReference Include="..\src\EmulatorHub\EmulatorHub.csproj" />
   </ItemGroup>
 
