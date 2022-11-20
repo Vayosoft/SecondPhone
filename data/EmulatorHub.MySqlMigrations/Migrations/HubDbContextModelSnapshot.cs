@@ -48,6 +48,11 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .HasColumnType("double")
                         .HasColumnName("double");
 
+                    b.Property<string>("Enum")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("enum");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)

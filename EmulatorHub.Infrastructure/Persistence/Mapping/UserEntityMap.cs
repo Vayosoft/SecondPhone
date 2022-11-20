@@ -39,6 +39,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
         {
             builder
                 .HasKey(t => new { t.UserId, t.Token });
+
             builder
                 .HasOne(t => t.User as UserEntity)
                 .WithMany(t => t.RefreshTokens)

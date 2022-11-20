@@ -33,9 +33,9 @@ namespace EmulatorHub.API.Testing
         }
 
       
-        public static async Task<Results<Ok<UserEntity>, NotFound>> GetItem(long id, IUnitOfWork db)
+        public static async Task<Results<Ok<TestEntity>, NotFound>> GetItem(long id, IUnitOfWork db)
         {
-            return await db.FindAsync<UserEntity>(id) is UserEntity item
+            return await db.FindAsync<TestEntity>(1) is TestEntity item
                 ? TypedResults.Ok(item)
                 : TypedResults.NotFound();
         }
@@ -61,8 +61,10 @@ namespace EmulatorHub.API.Testing
                 var testEntity = new TestEntity
                 {
                     Timestamp = DateTime.UtcNow,
+                    RegisteredDate = DateOnly.FromDateTime(DateTime.Now),
+                    DisplayName = "dn",
                     Name = "yyy",
-                    ProviderId = 0
+                    ProviderId = 1
                 };
                 db.Add(testEntity);
 

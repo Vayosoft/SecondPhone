@@ -10,8 +10,16 @@ namespace EmulatorHub.Domain.Entities
         public string DisplayName { get; set; } = null!;
         public DateOnly RegisteredDate { get; set; }
         public double Double { get; set; }
+        public TestEnum Enum { get; set; }
 
         public long ProviderId { get; set; }
         public bool SoftDeleted { get; set; }
+    }
+
+    public enum TestEnum
+    {
+        Undefined = 0,
+        Ok,
+        Error
     }
 }

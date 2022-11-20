@@ -25,6 +25,8 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     registered_date = table.Column<DateOnly>(type: "DATE", nullable: false),
                     @double = table.Column<double>(name: "double", type: "double", precision: 8, scale: 2, nullable: false),
+                    @enum = table.Column<string>(name: "enum", type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     provider_id = table.Column<long>(type: "bigint", nullable: false),
                     soft_deleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },

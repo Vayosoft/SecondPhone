@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmulatorHub.MySqlMigrations.Migrations
 {
     [DbContext(typeof(HubDbContext))]
-    [Migration("20221120102944_Add_TestEntity")]
+    [Migration("20221120115032_Add_TestEntity")]
     partial class Add_TestEntity
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -49,6 +49,11 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .HasPrecision(8, 2)
                         .HasColumnType("double")
                         .HasColumnName("double");
+
+                    b.Property<string>("Enum")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("enum");
 
                     b.Property<string>("Name")
                         .IsRequired()

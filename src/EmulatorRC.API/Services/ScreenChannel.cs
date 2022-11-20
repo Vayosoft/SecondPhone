@@ -3,7 +3,6 @@ using System.Threading.Channels;
 using EmulatorRC.API.Protos;
 using EmulatorRC.Services;
 using Google.Protobuf;
-using Microsoft.Extensions.Options;
 
 namespace EmulatorRC.API.Services
 {
