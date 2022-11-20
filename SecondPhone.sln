@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorHub", "src\Emulator
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorHub.API", "src\EmulatorHub.API\EmulatorHub.API.csproj", "{1C2C24F6-4625-4342-8B36-BF7F4D636B4A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorHub.Infrastructure", "EmulatorHub.Infrastructure\EmulatorHub.Infrastructure.csproj", "{A24253B4-381C-4F45-937D-2B2D786EC4F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorHub.Infrastructure", "src\EmulatorHub.Infrastructure\EmulatorHub.Infrastructure.csproj", "{A24253B4-381C-4F45-937D-2B2D786EC4F6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft", "..\Vayosoft\src\Vayosoft\Vayosoft.csproj", "{503ACA0D-3F5A-441A-AADC-CDCD4B0700B7}"
 EndProject

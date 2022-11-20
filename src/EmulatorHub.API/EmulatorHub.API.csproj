@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\EmulatorHub.Infrastructure\EmulatorHub.Infrastructure.csproj" />
+    <ProjectReference Include="..\EmulatorHub.Infrastructure\EmulatorHub.Infrastructure.csproj" />
     <ProjectReference Include="..\EmulatorHub\EmulatorHub.csproj" />
   </ItemGroup>
 
