@@ -1,6 +1,8 @@
 ﻿using EmulatorHub.Application.Services;
 using EmulatorHub.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Vayosoft.Identity;
+using Vayosoft.Identity.Extensions;
 using Vayosoft.Persistence.EF.MySQL;
 
 namespace EmulatorHub.Infrastructure.Persistence
@@ -21,7 +23,7 @@ namespace EmulatorHub.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
 
-            var providerId = _userContext?.GetProviderId() ?? 0;
+            var providerId = _userContext?.User.Identity.GetProviderId() ?? 0;
             modelBuilder
                 .Entity<TestEntity>()
                 .HasQueryFilter(p => p.ProviderId == providerId);
