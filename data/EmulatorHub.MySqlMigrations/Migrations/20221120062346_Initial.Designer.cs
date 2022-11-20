@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmulatorHub.MySqlMigrations.Migrations
 {
     [DbContext(typeof(HubDbContext))]
-    [Migration("20221119054911_initial")]
-    partial class initial
+    [Migration("20221120062346_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -21,7 +21,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                 .HasAnnotation("ProductVersion", "6.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("EmulatorHub.Entities.UserEntity", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.UserEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -143,7 +143,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
 
             modelBuilder.Entity("Vayosoft.Identity.Tokens.RefreshToken", b =>
                 {
-                    b.HasOne("EmulatorHub.Entities.UserEntity", "User")
+                    b.HasOne("EmulatorHub.Domain.Entities.UserEntity", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -153,7 +153,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("EmulatorHub.Entities.UserEntity", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.UserEntity", b =>
                 {
                     b.Navigation("RefreshTokens");
                 });

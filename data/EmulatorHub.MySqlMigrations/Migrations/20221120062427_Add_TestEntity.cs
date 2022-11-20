@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace EmulatorHub.MySqlMigrations.Migrations
 {
-    public partial class test_entity : Migration
+    public partial class Add_TestEntity : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -19,6 +19,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     timestamp = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     test_property = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    provider_id = table.Column<long>(type: "bigint", nullable: false),
                     soft_deleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>

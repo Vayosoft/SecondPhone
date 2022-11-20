@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmulatorHub.MySqlMigrations.Migrations
 {
     [DbContext(typeof(HubDbContext))]
-    [Migration("20221119054935_test_entity")]
-    partial class test_entity
+    [Migration("20221120062427_Add_TestEntity")]
+    partial class Add_TestEntity
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -22,7 +22,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                 .HasAnnotation("ProductVersion", "6.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("EmulatorHub.Entities.TestEntity", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.TestEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -33,6 +33,10 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime(6)")
                         .HasColumnName("timestamp");
+
+                    b.Property<long>("ProviderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("provider_id");
 
                     b.Property<bool>("SoftDeleted")
                         .HasColumnType("tinyint(1)")
@@ -49,7 +53,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.ToTable("test_entity", (string)null);
                 });
 
-            modelBuilder.Entity("EmulatorHub.Entities.UserEntity", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.UserEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -171,7 +175,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
 
             modelBuilder.Entity("Vayosoft.Identity.Tokens.RefreshToken", b =>
                 {
-                    b.HasOne("EmulatorHub.Entities.UserEntity", "User")
+                    b.HasOne("EmulatorHub.Domain.Entities.UserEntity", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -181,7 +185,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("EmulatorHub.Entities.UserEntity", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.UserEntity", b =>
                 {
                     b.Navigation("RefreshTokens");
                 });
