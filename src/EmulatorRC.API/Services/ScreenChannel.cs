@@ -1,26 +1,28 @@
-﻿using System.Threading.Channels;
+﻿using System.Collections.Concurrent;
+using System.Threading.Channels;
 using EmulatorRC.API.Protos;
 using EmulatorRC.Services;
 using Google.Protobuf;
+using Microsoft.Extensions.Options;
 
 namespace EmulatorRC.API.Services
 {
     public class ScreenChannel : IDisposable
     {
-        private readonly Channel<ScreenReply> _channel;
         private readonly IEmulatorDataRepository _emulatorDataRepository;
+        private readonly ConcurrentDictionary<string, Channel<ScreenReply>> _channels = new();
+
+        private readonly BoundedChannelOptions _options = new(1)
+        {
+            SingleWriter = true,
+            SingleReader = true,
+            AllowSynchronousContinuations = true,
+            FullMode = BoundedChannelFullMode.DropOldest
+        };
 
         public ScreenChannel(IEmulatorDataRepository emulatorDataRepository)
         {
             _emulatorDataRepository = emulatorDataRepository;
-            var options = new BoundedChannelOptions(1)
-            {
-                SingleWriter = true,
-                SingleReader = true,
-                AllowSynchronousContinuations = true,
-                FullMode = BoundedChannelFullMode.DropOldest
-            };
-            _channel = Channel.CreateBounded<ScreenReply>(options);
         }
 
         public async ValueTask WriteAsync(string deviceId, UploadMessageRequest request, CancellationToken cancellationToken = default)
@@ -30,7 +32,7 @@ namespace EmulatorRC.API.Services
                 Id = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString(),
                 Image = request.Image
             };
-            await _channel.Writer.WriteAsync(screen, cancellationToken);
+            await GetChannel(deviceId).Writer.WriteAsync(screen, cancellationToken);
 
             _emulatorDataRepository.SetLastScreen(deviceId, new Screen(screen.Id, screen.Image.ToByteArray()));
         } 
@@ -50,12 +52,27 @@ namespace EmulatorRC.API.Services
                 }
             }
 
-            return await _channel.Reader.ReadAsync(cancellationToken);
+            return await GetChannel(deviceId).Reader.ReadAsync(cancellationToken);
+        }
+
+        private Channel<ScreenReply> GetChannel(string key)
+        {
+            if (!_channels.TryGetValue(key, out var channel))
+            {
+                channel = Channel.CreateBounded<ScreenReply>(_options);
+                _channels.TryAdd(key, channel);
+            }
+
+            return channel;
         }
 
         public void Dispose()
         {
-            _channel.Writer.Complete();
+            foreach (var channel in _channels.Values)
+            {
+                channel.Writer.Complete();
+            }
+            _channels.Clear();
         }
     }
 }

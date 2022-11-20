@@ -32,18 +32,39 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("timestamp");
 
+                    b.Property<string>("Alias")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("alias");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("display_name");
+
+                    b.Property<double>("Double")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("double")
+                        .HasColumnName("double");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("name");
+
                     b.Property<long>("ProviderId")
                         .HasColumnType("bigint")
                         .HasColumnName("provider_id");
 
+                    b.Property<DateOnly>("RegisteredDate")
+                        .HasColumnType("DATE")
+                        .HasColumnName("registered_date");
+
                     b.Property<bool>("SoftDeleted")
                         .HasColumnType("tinyint(1)")
                         .HasColumnName("soft_deleted");
-
-                    b.Property<string>("TestProperty")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("test_property");
 
                     b.HasKey("Id", "Timestamp")
                         .HasName("pk_test_entity");

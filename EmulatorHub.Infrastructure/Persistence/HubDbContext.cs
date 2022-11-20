@@ -8,13 +8,14 @@ namespace EmulatorHub.Infrastructure.Persistence
     public sealed class HubDbContext : DataContext
     {
         private readonly IUserContext? _userContext;
-        public HubDbContext(DbContextOptions options, IUserContext? userContext = null) : base(options)
+        public HubDbContext(DbContextOptions options, IUserContext? userContext = null) 
+            : base(options)
         {
             _userContext = userContext;
         }
 
-        public DbSet<UserEntity> Users => Set<UserEntity>();
-        //public DbSet<UserEntity> Users { set; get; } = null!;
+        //public DbSet<UserEntity> Users => Set<UserEntity>();
+        public DbSet<UserEntity> Users { set; get; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

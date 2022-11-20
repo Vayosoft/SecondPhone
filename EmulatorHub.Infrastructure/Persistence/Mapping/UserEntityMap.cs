@@ -12,7 +12,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
         public override void Configure(EntityTypeBuilder<UserEntity> builder)
         {
             builder
-                .Property(t => t.Username);
+                .Property(t => t.Username); //read_only field
 
             builder
                 .HasIndex(u => u.Username).IsUnique();
@@ -44,19 +44,6 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
                 .WithMany(t => t.RefreshTokens)
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-        }
-    }
-
-    public partial class TestEntityMap : EntityConfigurationMapper<TestEntity>
-    {
-        public override void Configure(EntityTypeBuilder<TestEntity> builder)
-        {
-            builder.HasKey(t => new { t.Id, t.Timestamp });
-            builder.Property(t => t.Id).UseMySqlIdentityColumn(); //.ValueGeneratedOnAdd()
-            builder.Property(t => t.Timestamp);
-
-            builder
-                .HasQueryFilter(p => !p.SoftDeleted);
         }
     }
 }
