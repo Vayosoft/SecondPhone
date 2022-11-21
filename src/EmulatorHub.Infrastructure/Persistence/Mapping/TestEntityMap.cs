@@ -13,6 +13,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
         {
             builder.HasKey(t => new { t.Id, t.Timestamp });
             builder.Property(t => t.Id).UseMySqlIdentityColumn();//.ValueGeneratedOnAdd()
+            builder.Property(t => t.Timestamp).IsConcurrencyToken();// обновление поля or builder.Property(t => t.ChangeCheck).IsRowVersion(); любое обновление
 
             builder.Property(t => t.RegisteredDate).HasColumnType("DATE");
 

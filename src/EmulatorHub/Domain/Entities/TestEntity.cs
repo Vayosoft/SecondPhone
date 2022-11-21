@@ -13,6 +13,8 @@ namespace EmulatorHub.Domain.Entities
         public double Double { get; set; }
         public TestEnum Enum { get; set; }
 
+        public byte[] ChangeCheck { get; set; } = null!; // concurrency row_version
+
         public long ProviderId { get; set; }
         public bool SoftDeleted { get; set; }
     }

@@ -58,18 +58,21 @@ namespace EmulatorHub.API.Testing
                 //db.Update(item);
                 //await db.CommitAsync();
 
-                var testEntity = new TestEntity
-                {
-                    Timestamp = DateTime.UtcNow,
-                    RegisteredDate = DateOnly.FromDateTime(DateTime.Now),
-                    DisplayName = "dn",
-                    ProviderId = 0,
-                    Name = "T"
-                };
-                db.Add(testEntity);
+                //var testEntity = new TestEntity
+                //{
+                //    Timestamp = DateTime.UtcNow,
+                //    RegisteredDate = DateOnly.FromDateTime(DateTime.Now),
+                //    DisplayName = "dn",
+                //    ProviderId = 0,
+                //    Name = "T"
+                //};
+                //db.Add(testEntity);
+
+                var testEntity = await db.FindAsync<TestEntity>(1);
+                testEntity.Timestamp = DateTime.UtcNow;
 
                 await db.CommitAsync();
-
+       
 
                 //logger.LogInformation($"commit: {testEntity.ToJson()}");
 
