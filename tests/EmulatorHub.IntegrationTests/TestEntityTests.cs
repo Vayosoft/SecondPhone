@@ -1,6 +1,7 @@
 using EmulatorHub.Domain.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Vayosoft.Identity;
 using Vayosoft.Testing;
 using Xunit.Abstractions;
 

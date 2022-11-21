@@ -3,6 +3,7 @@ using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Vayosoft.Identity;
 using Vayosoft.Persistence;
 
 namespace EmulatorHub.API.Testing
