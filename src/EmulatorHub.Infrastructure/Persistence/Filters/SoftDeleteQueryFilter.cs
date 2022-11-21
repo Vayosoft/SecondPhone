@@ -1,36 +1,39 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Vayosoft.Commons.Models;
+using Vayosoft.Commons.Entities;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Extensions;
 
 namespace EmulatorHub.Infrastructure.Persistence.Filters
 {
     public enum QueryFilterTypes { SoftDelete, ProviderId }
-    public static class QueryFilter
+    public static class QueryFilters
     {
-        public static void AddQueryFilter(this IMutableEntityType entityData, QueryFilterTypes queryFilterType, IUserContext? userContext = null)
+        public static void AddSoftDeleteQueryFilter(this IMutableEntityType entityData)
+        {
+            var methodToCall = GetMethodToCall(entityData, QueryFilterTypes.SoftDelete);
+            var filter = methodToCall.Invoke(null, new object[] { })!;
+            entityData.SetQueryFilter((LambdaExpression)filter);
+            entityData.AddIndex(entityData.FindProperty(nameof(ISoftDelete.SoftDeleted))!);
+        }
+
+        public static void AddProviderIdQueryFilter(this IMutableEntityType entityData, IUserContext userContext)
+        {
+            var methodToCall = GetMethodToCall(entityData, QueryFilterTypes.ProviderId);
+
+            var filter = methodToCall.Invoke(null, new object[] { userContext })!;
+            entityData.SetQueryFilter((LambdaExpression)filter);
+            entityData.AddIndex(entityData.FindProperty((nameof(IProviderId.ProviderId)))!);
+        }
+
+        private static MethodInfo GetMethodToCall(IReadOnlyTypeBase entityData, QueryFilterTypes queryFilterType)
         {
             var methodName = $"Get{queryFilterType}Filter";
 
-            var methodToCall = typeof(QueryFilter)
+            return typeof(QueryFilters)
                 .GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static)!
                 .MakeGenericMethod(entityData.ClrType);
-
-            var filter = methodToCall.Invoke(null, new object[] { userContext });
-
-            entityData.SetQueryFilter((LambdaExpression)filter!);
-
-            switch (queryFilterType)
-            {
-                case QueryFilterTypes.SoftDelete:
-                    entityData.AddIndex(entityData.FindProperty(nameof(ISoftDelete.SoftDeleted))!);
-                    break;
-                case QueryFilterTypes.ProviderId:
-                    entityData.AddIndex(entityData.FindProperty((nameof(IProviderId.ProviderId)))!);
-                    break;
-            }
         }
 
         private static LambdaExpression GetProviderIdFilter<TEntity>(IUserContext userContext)
@@ -40,7 +43,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Filters
             return filter;
         }
 
-        private static LambdaExpression GetSoftDeleteFilter<TEntity>(IUserContext? userContext = null)
+        private static LambdaExpression GetSoftDeleteFilter<TEntity>(IUserContext userContext)
             where TEntity : class, ISoftDelete
         {
             Expression<Func<TEntity, bool>> filter = x => !x.SoftDeleted;

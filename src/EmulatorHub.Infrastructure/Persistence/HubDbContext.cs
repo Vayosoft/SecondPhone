@@ -2,6 +2,7 @@
 using EmulatorHub.Domain.Entities;
 using EmulatorHub.Infrastructure.Persistence.Filters;
 using Microsoft.EntityFrameworkCore;
+using Vayosoft.Commons.Entities;
 using Vayosoft.Commons.Models;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Extensions;
@@ -27,14 +28,13 @@ namespace EmulatorHub.Infrastructure.Persistence
 
             //foreach (var mutableEntityType in modelBuilder.Model.GetEntityTypes())
             //{
-            //    if (typeof(ISoftDelete).IsAssignableFrom(mutableEntityType.ClrType))
-            //    {
-            //        mutableEntityType.AddQueryFilter(QueryFilterTypes.SoftDelete);
-            //    }
+            //    if (typeof(ISoftDelete).IsAssignableFrom(mutableEntityType.ClrType)) 
+            //        mutableEntityType.AddSoftDeleteQueryFilter();
 
-            //    if (typeof(IProviderId).IsAssignableFrom(mutableEntityType.ClrType))
+            //    if (_userContext != null)
             //    {
-            //        mutableEntityType.AddQueryFilter(QueryFilterTypes.ProviderId, _userContext);
+            //        if (typeof(IProviderId).IsAssignableFrom(mutableEntityType.ClrType))
+            //            mutableEntityType.AddProviderIdQueryFilter(_userContext);
             //    }
             //}
 
