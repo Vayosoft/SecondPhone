@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
-using Vayosoft.Persistence.EF.MySQL;
+using Vayosoft.Persistence.EntityFramework;
 
 namespace EmulatorHub.Infrastructure.Persistence.Mapping
 {

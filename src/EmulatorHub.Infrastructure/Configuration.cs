@@ -2,9 +2,9 @@
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Vayosoft.EntityFramework.MySQL;
 using Vayosoft.Identity;
 using Vayosoft.Persistence;
-using Vayosoft.Persistence.EF.MySQL;
 
 namespace EmulatorHub.Infrastructure
 {

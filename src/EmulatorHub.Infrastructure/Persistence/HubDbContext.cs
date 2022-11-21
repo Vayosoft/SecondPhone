@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Extensions;
-using Vayosoft.Persistence.EF.MySQL;
+using Vayosoft.Persistence.EntityFramework;
 
 namespace EmulatorHub.Infrastructure.Persistence
 {
