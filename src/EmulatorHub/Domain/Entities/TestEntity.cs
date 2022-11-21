@@ -1,5 +1,4 @@
 ﻿using Vayosoft.Commons.Entities;
-using Vayosoft.Commons.Models;
 
 namespace EmulatorHub.Domain.Entities
 {
