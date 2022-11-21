@@ -1,9 +1,5 @@
-﻿using EmulatorHub.Application.Services;
-using EmulatorHub.Domain.Entities;
-using EmulatorHub.Infrastructure.Persistence.Filters;
+﻿using EmulatorHub.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Vayosoft.Commons.Entities;
-using Vayosoft.Commons.Models;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Extensions;
 using Vayosoft.Persistence.EF.MySQL;
@@ -20,28 +16,17 @@ namespace EmulatorHub.Infrastructure.Persistence
         }
 
         //public DbSet<UserEntity> Users => Set<UserEntity>();
-        public DbSet<Entity> Users { set; get; } = null!;
+        public DbSet<UserEntity> Users { set; get; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            //foreach (var mutableEntityType in modelBuilder.Model.GetEntityTypes())
-            //{
-            //    if (typeof(ISoftDelete).IsAssignableFrom(mutableEntityType.ClrType)) 
-            //        mutableEntityType.AddSoftDeleteQueryFilter();
-
-            //    if (_userContext != null)
-            //    {
-            //        if (typeof(IProviderId).IsAssignableFrom(mutableEntityType.ClrType))
-            //            mutableEntityType.AddProviderIdQueryFilter(_userContext);
-            //    }
-            //}
-
-            var providerId = _userContext?.User.Identity.GetProviderId() ?? 0;
+            var providerId = _userContext?.User?.Identity.GetProviderId() ?? 0;
             modelBuilder
                 .Entity<TestEntity>()
-                .HasQueryFilter(p => p.ProviderId == providerId);
+                .HasQueryFilter(p => p.ProviderId == providerId)
+                .HasIndex(p => p.ProviderId);
         }
     }
 }

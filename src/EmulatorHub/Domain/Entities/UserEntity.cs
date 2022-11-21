@@ -7,10 +7,10 @@ using Vayosoft.Utilities;
 
 namespace EmulatorHub.Domain.Entities
 {
-    public class Entity : EntityBase<long>, IUser, IProviderId<long>
+    public class UserEntity : EntityBase<long>, IUser, IProviderId<long>
     {
-        private Entity() { }
-        public Entity(string username)
+        private UserEntity() { }
+        public UserEntity(string username)
         {
             Username = Guard.NotEmpty(username);
         }

@@ -55,8 +55,8 @@ namespace EmulatorHub.MySqlMigrations.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("name");
 
                     b.Property<long>("ProviderId")
@@ -73,6 +73,17 @@ namespace EmulatorHub.MySqlMigrations.Migrations
 
                     b.HasKey("Id", "Timestamp")
                         .HasName("pk_test_entity");
+
+                    b.HasIndex("ProviderId")
+                        .HasDatabaseName("ix_test_entity_provider_id");
+
+                    b.HasIndex("SoftDeleted")
+                        .HasDatabaseName("ix_test_entity_soft_deleted");
+
+                    b.HasIndex("Name", "ProviderId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_test_entity_name_provider_id")
+                        .HasFilter("NOT SoftDeleted");
 
                     b.ToTable("test_entity", (string)null);
                 });

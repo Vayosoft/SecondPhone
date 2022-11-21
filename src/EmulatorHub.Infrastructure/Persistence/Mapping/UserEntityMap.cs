@@ -7,9 +7,9 @@ using EmulatorHub.Domain.Entities;
 
 namespace EmulatorHub.Infrastructure.Persistence.Mapping
 {
-    public partial class UserEntityMap : EntityConfigurationMapper<Entity>
+    public partial class UserEntityMap : EntityConfigurationMapper<UserEntity>
     {
-        public override void Configure(EntityTypeBuilder<Entity> builder)
+        public override void Configure(EntityTypeBuilder<UserEntity> builder)
         {
             builder
                 .Property(t => t.Username); //read_only field
@@ -18,7 +18,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
                 .HasIndex(u => u.Username).IsUnique();
 
             builder.HasData(
-                new Entity("su")
+                new UserEntity("su")
                 {
                     Id = 1,
                     PasswordHash = "VBbXzW7xlaD3YiqcVrVehA==",
@@ -41,7 +41,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
                 .HasKey(t => new { t.UserId, t.Token });
 
             builder
-                .HasOne(t => t.User as Entity)
+                .HasOne(t => t.User as UserEntity)
                 .WithMany(t => t.RefreshTokens)
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);

@@ -4,7 +4,7 @@ using Vayosoft.Persistence.Specifications;
 
 namespace EmulatorHub.API.Testing
 {
-    public class UserByTokenCriteria : Criteria<Entity>
+    public class UserByTokenCriteria : Criteria<UserEntity>
     {
         public UserByTokenCriteria(string token)
         {
@@ -13,7 +13,7 @@ namespace EmulatorHub.API.Testing
         }
     }
 
-    public class UserByNameCriteria : Criteria<Entity>
+    public class UserByNameCriteria : Criteria<UserEntity>
     {
         public UserByNameCriteria(string name)
         {
@@ -21,7 +21,7 @@ namespace EmulatorHub.API.Testing
         }
     }
 
-    public class GetAllUsersSpec : Specification<Entity>
+    public class GetAllUsersSpec : Specification<UserEntity>
     {
         public GetAllUsersSpec(string? token = default, string? username = default)
         {
