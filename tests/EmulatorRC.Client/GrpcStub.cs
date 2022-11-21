@@ -76,7 +76,7 @@ public class GrpcStub : IAsyncDisposable
             await foreach (var response in _stream.ResponseStream.ReadAllAsync(cancellationToken: token))
             {
                 Console.WriteLine("[{0}] Screen {1} {2} bites", _stubId, response.Id, response.Image.Length);
-                await SendAsync(string.Empty);
+                await SendAsync(response.Id);
             }
         }
         catch (RpcException ex) when (ex.StatusCode == StatusCode.PermissionDenied)

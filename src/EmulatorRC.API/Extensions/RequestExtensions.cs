@@ -13,5 +13,10 @@ namespace EmulatorRC.API.Extensions
         {
             return context.GetHttpContext().GetDeviceIdOrDefault(defaultValue);
         }
+
+        public static string GetClientId(this ServerCallContext context)
+        {
+            return context.GetHttpContext().Request.Headers["X-CLIENT-ID"].FirstOrDefault() ?? Guid.NewGuid().ToString();
+        }
     }
 }

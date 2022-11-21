@@ -28,8 +28,9 @@ namespace EmulatorRC.API.Services
             ServerCallContext context)
         {
             var deviceId = context.GetDeviceIdOrDefault("default")!;
+            var clientId = context.GetClientId();
 
-            _logger.LogInformation("CLIENT:[n/a] Connected for device: {deviceId}.", deviceId);
+            _logger.LogInformation("CLIENT:[{clientId}] Connected for device: {deviceId}.", clientId, deviceId);
 
             var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
                 context.CancellationToken, _lifeTime.ApplicationStopping);
@@ -48,7 +49,7 @@ namespace EmulatorRC.API.Services
                 _logger.LogError("{type}| {message}",ex.GetType(), ex.Message);
             }
 
-            _logger.LogInformation("CLIENT:[n/a] Stream closed.");
+            _logger.LogInformation("CLIENT:[{clientId}] Stream closed.", clientId);
         }
     }
 }
