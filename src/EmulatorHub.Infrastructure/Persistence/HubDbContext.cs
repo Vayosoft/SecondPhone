@@ -1,6 +1,8 @@
 ﻿using EmulatorHub.Application.Services;
 using EmulatorHub.Domain.Entities;
+using EmulatorHub.Infrastructure.Persistence.Filters;
 using Microsoft.EntityFrameworkCore;
+using Vayosoft.Commons.Models;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Extensions;
 using Vayosoft.Persistence.EF.MySQL;
@@ -17,11 +19,24 @@ namespace EmulatorHub.Infrastructure.Persistence
         }
 
         //public DbSet<UserEntity> Users => Set<UserEntity>();
-        public DbSet<UserEntity> Users { set; get; } = null!;
+        public DbSet<Entity> Users { set; get; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            //foreach (var mutableEntityType in modelBuilder.Model.GetEntityTypes())
+            //{
+            //    if (typeof(ISoftDelete).IsAssignableFrom(mutableEntityType.ClrType))
+            //    {
+            //        mutableEntityType.AddQueryFilter(QueryFilterTypes.SoftDelete);
+            //    }
+
+            //    if (typeof(IProviderId).IsAssignableFrom(mutableEntityType.ClrType))
+            //    {
+            //        mutableEntityType.AddQueryFilter(QueryFilterTypes.ProviderId, _userContext);
+            //    }
+            //}
 
             var providerId = _userContext?.User.Identity.GetProviderId() ?? 0;
             modelBuilder

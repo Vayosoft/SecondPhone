@@ -1,15 +1,16 @@
 ﻿using Vayosoft.Commons.Entities;
 using Vayosoft.Commons.Enums;
+using Vayosoft.Commons.Models;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Tokens;
 using Vayosoft.Utilities;
 
 namespace EmulatorHub.Domain.Entities
 {
-    public class UserEntity : EntityBase<long>, IUser, IUserProvider<long>
+    public class Entity : EntityBase<long>, IUser, IProviderId<long>
     {
-        private UserEntity() { }
-        public UserEntity(string username)
+        private Entity() { }
+        public Entity(string username)
         {
             Username = Guard.NotEmpty(username);
         }
@@ -23,7 +24,7 @@ namespace EmulatorHub.Domain.Entities
         public DateTime? Deregistered { get; set; }
         public string CultureId { get; set; } = null!;
         public long ProviderId { get; set; }
-        object IUserProvider.ProviderId => ProviderId;
+        object IProviderId.ProviderId => ProviderId;
         public LogEventType? LogLevel { get; set; }
         public List<RefreshToken>? RefreshTokens { get; set; }
     }

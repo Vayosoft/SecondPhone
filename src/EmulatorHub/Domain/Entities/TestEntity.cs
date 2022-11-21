@@ -1,8 +1,9 @@
 ﻿using Vayosoft.Commons.Entities;
+using Vayosoft.Commons.Models;
 
 namespace EmulatorHub.Domain.Entities
 {
-    public class TestEntity : EntityBase<long>
+    public class TestEntity : EntityBase<long>, ISoftDelete
     {
         public DateTime Timestamp { get; set; }
         public string Name { get; set; } = null!;

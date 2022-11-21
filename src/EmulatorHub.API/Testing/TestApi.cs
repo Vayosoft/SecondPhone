@@ -23,12 +23,12 @@ namespace EmulatorHub.API.Testing
             return TypedResults.Ok(await db.Set<TestEntity>().ToListAsync());
         }
 
-        public static async Task<Ok<List<UserEntity>>> GetAllUsers(IDataProvider db)
+        public static async Task<Ok<List<Entity>>> GetAllUsers(IDataProvider db)
         {
             var userSpec = new GetAllUsersSpec();
             //var userSpec = new GetAllUsersSpec("ff79465d-0f75-4995-a121-574f292e9406", "su");
 
-            var user = await db.ListAsync<UserEntity>(userSpec);
+            var user = await db.ListAsync<Entity>(userSpec);
             return TypedResults.Ok(user);
         }
 
@@ -40,10 +40,10 @@ namespace EmulatorHub.API.Testing
                 : TypedResults.NotFound();
         }
 
-        public static async Task<Results<Ok<TestEntity>, NotFound>> UpdateItem(UserEntity entity, IUnitOfWork db, [FromServices] ILogger<TestEntity> logger)
+        public static async Task<Results<Ok<TestEntity>, NotFound>> UpdateItem(Entity entity, IUnitOfWork db, [FromServices] ILogger<TestEntity> logger)
         {
-            var user = await db.FindAsync<UserEntity>(1);
-            if (user is UserEntity item)
+            var user = await db.FindAsync<Entity>(1);
+            if (user is Entity item)
             {
                 //item.Email = "su@vayosoft.com";
 
