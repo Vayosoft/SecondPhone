@@ -46,6 +46,7 @@ var uploadTask = Task.Run(async () =>
 });
 
 var screenClient = new GrpcStub(url, tokenResult.Token);
+//var screenClient2 = new GrpcStub(url, tokenResult.Token);
 try
 {
     Console.WriteLine("Starting to send messages");
@@ -56,6 +57,7 @@ try
         if (result is "1") break;
 
         await screenClient.SendAsync(result ?? string.Empty);
+       // await screenClient2.SendAsync(result ?? string.Empty);
     }
 }
 catch (Exception e)

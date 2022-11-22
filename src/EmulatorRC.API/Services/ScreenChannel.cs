@@ -77,26 +77,22 @@ namespace EmulatorRC.API.Services
         {
             if (!_channels.TryGetValue(deviceId, out var channels))
             {
-                return _channels.TryAdd(deviceId, new Dictionary<string, Channel<ScreenReply>>
-                {
-                    { clientId, Channel.CreateBounded<ScreenReply>(_options) }
-                });
+                channels = new Dictionary<string, Channel<ScreenReply>>();
+                if (!_channels.TryAdd(deviceId, channels))
+                    return false;
             }
 
-            if (!channels.ContainsKey(clientId))
-            {
-                return channels.TryAdd(clientId, Channel.CreateBounded<ScreenReply>(_options));
-            }
-
-            return true;
+            return channels.ContainsKey(clientId) || 
+                   channels.TryAdd(clientId, Channel.CreateBounded<ScreenReply>(_options));
         }
 
         public void Unsubscribe(string clientId, string deviceId)
         {
-            if (!_channels.TryGetValue(deviceId, out var channels)) return;
-
-            if(channels.ContainsKey(clientId))
-                channels.Remove(clientId);
+            if (!_channels.TryGetValue(deviceId, out var channels) 
+                || !channels.ContainsKey(clientId))
+                return;
+            
+            channels.Remove(clientId);
         }
 
         public void Dispose()
