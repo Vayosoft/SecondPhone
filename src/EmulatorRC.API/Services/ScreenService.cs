@@ -35,18 +35,27 @@ namespace EmulatorRC.API.Services
             var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
                 context.CancellationToken, _lifeTime.ApplicationStopping);
 
+            if(!_channel.Subscribe(clientId, deviceId))
+                throw new RpcException(new Status(StatusCode.Internal, "Subscription failed."));
+
             try
             {
                 await foreach (var request in requestStream.ReadAllAsync(cancellationSource.Token))
                 {
-                    var response = await _channel.ReadAsync(deviceId, request.Id, cancellationSource.Token);
+                    var response = await _channel.ReadAsync(clientId, deviceId, request.Id, cancellationSource.Token);
                     await responseStream.WriteAsync(response, cancellationSource.Token);
                 }
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException)
+            {
+            }
             catch (Exception ex)
             {
-                _logger.LogError("{type}| {message}",ex.GetType(), ex.Message);
+                _logger.LogError("{type}| {message}", ex.GetType(), ex.Message);
+            }
+            finally
+            {
+                _channel.Unsubscribe(clientId, deviceId);
             }
 
             _logger.LogInformation("CLIENT:[{clientId}] Stream closed.", clientId);
