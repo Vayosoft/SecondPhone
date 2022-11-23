@@ -1,11 +1,13 @@
 ﻿using System.Diagnostics;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using EmulatorRC.API.Hubs;
+using EmulatorRC.API.Model;
 using EmulatorRC.API.Services;
 using EmulatorRC.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
@@ -24,8 +26,6 @@ public class Program
         {
             var builder = WebApplication.CreateBuilder(args);
             {
-                var configuration = builder.Configuration;
-
                 builder.WebHost.ConfigureKestrel(options => { options.AddServerHeader = false; });
                 builder.Host.UseSerilog((context, services, config) => config
                         .ReadFrom.Configuration(context.Configuration)
@@ -37,95 +37,88 @@ public class Program
 #endif
                 );
 
-                builder.Services.AddControllers();
-
-                builder.Services.AddEndpointsApiExplorer();
-                builder.Services.AddSwaggerGen();
+                builder.Services.AddMemoryCache();
                 builder.Services.AddSignalR();
 
-                builder.Services.Configure<FormOptions>(o =>
-                {
-                    o.ValueLengthLimit = int.MaxValue;
-                    o.MultipartBodyLengthLimit = int.MaxValue;
-                    o.MemoryBufferThreshold = int.MaxValue;
-                });
-                builder.Services.AddMemoryCache();
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
+                builder.Services.AddSingleton<ScreenChannel>();
 
                 builder.Services.AddGrpc(options =>
-                    {
-                        options.EnableDetailedErrors = true;
-                        options.MaxReceiveMessageSize = 2 * 1024 * 1024; // 2 MB
-                        options.MaxSendMessageSize = 5 * 1024 * 1024; // 5 MB
-                    })
-                    .AddServiceOptions<UploaderService>(options =>
-                    {
-                        options.EnableDetailedErrors = true;
-                        options.MaxReceiveMessageSize = 5 * 1024 * 1024; // 2 MB
-                    });
+                {
+                    options.EnableDetailedErrors = true;
+                    options.MaxReceiveMessageSize = 2 * 1024 * 1024; // 2 MB
+                    options.MaxSendMessageSize = 5 * 1024 * 1024; // 5 MB
+                    // Small performance benefit to not add catch-all routes to handle UNIMPLEMENTED for unknown services
+                    options.IgnoreUnknownServices = true;
+                })
+                .AddServiceOptions<UploaderService>(options =>
+                {
+                    options.EnableDetailedErrors = true;
+                    options.MaxReceiveMessageSize = 5 * 1024 * 1024; // 2 MB
+                });
 
-                //Authentication && Authorization
+                //Authentication
                 var symmetricKey = "qwertyuiopasdfghjklzxcvbnm123456"; //configuration["Jwt:Symmetric:Key"];
                 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(symmetricKey));
                 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
                     {
-                        options.IncludeErrorDetails = true; // <- for debugging
+                        //options.IncludeErrorDetails = true; // <- for debugging
 
                         options.TokenValidationParameters =
                             new TokenValidationParameters
                             {
                                 ValidateActor = false,
                                 ValidateAudience = false,
-                                ValidAudience = "Vayosoft",
                                 ValidateIssuer = false,
-                                ValidIssuer = "Vayosoft",
                                 RequireExpirationTime = true, // <- JWTs are required to have "exp" property set
                                 ValidateLifetime = true, // <- the "exp" will be validated
                                 RequireSignedTokens = true,
                                 IssuerSigningKey = signingKey,
                             };
                     });
+                //Authorization
                 builder.Services.AddAuthorization(options =>
                 {
                     options.AddPolicy(JwtBearerDefaults.AuthenticationScheme, policy =>
                     {
                         policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
-                        policy.RequireClaim(ClaimTypes.Name);
+                        policy.RequireClaim(ClaimTypes.NameIdentifier);
                     });
                 });
-
-                builder.Services.AddSingleton<ScreenChannel>();
             }
 
             var app = builder.Build();
             {
                 app.UseExceptionHandler("/error");
 
-                app.UseStaticFiles();
-
                 if (app.Environment.IsDevelopment())
                 {
                     app.UseSerilogRequestLogging();
-
-                    app.UseSwagger();
-                    app.UseSwaggerUI();
                 }
                 else
                 {
                     //app.UseHttpsRedirection();
                 }
 
-                // Authenticate, then Authorize
                 app.UseAuthentication();
                 app.UseAuthorization();
 
                 app.MapGrpcService<ScreenService>();
                 app.MapGrpcService<UploaderService>();
-                app.MapControllers();
+
                 app.MapHub<TouchEventsHub>("/chathub");
-                app.MapHub<ImagesHub>("/zub");
-                app.MapFallbackToFile("/index.html");
+
+                app.MapGet("/", () => "👍");
+                app.MapGet("/error", (HttpContext httpContext) =>
+                {
+                    var exceptionFeature = httpContext.Features.Get<IExceptionHandlerFeature>();
+                    return TypedResults.Problem(
+                        statusCode: (int) (exceptionFeature?.Error.ToHttpStatusCode() ?? HttpStatusCode.InternalServerError),
+                        title: "An error occurred while processing your request.",
+                        detail: exceptionFeature?.Error.Message ?? string.Empty
+                    );
+                }).ExcludeFromDescription();
 
                 app.Run();
             }

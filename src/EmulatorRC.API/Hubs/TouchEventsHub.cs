@@ -5,9 +5,9 @@ namespace EmulatorRC.API.Hubs
 {
     public class TouchEventsHub : Hub
     {
-        private readonly ILogger<ImagesHub> _logger;
+        private readonly ILogger<TouchEventsHub> _logger;
         public static readonly Dictionary<string, HashSet<string>> Devices = new();
-        public TouchEventsHub(ILogger<ImagesHub> logger)
+        public TouchEventsHub(ILogger<TouchEventsHub> logger)
         {
             _logger = logger;
         }
@@ -16,7 +16,7 @@ namespace EmulatorRC.API.Hubs
         {
             try
             {
-                var deviceId = Context.GetHttpContext()?.Request.GetDeviceIdOrDefault();
+                var deviceId = Context.GetHttpContext()?.GetDeviceIdOrDefault();
                 if (deviceId != null)
                 {
                     var connectionId = Context.ConnectionId;
@@ -41,7 +41,7 @@ namespace EmulatorRC.API.Hubs
         {
             try
             {
-                var deviceId = Context.GetHttpContext()?.Request.GetDeviceIdOrDefault();
+                var deviceId = Context.GetHttpContext()?.GetDeviceIdOrDefault();
                 if (deviceId != null)
                 {
                     var connectionId = Context.ConnectionId;

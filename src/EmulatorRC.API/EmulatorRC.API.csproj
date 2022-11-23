@@ -13,7 +13,6 @@
     <PackageReference Include="Grpc.AspNetCore" Version="2.49.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,8 +21,8 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<Protobuf Include="Protos\screen.proto" GrpcServices="Server" />
-		<Protobuf Include="Protos\uploader.proto" GrpcServices="Server" />
+		<Protobuf Include="Protos\client.proto" GrpcServices="Server" />
+		<Protobuf Include="Protos\device.proto" GrpcServices="Server" />
 	</ItemGroup>
 
   <ItemGroup>
