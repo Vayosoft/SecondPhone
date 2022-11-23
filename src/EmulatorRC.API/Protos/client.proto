@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "EmulatorRC.API.Protos";
+
+import "Protos/device.proto";
+
+service ClientService {
+  rpc GetScreens (stream ScreenRequest) returns (stream ScreenReply);
+  rpc SendTouchEvents (stream TouchEvents) returns (Ack);
+}
+
+message ScreenRequest {
+  string id = 1;
+}
+
+message ScreenReply {
+  string id = 1;
+  DeviceScreen device_screen = 2;
+}

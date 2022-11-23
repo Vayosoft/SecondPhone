@@ -4,7 +4,7 @@ using Grpc.Core;
 
 namespace EmulatorRC.API.Services
 {
-    public class UploaderService : Uploader.UploaderBase
+    public class UploaderService : DeviceService.DeviceServiceBase
     {
         private readonly ILogger<UploaderService> _logger;
         private readonly ScreenChannel _channel;
@@ -20,8 +20,8 @@ namespace EmulatorRC.API.Services
             _lifeTime = lifeTime;
         }
 
-        public override async Task<Ack> UploadMessage(
-            IAsyncStreamReader<UploadMessageRequest> requestStream,
+        public override async Task<Ack> UploadScreens(
+            IAsyncStreamReader<DeviceScreen> requestStream,
             ServerCallContext context)
         {
             var deviceId = context.GetDeviceIdOrDefault("default")!;

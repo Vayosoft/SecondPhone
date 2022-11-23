@@ -9,7 +9,7 @@ namespace EmulatorRC.API.Services
     public class ScreenChannel : IDisposable
     {
         private readonly IEmulatorDataRepository _emulatorDataRepository;
-        private readonly ConcurrentDictionary<string, Dictionary<string ,Channel<ScreenReply>>> _channels = new();
+        private readonly ConcurrentDictionary<string, Channel<ScreenReply>> _channels = new();
 
         private readonly BoundedChannelOptions _options = new(1)
         {
@@ -24,24 +24,23 @@ namespace EmulatorRC.API.Services
             _emulatorDataRepository = emulatorDataRepository;
         }
 
-        public async ValueTask WriteAsync(string deviceId, UploadMessageRequest request, CancellationToken cancellationToken = default)
+        public async ValueTask WriteAsync(string deviceId, DeviceScreen request, CancellationToken cancellationToken = default)
         {
             var screen = new ScreenReply
             {
                 Id = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString(),
-                Image = request.Image
+                DeviceScreen = request
             };
 
-            if (_channels.TryGetValue(deviceId, out var channels))
+            if (_channels.TryGetValue(deviceId, out var channel))
             {
-                foreach (var channel in channels.Values) 
-                    await channel.Writer.WriteAsync(screen, cancellationToken);
+                await channel.Writer.WriteAsync(screen, cancellationToken);
             }
 
-            _emulatorDataRepository.SetLastScreen(deviceId, new Screen(screen.Id, screen.Image.ToByteArray()));
-        } 
-        
-        public async ValueTask<ScreenReply> ReadAsync(string clientId, string deviceId, string imageId, CancellationToken cancellationToken = default)
+            _emulatorDataRepository.SetLastScreen(deviceId, new Screen(screen.Id, screen.DeviceScreen.Image.ToByteArray()));
+        }
+
+        public async ValueTask<ScreenReply> ReadAsync(string deviceId, string imageId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(imageId))
             {
@@ -51,57 +50,28 @@ namespace EmulatorRC.API.Services
                     return new ScreenReply
                     {
                         Id = screen.Id,
-                        Image = UnsafeByteOperations.UnsafeWrap(screen.Image),
+                        DeviceScreen = new DeviceScreen
+                        {
+                            Image = UnsafeByteOperations.UnsafeWrap(screen.Image)
+                        },
                     };
                 }
             }
 
-            return await GetChannel(clientId, deviceId).Reader.ReadAsync(cancellationToken);
-        }
-
-        private Channel<ScreenReply> GetChannel(string clientId, string deviceId)
-        {
-            if (!_channels.TryGetValue(deviceId, out var channels))
-                throw new Exception("Please subscribe the channel first.");
-
-            if (channels.TryGetValue(clientId, out var channel)) return channel;
-
-            channel = Channel.CreateBounded<ScreenReply>(_options);
-            channels.Add(clientId, channel);
-
-            return channel;
-
-        }
-
-        public bool Subscribe(string clientId, string deviceId)
-        {
-            if (!_channels.TryGetValue(deviceId, out var channels))
+            if (!_channels.TryGetValue(deviceId, out var channel))
             {
-                channels = new Dictionary<string, Channel<ScreenReply>>();
-                if (!_channels.TryAdd(deviceId, channels))
-                    return false;
+                channel = Channel.CreateBounded<ScreenReply>(_options);
+                _channels.TryAdd(deviceId, channel);
             }
 
-            return channels.ContainsKey(clientId) || 
-                   channels.TryAdd(clientId, Channel.CreateBounded<ScreenReply>(_options));
-        }
-
-        public void Unsubscribe(string clientId, string deviceId)
-        {
-            if (!_channels.TryGetValue(deviceId, out var channels) 
-                || !channels.ContainsKey(clientId))
-                return;
-            
-            channels.Remove(clientId);
+            return await channel.Reader.ReadAsync(cancellationToken);
         }
 
         public void Dispose()
         {
-            foreach (var channelList in _channels.Values)
-            {
-                foreach (var channel in channelList.Values)
-                    channel.Writer.Complete();
-            }
+            foreach (var channel in _channels)
+                channel.Value.Writer.Complete();
+
             _channels.Clear();
         }
     }

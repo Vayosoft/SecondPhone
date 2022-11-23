@@ -5,7 +5,7 @@ using Grpc.Core;
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
 namespace EmulatorRC.API.Services
 {
-    public class ScreenService : Screener.ScreenerBase
+    public class ScreenService : ClientService.ClientServiceBase
     {
         private readonly ILogger<ScreenService> _logger;
         private readonly ScreenChannel _channel;
@@ -22,7 +22,7 @@ namespace EmulatorRC.API.Services
         }
 
         //[Authorize]
-        public override async Task Connect(
+        public override async Task GetScreens(
             IAsyncStreamReader<ScreenRequest> requestStream,
             IServerStreamWriter<ScreenReply> responseStream,
             ServerCallContext context)
@@ -37,12 +37,12 @@ namespace EmulatorRC.API.Services
 
             try
             {
-                if (!_channel.Subscribe(clientId, deviceId))
-                    throw new RpcException(new Status(StatusCode.Internal, "Subscription failed."));
+                //if (!_channel.Subscribe(clientId, deviceId))
+                //    throw new RpcException(new Status(StatusCode.Internal, "Subscription failed."));
 
                 await foreach (var request in requestStream.ReadAllAsync(cancellationSource.Token))
                 {
-                    var response = await _channel.ReadAsync(clientId, deviceId, request.Id, cancellationSource.Token);
+                    var response = await _channel.ReadAsync(deviceId, request.Id, cancellationSource.Token);
                     await responseStream.WriteAsync(response, cancellationSource.Token);
                 }
             }
@@ -53,7 +53,7 @@ namespace EmulatorRC.API.Services
             }
             finally
             {
-                _channel.Unsubscribe(clientId, deviceId);
+                //_channel.Unsubscribe(clientId, deviceId);
 
                 _logger.LogInformation("CLIENT:[{clientId}] Stream closed.", clientId);
             }
