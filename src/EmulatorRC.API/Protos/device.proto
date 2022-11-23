@@ -3,12 +3,13 @@ syntax = "proto3";
 option csharp_namespace = "EmulatorRC.API.Protos";
 
 service DeviceService {
+	rpc SendDeviceInfo(DeviceInfo) returns(Ack);
 	rpc UploadScreens(stream DeviceScreen) returns (Ack);
 	rpc GetTouchEvents (Syn) returns (stream TouchEvents);
 }
 
 message DeviceScreen {
-	DeviceInfo device_info = 1;
+	string id = 1;
 	bytes image = 2;
 }
 

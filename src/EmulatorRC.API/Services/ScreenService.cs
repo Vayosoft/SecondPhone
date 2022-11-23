@@ -24,7 +24,7 @@ namespace EmulatorRC.API.Services
         //[Authorize]
         public override async Task GetScreens(
             IAsyncStreamReader<ScreenRequest> requestStream,
-            IServerStreamWriter<ScreenReply> responseStream,
+            IServerStreamWriter<DeviceScreen> responseStream,
             ServerCallContext context)
         {
             var deviceId = context.GetDeviceIdOrDefault("default")!;

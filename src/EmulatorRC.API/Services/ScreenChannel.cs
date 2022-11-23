@@ -9,7 +9,7 @@ namespace EmulatorRC.API.Services
     public class ScreenChannel : IDisposable
     {
         private readonly IEmulatorDataRepository _emulatorDataRepository;
-        private readonly ConcurrentDictionary<string, Channel<ScreenReply>> _channels = new();
+        private readonly ConcurrentDictionary<string, Channel<DeviceScreen>> _channels = new();
 
         private readonly BoundedChannelOptions _options = new(1)
         {
@@ -26,41 +26,34 @@ namespace EmulatorRC.API.Services
 
         public async ValueTask WriteAsync(string deviceId, DeviceScreen request, CancellationToken cancellationToken = default)
         {
-            var screen = new ScreenReply
-            {
-                Id = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString(),
-                DeviceScreen = request
-            };
+            request.Id = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString();
 
             if (_channels.TryGetValue(deviceId, out var channel))
             {
-                await channel.Writer.WriteAsync(screen, cancellationToken);
+                await channel.Writer.WriteAsync(request, cancellationToken);
             }
 
-            _emulatorDataRepository.SetLastScreen(deviceId, new Screen(screen.Id, screen.DeviceScreen.Image.ToByteArray()));
+            _emulatorDataRepository.SetLastScreen(deviceId, new Screen(request.Id, request.Image.ToByteArray()));
         }
 
-        public async ValueTask<ScreenReply> ReadAsync(string deviceId, string imageId, CancellationToken cancellationToken = default)
+        public async ValueTask<DeviceScreen> ReadAsync(string deviceId, string imageId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(imageId))
             {
                 var screen = _emulatorDataRepository.GetLastScreen(deviceId);
                 if (screen != null)
                 {
-                    return new ScreenReply
+                    return new DeviceScreen
                     {
                         Id = screen.Id,
-                        DeviceScreen = new DeviceScreen
-                        {
-                            Image = UnsafeByteOperations.UnsafeWrap(screen.Image)
-                        },
+                        Image = UnsafeByteOperations.UnsafeWrap(screen.Image)
                     };
                 }
             }
 
             if (!_channels.TryGetValue(deviceId, out var channel))
             {
-                channel = Channel.CreateBounded<ScreenReply>(_options);
+                channel = Channel.CreateBounded<DeviceScreen>(_options);
                 _channels.TryAdd(deviceId, channel);
             }
 
