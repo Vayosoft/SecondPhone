@@ -1,12 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using EmulatorHub.Application.Services.Tokens;
 using EmulatorRC.Client;
-using EmulatorRC.Client.Protos;
 using Grpc.Core;
 using Grpc.Net.Client;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
-using EmulatorHub.Application.Services.Tokens;
 
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 //var url = "http://192.168.10.6:5006";
@@ -21,17 +20,17 @@ var uploadTask = Task.Run(async () =>
             //Credentials = ChannelCredentials.SecureSsl
         });
 
-        var client = new Uploader.UploaderClient(channel);
+        var client = new DeviceService.DeviceServiceClient(channel);
         var headers = new Metadata
         {
             { "X-DEVICE-ID", "default" }
         };
-        using var call = client.UploadMessage(headers);
+        using var call = client.UploadScreens(headers);
         foreach (var enumerateFile in Enumerable.Range(0, 100))
         {
             var image = new byte[enumerateFile];
             await 50;
-            await call.RequestStream.WriteAsync(new UploadMessageRequest
+            await call.RequestStream.WriteAsync(new DeviceScreen
             {
                 Image = ByteString.CopyFrom(image)
             }, CancellationToken.None);
@@ -143,7 +142,7 @@ Console.WriteLine("Done!");
 
 //***************************************************************************************
 
-class TestObservable : IObserver<ScreenReply>
+class TestObservable : IObserver<DeviceScreen>
 {
     public void OnCompleted()
     {
@@ -155,7 +154,7 @@ class TestObservable : IObserver<ScreenReply>
         Console.WriteLine("Error: " + error.Message);
     }
 
-    public void OnNext(ScreenReply value)
+    public void OnNext(DeviceScreen value)
     {
         Console.WriteLine("ScreenStream: " + value.Image.ToStringUtf8());
     }

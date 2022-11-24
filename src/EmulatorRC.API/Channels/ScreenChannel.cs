@@ -4,9 +4,9 @@ using EmulatorRC.API.Protos;
 using EmulatorRC.Services;
 using Google.Protobuf;
 
-namespace EmulatorRC.API.Services
+namespace EmulatorRC.API.Channels
 {
-    public class ScreenChannel : IDisposable
+    public sealed class ScreenChannel : IDisposable
     {
         private readonly IEmulatorDataRepository _emulatorDataRepository;
         private readonly ConcurrentDictionary<string, Channel<DeviceScreen>> _channels = new();

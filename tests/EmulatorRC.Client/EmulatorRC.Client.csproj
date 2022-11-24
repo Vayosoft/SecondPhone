@@ -12,8 +12,8 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<Protobuf Include="Protos\screen.proto" GrpcServices="Client" />
-		<Protobuf Include="Protos\uploader.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\client.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\device.proto" GrpcServices="Client" />
 	</ItemGroup>
 
 	<ItemGroup>
