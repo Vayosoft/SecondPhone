@@ -13,7 +13,7 @@ namespace EmulatorRC.API.Snippets.Hubs
         // </snippet_OnConnectedAsync>
 
         // <snippet_OnDisconnectedAsync>
-        public override async Task OnDisconnectedAsync(Exception? exception)
+        public override async Task OnDisconnectedAsync(Exception exception)
         {
             await base.OnDisconnectedAsync(exception);
         }
