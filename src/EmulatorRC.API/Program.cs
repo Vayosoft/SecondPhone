@@ -2,6 +2,7 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using EmulatorRC.API.Channels;
 using EmulatorRC.API.Hubs;
 using EmulatorRC.API.Model;
 using EmulatorRC.API.Services;
@@ -42,6 +43,7 @@ public class Program
 
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
                 builder.Services.AddSingleton<ScreenChannel>();
+                builder.Services.AddSingleton<TouchChannel>();
 
                 builder.Services.AddGrpc(options =>
                 {

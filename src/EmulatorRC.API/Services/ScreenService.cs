@@ -1,4 +1,5 @@
-﻿using EmulatorRC.API.Extensions;
+﻿using EmulatorRC.API.Channels;
+using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using Grpc.Core;
 
@@ -8,17 +9,52 @@ namespace EmulatorRC.API.Services
     public class ScreenService : ClientService.ClientServiceBase
     {
         private readonly ILogger<ScreenService> _logger;
-        private readonly ScreenChannel _channel;
+        private readonly ScreenChannel _screens;
+        private readonly TouchChannel _touchEvents;
         private readonly IHostApplicationLifetime _lifeTime;
 
         public ScreenService(
             ILogger<ScreenService> logger,
-            ScreenChannel channel, 
+            ScreenChannel screens, 
+            TouchChannel touchEvents, 
             IHostApplicationLifetime lifeTime)
         {
             _logger = logger;
-            _channel = channel;
+            _screens = screens;
+            _touchEvents = touchEvents;
             _lifeTime = lifeTime;
+        }
+
+        public override async Task<Ack> SendTouchEvents(IAsyncStreamReader<TouchEvents> requestStream, ServerCallContext context)
+        {
+            var deviceId = context.GetDeviceIdOrDefault("default")!;
+
+            _logger.LogInformation("TOUCH | DEV:[{deviceId}] Connected.", deviceId);
+
+            var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
+                context.CancellationToken, _lifeTime.ApplicationStopping);
+
+            try
+            {
+                await foreach (var request in requestStream.ReadAllAsync(cancellationSource.Token))
+                {
+                    await _touchEvents.WriteAsync(deviceId, request, cancellationSource.Token);
+                }
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _logger.LogError("TOUCH | {type}| {message}", ex.GetType(), ex.Message);
+            }
+
+            _logger.LogInformation("TOUCH | DEV:[{deviceId}] Stream closed.", deviceId);
+
+            return new Ack();
+        }
+
+        public override Task GetDeviceInfo(Syn request, IServerStreamWriter<DeviceInfo> responseStream, ServerCallContext context)
+        {
+            return base.GetDeviceInfo(request, responseStream, context);
         }
 
         //[Authorize]
@@ -30,7 +66,7 @@ namespace EmulatorRC.API.Services
             var deviceId = context.GetDeviceIdOrDefault("default")!;
             var clientId = context.GetClientId();
 
-            _logger.LogInformation("CLIENT:[{clientId}] Connected for device: {deviceId}.", clientId, deviceId);
+            _logger.LogInformation("SCREEN | CLIENT:[{clientId}] Connected for device: {deviceId}.", clientId, deviceId);
 
             var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
                 context.CancellationToken, _lifeTime.ApplicationStopping);
@@ -42,20 +78,20 @@ namespace EmulatorRC.API.Services
 
                 await foreach (var request in requestStream.ReadAllAsync(cancellationSource.Token))
                 {
-                    var response = await _channel.ReadAsync(deviceId, request.Id, cancellationSource.Token);
+                    var response = await _screens.ReadAsync(deviceId, request.Id, cancellationSource.Token);
                     await responseStream.WriteAsync(response, cancellationSource.Token);
                 }
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                _logger.LogError("{type}| {message}", ex.GetType(), ex.Message);
+                _logger.LogError("SCREEN | {type}| {message}", ex.GetType(), ex.Message);
             }
             finally
             {
                 //_channel.Unsubscribe(clientId, deviceId);
 
-                _logger.LogInformation("CLIENT:[{clientId}] Stream closed.", clientId);
+                _logger.LogInformation("SCREEN | CLIENT:[{clientId}] Stream closed.", clientId);
             }
         }
     }
