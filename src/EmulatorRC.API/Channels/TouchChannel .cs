@@ -4,11 +4,11 @@ using EmulatorRC.API.Protos;
 
 namespace EmulatorRC.API.Channels
 {
-    public class TouchChannel : IDisposable
+    public sealed class TouchChannel : IDisposable
     {
         private readonly ConcurrentDictionary<string, Channel<TouchEvents>> _channels = new();
 
-        private readonly BoundedChannelOptions _options = new(2)
+        private readonly BoundedChannelOptions _options = new(1)
         {
             SingleWriter = true,
             SingleReader = true,

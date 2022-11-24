@@ -5,7 +5,7 @@ using Grpc.Core;
 
 namespace EmulatorRC.API.Services
 {
-    public class InternalService : DeviceService.DeviceServiceBase
+    public sealed class InternalService : DeviceService.DeviceServiceBase
     {
         private readonly ILogger<InternalService> _logger;
         private readonly ScreenChannel _screens;

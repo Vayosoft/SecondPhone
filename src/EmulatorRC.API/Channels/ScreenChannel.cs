@@ -6,12 +6,12 @@ using Google.Protobuf;
 
 namespace EmulatorRC.API.Channels
 {
-    public class ScreenChannel : IDisposable
+    public sealed class ScreenChannel : IDisposable
     {
         private readonly IEmulatorDataRepository _emulatorDataRepository;
         private readonly ConcurrentDictionary<string, Channel<DeviceScreen>> _channels = new();
 
-        private readonly BoundedChannelOptions _options = new(2)
+        private readonly BoundedChannelOptions _options = new(1)
         {
             SingleWriter = true,
             SingleReader = true,

@@ -6,7 +6,7 @@ using Grpc.Core;
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
 namespace EmulatorRC.API.Services
 {
-    public class OuterService : ClientService.ClientServiceBase
+    public sealed class OuterService : ClientService.ClientServiceBase
     {
         private readonly ILogger<OuterService> _logger;
         private readonly ScreenChannel _screens;
