@@ -1,17 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System.Numerics;
 using EmulatorRC.Client;
-using EmulatorRC.Client.Protos;
 using Grpc.Core;
 using Grpc.Net.Client;
-using Grpc.Net.Client.Configuration;
-using System.Threading.Channels;
-using EmulatorHub.Tokens;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
-using LanguageExt.Pipes;
-using static EmulatorRC.Client.Protos.Screener;
+using EmulatorHub.Tokens;
 
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 //var url = "http://192.168.10.6:5006";
@@ -26,17 +20,17 @@ var uploadTask = Task.Run(async () =>
             //Credentials = ChannelCredentials.SecureSsl
         });
 
-        var client = new Uploader.UploaderClient(channel);
+        var client = new DeviceService.DeviceServiceClient(channel);
         var headers = new Metadata
         {
             { "X-DEVICE-ID", "default" }
         };
-        using var call = client.UploadMessage(headers);
+        using var call = client.UploadScreens(headers);
         foreach (var enumerateFile in Enumerable.Range(0, 100))
         {
             var image = new byte[enumerateFile];
             await 50;
-            await call.RequestStream.WriteAsync(new UploadMessageRequest
+            await call.RequestStream.WriteAsync(new DeviceScreen
             {
                 Image = ByteString.CopyFrom(image)
             }, CancellationToken.None);
@@ -51,6 +45,7 @@ var uploadTask = Task.Run(async () =>
 });
 
 var screenClient = new GrpcStub(url, tokenResult.Token);
+//var screenClient2 = new GrpcStub(url, tokenResult.Token);
 try
 {
     Console.WriteLine("Starting to send messages");
@@ -61,6 +56,7 @@ try
         if (result is "1") break;
 
         await screenClient.SendAsync(result ?? string.Empty);
+       // await screenClient2.SendAsync(result ?? string.Empty);
     }
 }
 catch (Exception e)
@@ -146,7 +142,7 @@ Console.WriteLine("Done!");
 
 //***************************************************************************************
 
-class TestObservable : IObserver<ScreenReply>
+class TestObservable : IObserver<DeviceScreen>
 {
     public void OnCompleted()
     {
@@ -158,7 +154,7 @@ class TestObservable : IObserver<ScreenReply>
         Console.WriteLine("Error: " + error.Message);
     }
 
-    public void OnNext(ScreenReply value)
+    public void OnNext(DeviceScreen value)
     {
         Console.WriteLine("ScreenStream: " + value.Image.ToStringUtf8());
     }
