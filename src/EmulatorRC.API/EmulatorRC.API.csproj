@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+	  <ImplicitUsings>enable</ImplicitUsings>
 	<InvariantGlobalization>true</InvariantGlobalization>
 	<EnablePreviewFeatures>true</EnablePreviewFeatures>
     <UserSecretsId>33e7411f-e434-4fde-b366-de9194c8a492</UserSecretsId>
