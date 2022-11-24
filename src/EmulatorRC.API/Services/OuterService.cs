@@ -6,15 +6,15 @@ using Grpc.Core;
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
 namespace EmulatorRC.API.Services
 {
-    public class ScreenService : ClientService.ClientServiceBase
+    public class OuterService : ClientService.ClientServiceBase
     {
-        private readonly ILogger<ScreenService> _logger;
+        private readonly ILogger<OuterService> _logger;
         private readonly ScreenChannel _screens;
         private readonly TouchChannel _touchEvents;
         private readonly IHostApplicationLifetime _lifeTime;
 
-        public ScreenService(
-            ILogger<ScreenService> logger,
+        public OuterService(
+            ILogger<OuterService> logger,
             ScreenChannel screens, 
             TouchChannel touchEvents, 
             IHostApplicationLifetime lifeTime)
@@ -27,12 +27,7 @@ namespace EmulatorRC.API.Services
 
         public override async Task<Ack> SendTouchEvents(IAsyncStreamReader<TouchEvents> requestStream, ServerCallContext context)
         {
-            var deviceId = context.GetDeviceIdOrDefault("default")!;
-
-            _logger.LogInformation("TOUCH | DEV:[{deviceId}] Connected.", deviceId);
-
-            var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
-                context.CancellationToken, _lifeTime.ApplicationStopping);
+            Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
 
             try
             {
@@ -44,12 +39,27 @@ namespace EmulatorRC.API.Services
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                _logger.LogError("TOUCH | {type}| {message}", ex.GetType(), ex.Message);
+                _logger.LogError("{action} | {type}| {message}", 
+                    context.Method, ex.GetType(), ex.Message);
             }
 
-            _logger.LogInformation("TOUCH | DEV:[{deviceId}] Stream closed.", deviceId);
+            _logger.LogInformation("{action} | CLIENT:[{clientId}] Stream closed.",
+                context.Method, clientId);
 
             return new Ack();
+        }
+
+        private void Handshake(ServerCallContext context, out string deviceId, out string clientId,
+            out CancellationTokenSource cancellationSource)
+        {
+            deviceId = context.GetDeviceIdOrDefault("default")!;
+            clientId = context.GetClientId();
+
+            _logger.LogInformation("{action} | CLIENT:[{clientId}] Connected for device: {deviceId}.",
+                context.Method, clientId, deviceId);
+
+            cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
+                context.CancellationToken, _lifeTime.ApplicationStopping);
         }
 
         public override Task GetDeviceInfo(Syn request, IServerStreamWriter<DeviceInfo> responseStream, ServerCallContext context)
@@ -63,13 +73,7 @@ namespace EmulatorRC.API.Services
             IServerStreamWriter<DeviceScreen> responseStream,
             ServerCallContext context)
         {
-            var deviceId = context.GetDeviceIdOrDefault("default")!;
-            var clientId = context.GetClientId();
-
-            _logger.LogInformation("SCREEN | CLIENT:[{clientId}] Connected for device: {deviceId}.", clientId, deviceId);
-
-            var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
-                context.CancellationToken, _lifeTime.ApplicationStopping);
+            Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
 
             try
             {
@@ -85,13 +89,15 @@ namespace EmulatorRC.API.Services
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                _logger.LogError("SCREEN | {type}| {message}", ex.GetType(), ex.Message);
+                _logger.LogError("{action} | {type}| {message}", 
+                    context.Method, ex.GetType(), ex.Message);
             }
             finally
             {
                 //_channel.Unsubscribe(clientId, deviceId);
 
-                _logger.LogInformation("SCREEN | CLIENT:[{clientId}] Stream closed.", clientId);
+                _logger.LogInformation("{action} | CLIENT:[{clientId}] Stream closed.",
+                    context.Method, clientId);
             }
         }
     }

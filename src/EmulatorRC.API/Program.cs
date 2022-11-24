@@ -53,7 +53,7 @@ public class Program
                     // Small performance benefit to not add catch-all routes to handle UNIMPLEMENTED for unknown services
                     options.IgnoreUnknownServices = true;
                 })
-                .AddServiceOptions<UploaderService>(options =>
+                .AddServiceOptions<InternalService>(options =>
                 {
                     options.EnableDetailedErrors = true;
                     options.MaxReceiveMessageSize = 5 * 1024 * 1024; // 2 MB
@@ -106,8 +106,8 @@ public class Program
                 app.UseAuthentication();
                 app.UseAuthorization();
 
-                app.MapGrpcService<ScreenService>();
-                app.MapGrpcService<UploaderService>();
+                app.MapGrpcService<OuterService>();
+                app.MapGrpcService<InternalService>();
 
                 app.MapHub<TouchEventsHub>("/chathub");
 
