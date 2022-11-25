@@ -10,6 +10,7 @@ namespace EmulatorRC.API.Channels
     {
         private readonly IEmulatorDataRepository _emulatorDataRepository;
         private readonly ConcurrentDictionary<string, Channel<DeviceScreen>> _channels = new();
+        private readonly ConcurrentDictionary<string, object> _locks = new();
 
         private readonly BoundedChannelOptions _options = new(1)
         {
@@ -53,8 +54,14 @@ namespace EmulatorRC.API.Channels
 
             if (!_channels.TryGetValue(deviceId, out var channel))
             {
-                channel = Channel.CreateBounded<DeviceScreen>(_options);
-                _channels.TryAdd(deviceId, channel);
+                lock (_locks.GetOrAdd(deviceId, s => new object()))
+                {
+                    if (!_channels.TryGetValue(deviceId, out channel))
+                    {
+                        channel = Channel.CreateBounded<DeviceScreen>(_options);
+                        _channels.TryAdd(deviceId, channel);
+                    }
+                }
             }
 
             return await channel.Reader.ReadAsync(cancellationToken);
