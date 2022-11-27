@@ -7,17 +7,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.API", "src\Emula
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E0353DBC-A15E-4CAF-A036-4A97BFD01D36}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D1F78C27-B9B6-4D71-8E24-0407634BEF6E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{D1F78C27-B9B6-4D71-8E24-0407634BEF6E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC", "src\EmulatorRC\EmulatorRC.csproj", "{70708D76-DC47-46C9-9525-FBA84010D6BB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.IntegrationTests", "tests\EmulatorRC.IntegrationTests\EmulatorRC.IntegrationTests.csproj", "{D4AD959C-3ED2-4EC6-8063-689D30FD5FBD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.IntegrationTests", "test\EmulatorRC.IntegrationTests\EmulatorRC.IntegrationTests.csproj", "{D4AD959C-3ED2-4EC6-8063-689D30FD5FBD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SecondPhone.Benchmarks", "tests\SecondPhone.Benchmarks\SecondPhone.Benchmarks.csproj", "{558B2648-FFF5-43DC-BF91-42AC09E6E2CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SecondPhone.Benchmarks", "test\SecondPhone.Benchmarks\SecondPhone.Benchmarks.csproj", "{558B2648-FFF5-43DC-BF91-42AC09E6E2CE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.UnitTests", "tests\EmulatorRC.UnitTests\EmulatorRC.UnitTests.csproj", "{F815B2F8-FE5E-4ABE-9A96-46DF2E3D85E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.UnitTests", "test\EmulatorRC.UnitTests\EmulatorRC.UnitTests.csproj", "{F815B2F8-FE5E-4ABE-9A96-46DF2E3D85E7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.Client", "tests\EmulatorRC.Client\EmulatorRC.Client.csproj", "{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorRC.Client", "test\EmulatorRC.Client\EmulatorRC.Client.csproj", "{99B969E9-D599-4F51-B6A1-69BA0CCB6D5A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{9DE71ED2-5278-49CE-989F-1E9B591E266B}"
 EndProject
@@ -43,7 +43,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "data", "data", "{02ABA0C0-9
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Persistence", "..\Vayosoft\src\Vayosoft.Persistence\Vayosoft.Persistence.csproj", "{9CF2BD35-97C8-482B-AA85-BB7FACE1AFD9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorHub.IntegrationTests", "tests\EmulatorHub.IntegrationTests\EmulatorHub.IntegrationTests.csproj", "{10C5B4CB-EE9D-4E0B-875F-46E0F5F5FA4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmulatorHub.IntegrationTests", "test\EmulatorHub.IntegrationTests\EmulatorHub.IntegrationTests.csproj", "{10C5B4CB-EE9D-4E0B-875F-46E0F5F5FA4B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Testing", "..\Vayosoft\src\Vayosoft.Testing\Vayosoft.Testing.csproj", "{D4ADCF41-C2AE-4696-A017-3EEF92428174}"
 EndProject
