@@ -1,10 +1,12 @@
 ﻿using EmulatorHub.Domain.Entities;
 using EmulatorHub.Infrastructure.Persistence;
+using LanguageExt.Pipes;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Vayosoft.Identity;
+using System.Threading;
 using Vayosoft.Persistence;
+using Vayosoft.Persistence.Specifications;
 
 namespace EmulatorHub.API.Testing
 {
@@ -12,16 +14,16 @@ namespace EmulatorHub.API.Testing
     {
         public static IEndpointRouteBuilder MapTestApiV1(this IEndpointRouteBuilder routes)
         {
-            routes.MapGet("/v1/items", GetAllUsers);
-            routes.MapGet("/v1/items/{id}", GetItem);
-            routes.MapPost("/v1/update", UpdateItem);
+            routes.MapGet("/users", GetAllUsers);
+            routes.MapGet("/devices", GetAllDevices);
+            routes.MapPost("/devices/add", RegisterDevice);
 
             return routes;
         }
 
-        public static async Task<Ok<List<RemoteDevice>>> GetAllItems(HubDbContext db)
+        public static async Task<Ok<List<DeviceEntity>>> GetAllItems(HubDbContext db)
         {
-            return TypedResults.Ok(await db.Set<RemoteDevice>().ToListAsync());
+            return TypedResults.Ok(await db.Set<DeviceEntity>().ToListAsync());
         }
 
         public static async Task<Ok<List<UserEntity>>> GetAllUsers(IDataProvider db)
@@ -33,51 +35,40 @@ namespace EmulatorHub.API.Testing
             return TypedResults.Ok(user);
         }
 
-      
-        public static async Task<Results<Ok<RemoteDevice>, NotFound>> GetItem(long id, IUnitOfWork db)
+
+        public static async Task<Ok<List<DeviceEntity>>> GetAllDevices(HubDbContext db)
         {
-            return await db.FindAsync<RemoteDevice>(1) is RemoteDevice item
+
+            var devices = await db.Devices.ToListAsync();
+            return TypedResults.Ok(devices);
+        }
+        public static async Task<Results<Ok<DeviceEntity>, NotFound>> GetItem(long id, IUnitOfWork db)
+        {
+            return await db.FindAsync<DeviceEntity>(1) is DeviceEntity item
                 ? TypedResults.Ok(item)
                 : TypedResults.NotFound();
         }
 
-        public static async Task<Results<Ok<RemoteDevice>, NotFound>> UpdateItem(UserEntity entity, IUnitOfWork db, [FromServices] ILogger<RemoteDevice> logger)
+        public static async Task<Results<Ok<DeviceEntity>, NotFound>> RegisterDevice(string deviceId, IUnitOfWork db, [FromServices] ILogger<DeviceEntity> logger)
         {
             var user = await db.FindAsync<UserEntity>(1);
-            if (user is UserEntity item)
+            if (user is { } item)
             {
-                //item.Email = "su@vayosoft.com";
+                var device = new DeviceEntity
+                {
+                    Id = deviceId,
+                    User = user,
+                    ProviderId = user.ProviderId,
+                    Registered = DateTime.UtcNow,
+                };
 
-                //item.RefreshTokens.Add(new RefreshToken
-                //{
-                //    Token = "ff79465d-0f75-4995-a121-574f292e9406",
-                //    Created = DateTime.UtcNow,
-                //    Expires = DateTime.MaxValue,
-
-                //});
-
-                //db.Update(item);
-                //await db.CommitAsync();
-
-                //var testEntity = new TestEntity
-                //{
-                //    Timestamp = DateTime.UtcNow,
-                //    RegisteredDate = DateOnly.FromDateTime(DateTime.Now),
-                //    DisplayName = "dn",
-                //    ProviderId = 0,
-                //    Name = "T"
-                //};
-                //db.Add(testEntity);
-
-                var testEntity = await db.FindAsync<RemoteDevice>(1);
-                testEntity.Name = "test";
-
+                db.Add(device);
                 await db.CommitAsync();
-       
+
 
                 //logger.LogInformation($"commit: {testEntity.ToJson()}");
 
-                return TypedResults.Ok(testEntity);
+                return TypedResults.Ok(device);
             }
             else
             {

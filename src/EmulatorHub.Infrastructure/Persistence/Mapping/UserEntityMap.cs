@@ -1,15 +1,15 @@
-﻿using EmulatorHub.Domain.Entities;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Tokens;
 using Vayosoft.Persistence.EntityFramework;
+using UserEntity = EmulatorHub.Domain.Entities.UserEntity;
 
 namespace EmulatorHub.Infrastructure.Persistence.Mapping
 {
-    public partial class RemoteClientMap : EntityConfigurationMapper<RemoteClient>
+    public partial class UserEntityMap : EntityConfigurationMapper<UserEntity>
     {
-        public override void Configure(EntityTypeBuilder<RemoteClient> builder)
+        public override void Configure(EntityTypeBuilder<UserEntity> builder)
         {
             builder
                 .Property(t => t.Username); //read_only field
@@ -21,7 +21,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
             builder.HasQueryFilter(p => !p.SoftDeleted);
 
             builder.HasData(
-                new RemoteClient("su")
+                new UserEntity("su")
                 {
                     Id = 1,
                     PasswordHash = "VBbXzW7xlaD3YiqcVrVehA==",
@@ -44,7 +44,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
                 .HasKey(t => new { t.UserId, t.Token });
 
             builder
-                .HasOne(t => t.User as RemoteClient)
+                .HasOne(t => t.User as UserEntity)
                 .WithMany(t => t.RefreshTokens)
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);

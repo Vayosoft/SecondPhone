@@ -1,4 +1,4 @@
-﻿using Vayosoft.Identity;
+﻿using EmulatorHub.Domain.Entities;
 using Vayosoft.Persistence.Criterias;
 using Vayosoft.Persistence.Specifications;
 

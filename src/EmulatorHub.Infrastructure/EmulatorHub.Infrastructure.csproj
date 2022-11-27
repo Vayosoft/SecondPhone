@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.EntityFramework.MySQL\Vayosoft.EntityFramework.MySQL.csproj" />
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Persistence.EntityFramework\Vayosoft.Persistence.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.PushMessage\Vayosoft.PushMessage.csproj" />
     <ProjectReference Include="..\EmulatorHub\EmulatorHub.csproj" />
   </ItemGroup>
 

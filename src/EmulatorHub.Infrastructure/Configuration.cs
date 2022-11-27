@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Vayosoft.EntityFramework.MySQL;
 using Vayosoft.Identity;
 using Vayosoft.Persistence;
+using Vayosoft.PushMessage;
 
 namespace EmulatorHub.Infrastructure
 {
@@ -26,6 +27,7 @@ namespace EmulatorHub.Infrastructure
            
             services
                 .AddScoped<IUserContext, UserContext>();
+            services.AddPushBrokers();
 
             return services;
         }

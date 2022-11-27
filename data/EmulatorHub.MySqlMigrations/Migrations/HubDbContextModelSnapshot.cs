@@ -19,7 +19,41 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                 .HasAnnotation("ProductVersion", "6.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("EmulatorHub.Domain.Entities.RemoteClient", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.DeviceEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext")
+                        .HasColumnName("name");
+
+                    b.Property<long>("ProviderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("provider_id");
+
+                    b.Property<DateTime?>("Registered")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("registered");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_devices");
+
+                    b.HasIndex("ProviderId")
+                        .HasDatabaseName("ix_devices_provider_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_devices_user_id");
+
+                    b.ToTable("devices", (string)null);
+                });
+
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.UserEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -27,6 +61,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .HasColumnName("id");
 
                     b.Property<string>("CultureId")
+                        .IsRequired()
                         .HasColumnType("longtext")
                         .HasColumnName("culture_id");
 
@@ -35,6 +70,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .HasColumnName("deregistered");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasColumnType("longtext")
                         .HasColumnName("email");
 
@@ -43,10 +79,12 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .HasColumnName("log_level");
 
                     b.Property<string>("PasswordHash")
+                        .IsRequired()
                         .HasColumnType("longtext")
                         .HasColumnName("password_hash");
 
                     b.Property<string>("Phone")
+                        .IsRequired()
                         .HasColumnType("longtext")
                         .HasColumnName("phone");
 
@@ -71,21 +109,22 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .HasColumnName("type");
 
                     b.Property<string>("Username")
+                        .IsRequired()
                         .HasColumnType("varchar(255)")
                         .HasColumnName("username");
 
                     b.HasKey("Id")
-                        .HasName("pk_clients");
+                        .HasName("pk_users");
 
                     b.HasIndex("SoftDeleted")
-                        .HasDatabaseName("ix_clients_soft_deleted");
+                        .HasDatabaseName("ix_users_soft_deleted");
 
                     b.HasIndex("Username", "ProviderId")
                         .IsUnique()
-                        .HasDatabaseName("ix_clients_username_provider_id")
+                        .HasDatabaseName("ix_users_username_provider_id")
                         .HasFilter("NOT SoftDeleted");
 
-                    b.ToTable("clients", (string)null);
+                    b.ToTable("users", (string)null);
 
                     b.HasData(
                         new
@@ -101,41 +140,6 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                             Type = 4,
                             Username = "su"
                         });
-                });
-
-            modelBuilder.Entity("EmulatorHub.Domain.Entities.RemoteDevice", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    b.Property<long>("ClientId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("client_id");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("longtext")
-                        .HasColumnName("name");
-
-                    b.Property<long>("ProviderId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("provider_id");
-
-                    b.Property<DateTime?>("Registered")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("registered");
-
-                    b.HasKey("Id")
-                        .HasName("pk_devices");
-
-                    b.HasIndex("ClientId")
-                        .HasDatabaseName("ix_devices_client_id");
-
-                    b.HasIndex("ProviderId")
-                        .HasDatabaseName("ix_devices_provider_id");
-
-                    b.ToTable("devices", (string)null);
                 });
 
             modelBuilder.Entity("Vayosoft.Identity.Tokens.RefreshToken", b =>
@@ -182,31 +186,31 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.ToTable("refresh_token", (string)null);
                 });
 
-            modelBuilder.Entity("EmulatorHub.Domain.Entities.RemoteDevice", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.DeviceEntity", b =>
                 {
-                    b.HasOne("EmulatorHub.Domain.Entities.RemoteClient", "Client")
+                    b.HasOne("EmulatorHub.Domain.Entities.UserEntity", "User")
                         .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_devices_clients_client_id");
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("Vayosoft.Identity.Tokens.RefreshToken", b =>
-                {
-                    b.HasOne("EmulatorHub.Domain.Entities.RemoteClient", "User")
-                        .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_refresh_token_clients_remote_client_id");
+                        .HasConstraintName("fk_devices_users_user_id");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("EmulatorHub.Domain.Entities.RemoteClient", b =>
+            modelBuilder.Entity("Vayosoft.Identity.Tokens.RefreshToken", b =>
+                {
+                    b.HasOne("EmulatorHub.Domain.Entities.UserEntity", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_refresh_token_users_user_entity_id");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.UserEntity", b =>
                 {
                     b.Navigation("RefreshTokens");
                 });
