@@ -1,12 +1,11 @@
 ﻿using EmulatorHub.Domain.Entities;
 using EmulatorHub.Infrastructure.Persistence;
-using LanguageExt.Pipes;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
+using Newtonsoft.Json.Linq;
 using Vayosoft.Persistence;
-using Vayosoft.Persistence.Specifications;
+using Vayosoft.PushMessage;
 
 namespace EmulatorHub.API.Testing
 {
@@ -17,6 +16,7 @@ namespace EmulatorHub.API.Testing
             routes.MapGet("/users", GetAllUsers);
             routes.MapGet("/devices", GetAllDevices);
             routes.MapPost("/devices/add", RegisterDevice);
+            routes.MapPost("/devices/sendPush", SendPush);
 
             return routes;
         }
@@ -47,6 +47,20 @@ namespace EmulatorHub.API.Testing
             return await db.FindAsync<DeviceEntity>(1) is DeviceEntity item
                 ? TypedResults.Ok(item)
                 : TypedResults.NotFound();
+        }
+        
+        public static async Task<Results<Ok, NotFound>> SendPush([FromBody] dynamic data, IUnitOfWork db, PushBrokerFactory pushFactory)
+        {
+            var user = await db.FindAsync<UserEntity>(1);
+            if (user != null && !string.IsNullOrEmpty(user.PushToken))
+            {
+                pushFactory
+                    .GetFor("Android")
+                    .Send(user.PushToken, JObject.FromObject(data));
+                return TypedResults.Ok();
+            }
+
+            return TypedResults.NotFound();
         }
 
         public static async Task<Results<Ok<DeviceEntity>, NotFound>> RegisterDevice(string deviceId, IUnitOfWork db, [FromServices] ILogger<DeviceEntity> logger)

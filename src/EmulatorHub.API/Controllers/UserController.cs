@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EmulatorHub.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -16,7 +16,9 @@ namespace EmulatorHub.API.Controllers
                 return Problem();
             }
 
-            var user = await db.Users.AsTracking().Where(u => u.Id == 1)
+            var user = await db.Users
+                .AsTracking()
+                .Where(u => u.Id == 1)
                 .SingleOrDefaultAsync(cancellationToken: cancellationToken);
 
             if (user == null)

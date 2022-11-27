@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EmulatorHub.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/auth")]
     public class AuthController : ControllerBase
     {
         [HttpGet("getToken")]
