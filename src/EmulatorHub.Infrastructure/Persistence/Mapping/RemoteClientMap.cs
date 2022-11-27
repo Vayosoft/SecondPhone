@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using EmulatorHub.Domain.Entities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Tokens;
@@ -6,18 +7,21 @@ using Vayosoft.Persistence.EntityFramework;
 
 namespace EmulatorHub.Infrastructure.Persistence.Mapping
 {
-    public partial class UserEntityMap : EntityConfigurationMapper<UserEntity>
+    public partial class RemoteClientMap : EntityConfigurationMapper<RemoteClient>
     {
-        public override void Configure(EntityTypeBuilder<UserEntity> builder)
+        public override void Configure(EntityTypeBuilder<RemoteClient> builder)
         {
             builder
                 .Property(t => t.Username); //read_only field
 
             builder
-                .HasIndex(u => u.Username).IsUnique();
+                .HasIndex(u => new {u.Username, u.ProviderId}).IsUnique().HasFilter("NOT SoftDeleted");
+            builder.HasIndex(p => p.SoftDeleted);
+
+            builder.HasQueryFilter(p => !p.SoftDeleted);
 
             builder.HasData(
-                new UserEntity("su")
+                new RemoteClient("su")
                 {
                     Id = 1,
                     PasswordHash = "VBbXzW7xlaD3YiqcVrVehA==",
@@ -26,7 +30,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
                     Type = UserType.Supervisor,
                     Registered = new DateTime(2022, 11, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                     CultureId = "ru-RU",
-                    ProviderId = 1000,
+                    ProviderId = 1,
                 }
             );
         }
@@ -40,7 +44,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
                 .HasKey(t => new { t.UserId, t.Token });
 
             builder
-                .HasOne(t => t.User as UserEntity)
+                .HasOne(t => t.User as RemoteClient)
                 .WithMany(t => t.RefreshTokens)
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);

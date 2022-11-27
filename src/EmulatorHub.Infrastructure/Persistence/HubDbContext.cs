@@ -15,8 +15,8 @@ namespace EmulatorHub.Infrastructure.Persistence
             _userContext = userContext;
         }
 
-        //public DbSet<UserEntity> Users => Set<UserEntity>();
-        public DbSet<UserEntity> Users { set; get; } = null!;
+        public DbSet<RemoteClient> Clients { set; get; } = null!;
+        public DbSet<RemoteDevice> Devices { set; get; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -24,7 +24,7 @@ namespace EmulatorHub.Infrastructure.Persistence
 
             var providerId = _userContext?.User?.Identity.GetProviderId() ?? 0;
             modelBuilder
-                .Entity<TestEntity>()
+                .Entity<RemoteDevice>()
                 .HasQueryFilter(p => p.ProviderId == providerId)
                 .HasIndex(p => p.ProviderId);
         }

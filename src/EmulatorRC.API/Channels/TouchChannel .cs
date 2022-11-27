@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Channels;
-using System.Xml.Linq;
 using EmulatorRC.API.Protos;
 
 namespace EmulatorRC.API.Channels
@@ -30,7 +29,7 @@ namespace EmulatorRC.API.Channels
         {
             if (!_channels.TryGetValue(deviceId, out var channel))
             {
-                lock (_locks.GetOrAdd(deviceId, s => new object()))
+                lock (_locks.GetOrAdd(deviceId, _ => new object()))
                 {
                     if (!_channels.TryGetValue(deviceId, out channel))
                     {

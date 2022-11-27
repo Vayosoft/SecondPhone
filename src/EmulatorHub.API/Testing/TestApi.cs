@@ -19,9 +19,9 @@ namespace EmulatorHub.API.Testing
             return routes;
         }
 
-        public static async Task<Ok<List<TestEntity>>> GetAllItems(HubDbContext db)
+        public static async Task<Ok<List<RemoteDevice>>> GetAllItems(HubDbContext db)
         {
-            return TypedResults.Ok(await db.Set<TestEntity>().ToListAsync());
+            return TypedResults.Ok(await db.Set<RemoteDevice>().ToListAsync());
         }
 
         public static async Task<Ok<List<UserEntity>>> GetAllUsers(IDataProvider db)
@@ -34,14 +34,14 @@ namespace EmulatorHub.API.Testing
         }
 
       
-        public static async Task<Results<Ok<TestEntity>, NotFound>> GetItem(long id, IUnitOfWork db)
+        public static async Task<Results<Ok<RemoteDevice>, NotFound>> GetItem(long id, IUnitOfWork db)
         {
-            return await db.FindAsync<TestEntity>(1) is TestEntity item
+            return await db.FindAsync<RemoteDevice>(1) is RemoteDevice item
                 ? TypedResults.Ok(item)
                 : TypedResults.NotFound();
         }
 
-        public static async Task<Results<Ok<TestEntity>, NotFound>> UpdateItem(UserEntity entity, IUnitOfWork db, [FromServices] ILogger<TestEntity> logger)
+        public static async Task<Results<Ok<RemoteDevice>, NotFound>> UpdateItem(UserEntity entity, IUnitOfWork db, [FromServices] ILogger<RemoteDevice> logger)
         {
             var user = await db.FindAsync<UserEntity>(1);
             if (user is UserEntity item)
@@ -69,8 +69,8 @@ namespace EmulatorHub.API.Testing
                 //};
                 //db.Add(testEntity);
 
-                var testEntity = await db.FindAsync<TestEntity>(1);
-                testEntity.Timestamp = DateTime.UtcNow;
+                var testEntity = await db.FindAsync<RemoteDevice>(1);
+                testEntity.Name = "test";
 
                 await db.CommitAsync();
        
