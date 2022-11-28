@@ -6,7 +6,7 @@ namespace EmulatorHub.API.Controllers
 {
     [Route("api/users")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UsersController : ControllerBase
     {
         [HttpPost("token/set")]
         public async Task<IActionResult> SetPushToken(string token, [FromServices]HubDbContext db, CancellationToken cancellationToken)
