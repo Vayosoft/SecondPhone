@@ -53,7 +53,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Persistence.Entity
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Identity.EntityFramework", "..\Vayosoft\src\Vayosoft.Identity.EntityFramework\Vayosoft.Identity.EntityFramework.csproj", "{B455760C-7D0B-486B-82AC-96A19717561D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.PushMessage", "..\Vayosoft\src\Vayosoft.PushMessage\Vayosoft.PushMessage.csproj", "{2C343965-1E85-4BC5-8922-440E51312EDB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.PushBrokers", "..\Vayosoft\src\Vayosoft.PushBrokers\Vayosoft.PushBrokers.csproj", "{2C343965-1E85-4BC5-8922-440E51312EDB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

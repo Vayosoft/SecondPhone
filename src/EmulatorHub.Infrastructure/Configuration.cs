@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Vayosoft.EntityFramework.MySQL;
 using Vayosoft.Identity;
 using Vayosoft.Persistence;
-using Vayosoft.PushMessage;
+using Vayosoft.PushBrokers;
 
 namespace EmulatorHub.Infrastructure
 {

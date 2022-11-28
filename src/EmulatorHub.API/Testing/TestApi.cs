@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using Vayosoft.Persistence;
-using Vayosoft.PushMessage;
+using Vayosoft.PushBrokers;
 
 namespace EmulatorHub.API.Testing
 {

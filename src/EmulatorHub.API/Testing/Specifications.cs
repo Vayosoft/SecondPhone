@@ -23,7 +23,7 @@ namespace EmulatorHub.API.Testing
 
     public class GetAllUsersSpec : Specification<UserEntity>
     {
-        public GetAllUsersSpec(string? token = default, string? username = default)
+        public GetAllUsersSpec(string token = default, string username = default)
         {
             //Where(new UserByTokenCriteria(token) && new UserByNameCriteria(username));
 
