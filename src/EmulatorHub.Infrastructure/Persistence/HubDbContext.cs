@@ -17,6 +17,7 @@ namespace EmulatorHub.Infrastructure.Persistence
 
         public DbSet<UserEntity> Users { set; get; } = null!;
         public DbSet<DeviceEntity> Devices { set; get; } = null!;
+        public DbSet<ClientEntity> Clients { set; get; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -3,14 +3,8 @@ using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Runtime.Serialization;
-using System.Text.Json;
+using Vayosoft.Identity;
 using Vayosoft.Persistence;
-using Vayosoft.PushBrokers;
-using Vayosoft.Utilities;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace EmulatorHub.API.Testing
 {
@@ -64,7 +58,6 @@ namespace EmulatorHub.API.Testing
                     Id = deviceId,
                     User = user,
                     ProviderId = user.ProviderId,
-                    Registered = DateTime.UtcNow,
                 };
 
                 db.Add(device);

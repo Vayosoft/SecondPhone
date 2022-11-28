@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Tokens;
 using Vayosoft.Persistence.EntityFramework;
-using UserEntity = EmulatorHub.Domain.Entities.UserEntity;
 
 namespace EmulatorHub.Infrastructure.Persistence.Mapping
 {
@@ -15,11 +14,8 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
                 .Property(t => t.Username); //read_only field
 
             builder
-                .HasIndex(u => new {u.Username, u.ProviderId}).IsUnique().HasFilter("NOT SoftDeleted");
-            builder.HasIndex(p => p.SoftDeleted);
-
-            builder.HasQueryFilter(p => !p.SoftDeleted);
-
+                .HasIndex(u => new {u.Username, u.ProviderId}).IsUnique();
+       
             builder.HasData(
                 new UserEntity("su")
                 {

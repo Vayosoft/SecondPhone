@@ -1,7 +1,7 @@
-﻿using EmulatorHub.Domain.Entities;
+﻿using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
-using Vayosoft.Persistence;
 using Vayosoft.PushBrokers;
 
 namespace EmulatorHub.API.Controllers
@@ -13,22 +13,24 @@ namespace EmulatorHub.API.Controllers
         [HttpPost("push/send")]
         public async Task<IActionResult> SendPush(
             [FromBody] dynamic payload,
-            [FromServices] IUnitOfWork db,
+            [FromServices] HubDbContext db,
             [FromServices] ILogger<MessagesController> logger,
             [FromServices] PushBrokerFactory pushFactory,
             CancellationToken cancellationToken)
         {
             var message = JObject.Parse(payload.ToString());
 
-            var user = await db.FindAsync<UserEntity>(1, cancellationToken);
-            if (user == null || string.IsNullOrEmpty(user.PushToken))
+            var client = await db.Clients.Where(u => u.User.Id == 1)
+                .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+
+            if (client == null || string.IsNullOrEmpty(client.PushToken))
                 return NotFound();
 
             logger.LogInformation($"Sending push message...\r\n{payload}");
 
             pushFactory
                 .GetFor("Android")
-                .Send(user.PushToken, message);
+                .Send(client.PushToken, message);
 
             return Ok();
         }

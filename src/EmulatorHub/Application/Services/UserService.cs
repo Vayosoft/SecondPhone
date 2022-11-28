@@ -1,4 +1,4 @@
-﻿using EmulatorHub.Domain.Entities;
+﻿using Vayosoft.Identity;
 
 namespace EmulatorHub.Application.Services
 {

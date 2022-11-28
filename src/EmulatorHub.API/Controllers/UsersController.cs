@@ -1,35 +1,16 @@
-﻿using EmulatorHub.Infrastructure.Persistence;
+using EmulatorHub.Application.Services.Tokens;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace EmulatorHub.API.Controllers
 {
-    [Route("api/users")]
     [ApiController]
+    [Route("api/users")]
     public class UsersController : ControllerBase
     {
-        [HttpPost("token/set")]
-        public async Task<IActionResult> SetPushToken(string token, [FromServices]HubDbContext db, CancellationToken cancellationToken)
+        [HttpGet("getToken")]
+        public IActionResult GetToken()
         {
-            if (string.IsNullOrEmpty(token))
-            {
-                return Problem();
-            }
-
-            var user = await db.Users
-                .AsTracking()
-                .Where(u => u.Id == 1)
-                .SingleOrDefaultAsync(cancellationToken: cancellationToken);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            user.PushToken = token;
-
-            await db.SaveChangesAsync(cancellationToken);
-            return Ok();
+            return Ok(TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(60)));
         }
     }
 }
