@@ -7,9 +7,9 @@ using Grpc.Net.Client;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
 
-var chat = new ChatStub();
-await chat.Run();
-return;
+//var chat = new ChatStub();
+//await chat.Run();
+//return;
 
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 //var url = "http://192.168.10.6:5006";

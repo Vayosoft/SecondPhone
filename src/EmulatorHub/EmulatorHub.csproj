@@ -22,4 +22,8 @@
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft\Vayosoft.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Domain\Enums\" />
+  </ItemGroup>
+
 </Project>

@@ -4,9 +4,9 @@ using Vayosoft.Persistence.EntityFramework;
 
 namespace EmulatorHub.Infrastructure.Persistence.Mapping
 {
-    public partial class DeviceEntityMap : EntityConfigurationMapper<DeviceEntity>
+    public partial class EmulatorMap : EntityConfigurationMapper<Emulator>
     {
-        public override void Configure(EntityTypeBuilder<DeviceEntity> builder)
+        public override void Configure(EntityTypeBuilder<Emulator> builder)
         {
    
 

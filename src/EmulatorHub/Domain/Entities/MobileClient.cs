@@ -3,7 +3,7 @@ using Vayosoft.Identity;
 
 namespace EmulatorHub.Domain.Entities
 {
-    public class ClientEntity : EntityBase<string>, IProviderId<long>, ISoftDelete
+    public class MobileClient : EntityBase<string>, IProviderId<long>, ISoftDelete
     {
         public string? Name { get; set; }
         public UserEntity User { get; set; } = null!;

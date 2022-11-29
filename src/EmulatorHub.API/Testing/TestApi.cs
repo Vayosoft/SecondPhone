@@ -14,14 +14,14 @@ namespace EmulatorHub.API.Testing
         {
             routes.MapGet("/users", GetAllUsers);
             routes.MapGet("/devices", GetAllDevices);
-            routes.MapPost("/devices/add", RegisterDevice);
+            routes.MapPost("/register", RegisterClient);
 
             return routes;
         }
 
-        public static async Task<Ok<List<DeviceEntity>>> GetAllItems(HubDbContext db)
+        public static async Task<Ok<List<Emulator>>> GetAllItems(HubDbContext db)
         {
-            return TypedResults.Ok(await db.Set<DeviceEntity>().ToListAsync());
+            return TypedResults.Ok(await db.Set<Emulator>().ToListAsync());
         }
 
         public static async Task<Ok<List<UserEntity>>> GetAllUsers(IDataProvider db)
@@ -34,33 +34,41 @@ namespace EmulatorHub.API.Testing
         }
 
 
-        public static async Task<Ok<List<DeviceEntity>>> GetAllDevices(HubDbContext db)
+        public static async Task<Ok<List<Emulator>>> GetAllDevices(HubDbContext db)
         {
 
             var devices = await db.Devices.ToListAsync();
             return TypedResults.Ok(devices);
         }
-        public static async Task<Results<Ok<DeviceEntity>, NotFound>> GetItem(long id, IUnitOfWork db)
+        public static async Task<Results<Ok<Emulator>, NotFound>> GetItem(long id, IUnitOfWork db)
         {
-            return await db.FindAsync<DeviceEntity>(1) is DeviceEntity item
+            return await db.FindAsync<Emulator>(1) is Emulator item
                 ? TypedResults.Ok(item)
                 : TypedResults.NotFound();
         }
 
 
-        public static async Task<Results<Ok<DeviceEntity>, NotFound>> RegisterDevice(string deviceId, IUnitOfWork db, [FromServices] ILogger<DeviceEntity> logger)
+        public static async Task<Results<Ok<Emulator>, NotFound>> RegisterClient(string clientId, string deviceId, IUnitOfWork db, [FromServices] ILogger<Emulator> logger)
         {
             var user = await db.FindAsync<UserEntity>(1);
             if (user is { } item)
             {
-                var device = new DeviceEntity
+                var client = new MobileClient
+                {
+                    Id = clientId,
+                    User = user,
+                    ProviderId = user.ProviderId
+                };
+                db.Add(client);
+
+                var device = new Emulator
                 {
                     Id = deviceId,
-                    User = user,
+                    Client = client,
                     ProviderId = user.ProviderId,
                 };
-
                 db.Add(device);
+
                 await db.CommitAsync();
 
 

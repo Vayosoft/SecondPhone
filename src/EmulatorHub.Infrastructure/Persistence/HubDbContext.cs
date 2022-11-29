@@ -16,8 +16,8 @@ namespace EmulatorHub.Infrastructure.Persistence
         }
 
         public DbSet<UserEntity> Users { set; get; } = null!;
-        public DbSet<DeviceEntity> Devices { set; get; } = null!;
-        public DbSet<ClientEntity> Clients { set; get; } = null!;
+        public DbSet<Emulator> Devices { set; get; } = null!;
+        public DbSet<MobileClient> Clients { set; get; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,7 +25,7 @@ namespace EmulatorHub.Infrastructure.Persistence
 
             var providerId = _userContext?.User?.Identity.GetProviderId() ?? 1;
             modelBuilder
-                .Entity<DeviceEntity>()
+                .Entity<Emulator>()
                 .HasQueryFilter(p => p.ProviderId == providerId)
                 .HasIndex(p => p.ProviderId);
         }

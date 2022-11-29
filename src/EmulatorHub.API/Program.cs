@@ -83,28 +83,19 @@ try
         if (app.Environment.IsDevelopment())
         {
             app.UseSerilogRequestLogging();
-
-            app.UseSwagger();
-            app.UseSwaggerUI();
         }
+
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
         app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapGrpcService<IntercomService>();
         app.MapControllers();
+
         app.MapGet("/", () => "👍").ExcludeFromDescription();
-        app.MapGet("/error", (HttpContext httpContext) =>
-        {
-            var exceptionFeature = httpContext.Features.Get<IExceptionHandlerFeature>();
-            return TypedResults.Problem(
-                statusCode: (int)(exceptionFeature?.Error.ToHttpStatusCode() ?? HttpStatusCode.InternalServerError),
-                title: "An error occurred while processing your request.",
-                detail: exceptionFeature?.Error.Message ?? string.Empty
-            );
-        }).ExcludeFromDescription();
-        app.MapGroup("/test")
-            .MapTestApiV1();
+        app.MapGroup("/test").MapTestApiV1();
     }
 
     app.Run();

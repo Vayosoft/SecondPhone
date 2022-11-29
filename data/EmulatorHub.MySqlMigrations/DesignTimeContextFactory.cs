@@ -14,6 +14,7 @@ namespace EmulatorHub.MySqlMigrations
             var config = builder.Build();
 
             var connectionString = config["cs"] ?? "Server=localhost;Port=3306;Database=emurc;Uid=root;Pwd=1q2w3e4r;";
+            //var connectionString = config["cs"] ?? "Server=192.168.10.11;Port=3306;Database=emurc;Uid=admin;Pwd=~1q2w3e4r!";
             var serverVersion = new MySqlServerVersion(config["ver"] ?? "8.0.25");
 
             var dbContextOptions = new DbContextOptionsBuilder();

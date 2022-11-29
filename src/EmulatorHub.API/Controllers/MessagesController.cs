@@ -1,7 +1,9 @@
 ﻿using EmulatorHub.Infrastructure.Persistence;
+using LanguageExt.Pipes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
+using System.ComponentModel.DataAnnotations;
 using Vayosoft.PushBrokers;
 
 namespace EmulatorHub.API.Controllers
@@ -12,25 +14,41 @@ namespace EmulatorHub.API.Controllers
     {
         [HttpPost("push/send")]
         public async Task<IActionResult> SendPush(
+            [Required][FromHeader(Name = "x-device-id")] string deviceId,
             [FromBody] dynamic payload,
             [FromServices] HubDbContext db,
             [FromServices] ILogger<MessagesController> logger,
             [FromServices] PushBrokerFactory pushFactory,
             CancellationToken cancellationToken)
         {
-            var message = JObject.Parse(payload.ToString());
+            if (string.IsNullOrEmpty(deviceId))
+            {
+                ModelState.AddModelError(nameof(deviceId), "DeviceId has not provided.");
+            }
+            var data = payload.ToString();
+            if (string.IsNullOrEmpty(data))
+            {
+                ModelState.AddModelError(nameof(data), "Payload is empty.");
+            }
+            if (!ModelState.IsValid)
+            {
+                return UnprocessableEntity(ModelState);
+            }
 
-            var client = await db.Clients.Where(u => u.User.Id == 1)
+            var device = await db
+                .Devices
+                .Include(d => d.Client)
+                .Where(d => d.Id == deviceId)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
-            if (client == null || string.IsNullOrEmpty(client.PushToken))
+            if (device == null || string.IsNullOrEmpty(device.Client.PushToken))
                 return NotFound();
 
-            logger.LogInformation($"Sending push message...\r\n{payload}");
+            logger.LogInformation($"Sending push message...\r\n{data}");
 
             pushFactory
                 .GetFor("Android")
-                .Send(client.PushToken, message);
+                .Send(device.Client.PushToken, JObject.Parse(data));
 
             return Ok();
         }

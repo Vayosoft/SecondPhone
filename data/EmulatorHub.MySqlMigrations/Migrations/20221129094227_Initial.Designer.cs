@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmulatorHub.MySqlMigrations.Migrations
 {
     [DbContext(typeof(HubDbContext))]
-    [Migration("20221127102259_Initial")]
+    [Migration("20221129094227_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,7 +21,38 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                 .HasAnnotation("ProductVersion", "6.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("EmulatorHub.Domain.Entities.DeviceEntity", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.Emulator", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("client_id");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext")
+                        .HasColumnName("name");
+
+                    b.Property<long>("ProviderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("provider_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_devices");
+
+                    b.HasIndex("ClientId")
+                        .HasDatabaseName("ix_devices_client_id");
+
+                    b.HasIndex("ProviderId")
+                        .HasDatabaseName("ix_devices_provider_id");
+
+                    b.ToTable("devices", (string)null);
+                });
+
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.MobileClient", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("varchar(255)")
@@ -35,113 +66,33 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("provider_id");
 
-                    b.Property<DateTime?>("Registered")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("registered");
+                    b.Property<string>("PushToken")
+                        .HasColumnType("longtext")
+                        .HasColumnName("push_token");
+
+                    b.Property<bool>("SoftDeleted")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("soft_deleted");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id")
-                        .HasName("pk_devices");
-
-                    b.HasIndex("ProviderId")
-                        .HasDatabaseName("ix_devices_provider_id");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_devices_user_id");
-
-                    b.ToTable("devices", (string)null);
-                });
-
-            modelBuilder.Entity("EmulatorHub.Domain.Entities.UserEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    b.Property<string>("CultureId")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("culture_id");
-
-                    b.Property<DateTime?>("Deregistered")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("deregistered");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("email");
-
-                    b.Property<int?>("LogLevel")
-                        .HasColumnType("int")
-                        .HasColumnName("log_level");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("password_hash");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("phone");
-
-                    b.Property<long>("ProviderId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("provider_id");
-
-                    b.Property<string>("PushToken")
-                        .HasColumnType("longtext")
-                        .HasColumnName("push_token");
-
-                    b.Property<DateTime?>("Registered")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("registered");
-
-                    b.Property<bool>("SoftDeleted")
-                        .HasColumnType("tinyint(1)")
-                        .HasColumnName("soft_deleted");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int")
-                        .HasColumnName("type");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("username");
-
-                    b.HasKey("Id")
-                        .HasName("pk_users");
+                        .HasName("pk_clients");
 
                     b.HasIndex("SoftDeleted")
-                        .HasDatabaseName("ix_users_soft_deleted");
+                        .HasDatabaseName("ix_clients_soft_deleted");
 
-                    b.HasIndex("Username", "ProviderId")
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_clients_user_id");
+
+                    b.HasIndex("Id", "ProviderId")
                         .IsUnique()
-                        .HasDatabaseName("ix_users_username_provider_id")
+                        .HasDatabaseName("ix_clients_id_provider_id")
                         .HasFilter("NOT SoftDeleted");
 
-                    b.ToTable("users", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1L,
-                            CultureId = "ru-RU",
-                            Email = "su@vayosoft.com",
-                            PasswordHash = "VBbXzW7xlaD3YiqcVrVehA==",
-                            Phone = "0500000000",
-                            ProviderId = 1L,
-                            Registered = new DateTime(2022, 11, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            SoftDeleted = false,
-                            Type = 4,
-                            Username = "su"
-                        });
+                    b.ToTable("clients", (string)null);
                 });
 
             modelBuilder.Entity("Vayosoft.Identity.Tokens.RefreshToken", b =>
@@ -188,21 +139,104 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.ToTable("refresh_token", (string)null);
                 });
 
-            modelBuilder.Entity("EmulatorHub.Domain.Entities.DeviceEntity", b =>
+            modelBuilder.Entity("Vayosoft.Identity.UserEntity", b =>
                 {
-                    b.HasOne("EmulatorHub.Domain.Entities.UserEntity", "User")
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CultureId")
+                        .HasColumnType("longtext")
+                        .HasColumnName("culture_id");
+
+                    b.Property<DateTime?>("Deregistered")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("deregistered");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("longtext")
+                        .HasColumnName("email");
+
+                    b.Property<int?>("LogLevel")
+                        .HasColumnType("int")
+                        .HasColumnName("log_level");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("longtext")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("longtext")
+                        .HasColumnName("phone");
+
+                    b.Property<long>("ProviderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("provider_id");
+
+                    b.Property<DateTime?>("Registered")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("registered");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int")
+                        .HasColumnName("type");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("username");
+
+                    b.HasKey("Id")
+                        .HasName("pk_users");
+
+                    b.HasIndex("Username", "ProviderId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_username_provider_id");
+
+                    b.ToTable("users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            CultureId = "ru-RU",
+                            Email = "su@vayosoft.com",
+                            PasswordHash = "VBbXzW7xlaD3YiqcVrVehA==",
+                            Phone = "0500000000",
+                            ProviderId = 1L,
+                            Registered = new DateTime(2022, 11, 15, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Type = 4,
+                            Username = "su"
+                        });
+                });
+
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.Emulator", b =>
+                {
+                    b.HasOne("EmulatorHub.Domain.Entities.MobileClient", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_devices_clients_client_id");
+
+                    b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("EmulatorHub.Domain.Entities.MobileClient", b =>
+                {
+                    b.HasOne("Vayosoft.Identity.UserEntity", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_devices_users_user_id");
+                        .HasConstraintName("fk_clients_users_user_id");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("Vayosoft.Identity.Tokens.RefreshToken", b =>
                 {
-                    b.HasOne("EmulatorHub.Domain.Entities.UserEntity", "User")
+                    b.HasOne("Vayosoft.Identity.UserEntity", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -212,7 +246,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("EmulatorHub.Domain.Entities.UserEntity", b =>
+            modelBuilder.Entity("Vayosoft.Identity.UserEntity", b =>
                 {
                     b.Navigation("RefreshTokens");
                 });
