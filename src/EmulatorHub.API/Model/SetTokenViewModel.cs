@@ -5,7 +5,7 @@ namespace EmulatorHub.API.Model
     public class SetTokenViewModel
     {
         [Required]
-        [MaxLength(100)]
+        [MaxLength(500)]
         public string Token { get; set; }
     }
 }

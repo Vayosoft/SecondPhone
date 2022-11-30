@@ -8,14 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Protos\hub.proto" />
     <None Remove="Protos\uploader.proto" />
   </ItemGroup>
 
 	<ItemGroup>
 		<Protobuf Include="Protos\client.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\device.proto" GrpcServices="Client" />
-		<Protobuf Include="Protos\hub.proto" GrpcServices="Client" />
 	</ItemGroup>
 
 	<ItemGroup>

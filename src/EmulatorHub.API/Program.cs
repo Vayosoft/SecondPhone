@@ -1,15 +1,12 @@
-﻿using EmulatorHub.API.Services;
-using EmulatorHub.API.Testing;
+﻿using EmulatorHub.API.Testing;
 using EmulatorHub.Infrastructure;
-using Microsoft.AspNetCore.Diagnostics;
-using System.Net;
-using EmulatorHub.API.Model;
 using Serilog;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
+using EmulatorHub.API.Hubs;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Debug()
@@ -32,7 +29,6 @@ try
 
         builder.Services.AddMemoryCache();
         builder.Services.AddSignalR();
-        builder.Services.AddGrpc();
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -41,8 +37,6 @@ try
 
         builder.Services.AddHubDataContext(builder.Configuration);
         builder.Services.AddHubServices(builder.Configuration);
-
-        builder.Services.AddSingleton<IntercomHub>();
 
 
         //Authentication
@@ -91,8 +85,9 @@ try
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapGrpcService<IntercomService>();
         app.MapControllers();
+
+        app.MapHub<RemoteHub>("/rc");
 
         app.MapGet("/", () => "👍").ExcludeFromDescription();
         app.MapGroup("/test").MapTestApiV1();

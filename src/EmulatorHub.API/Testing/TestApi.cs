@@ -14,14 +14,10 @@ namespace EmulatorHub.API.Testing
         {
             routes.MapGet("/users", GetAllUsers);
             routes.MapGet("/devices", GetAllDevices);
+            routes.MapGet("/clients", GetAllClients);
             routes.MapPost("/register", RegisterClient);
 
             return routes;
-        }
-
-        public static async Task<Ok<List<Emulator>>> GetAllItems(HubDbContext db)
-        {
-            return TypedResults.Ok(await db.Set<Emulator>().ToListAsync());
         }
 
         public static async Task<Ok<List<UserEntity>>> GetAllUsers(IDataProvider db)
@@ -36,10 +32,14 @@ namespace EmulatorHub.API.Testing
 
         public static async Task<Ok<List<Emulator>>> GetAllDevices(HubDbContext db)
         {
-
-            var devices = await db.Devices.ToListAsync();
-            return TypedResults.Ok(devices);
+            return TypedResults.Ok(await db.Devices.ToListAsync());
         }
+
+        public static async Task<Ok<List<MobileClient>>> GetAllClients(HubDbContext db)
+        {
+            return TypedResults.Ok(await db.Clients.ToListAsync());
+        }
+
         public static async Task<Results<Ok<Emulator>, NotFound>> GetItem(long id, IUnitOfWork db)
         {
             return await db.FindAsync<Emulator>(1) is Emulator item

@@ -41,8 +41,15 @@ namespace EmulatorHub.API.Controllers
                 .Where(d => d.Id == deviceId)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
-            if (device == null || string.IsNullOrEmpty(device.Client.PushToken))
+            if (device == null)
+            {
                 return NotFound();
+            }
+
+            if (string.IsNullOrEmpty(device.Client.PushToken))
+            {
+                return Problem("The client has not token.");
+            }
 
             logger.LogInformation($"Sending push message...\r\n{data}");
 

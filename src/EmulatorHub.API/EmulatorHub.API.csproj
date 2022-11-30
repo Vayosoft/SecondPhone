@@ -16,10 +16,6 @@
 	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
-	<ItemGroup>
-		<Protobuf Include="Protos\hub.proto" GrpcServices="Server" />
-	</ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\EmulatorHub.Infrastructure\EmulatorHub.Infrastructure.csproj" />
     <ProjectReference Include="..\EmulatorHub\EmulatorHub.csproj" />
