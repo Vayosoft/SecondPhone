@@ -1,96 +1,96 @@
 ﻿using System.Security.Principal;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Vayosoft.Identity;
+using Vayosoft.Identity.Extensions;
+using Vayosoft.Identity.Persistence;
 using Vayosoft.Identity.Security;
 
 namespace EmulatorHub.Application.Services
 {
     public class UserContext : IUserContext
     {
-        private readonly IHttpContextAccessor _httpAccessor;
+        public const string SupervisorID = "f6694d71d26e40f5a2abb357177c9bdz";
+        public const string AdministratorID = "f6694d71d26e40f5a2abb357177c9bdx";
+        public const string SupportID = "f6694d71d26e40f5a2abb357177c9bdt";
+
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        protected HttpContext HttpContext => _httpContextAccessor.HttpContext;
 
         public UserContext(IHttpContextAccessor httpAccessor)
         {
-            _httpAccessor = httpAccessor;
+            _httpContextAccessor = httpAccessor;
+
+            Session = new UserSession(httpAccessor);
         }
 
-        public IPrincipal User { get; }
-        public Task<bool> LoadSessionAsync()
+        public IPrincipal User => HttpContext?.User;
+        public IUserSession Session { get; }
+
+        public List<RoleDTO> Roles { get; private set; }
+
+        public async ValueTask<bool> LoadContextAsync()
         {
-            throw new NotImplementedException();
+            var context = _httpContextAccessor.HttpContext;
+            if (context?.User.Identity == null)
+                return false;
+
+            List<RoleDTO> userRoles;
+            if ((userRoles = await context.Session.GetAsync<List<RoleDTO>>("_roles")) == null)
+            {
+                var userRepository = context.RequestServices.GetRequiredService<IUserRepository>();
+
+                userRoles = await userRepository.
+                    GetUserRolesAsync(context.User.Identity.GetUserId(), context.RequestAborted);
+                await context.Session.SetAsync("_roles", userRoles);
+            }
+            Roles = userRoles;
+            return userRoles != null;
         }
+
+        public bool IsSupervisor =>
+            User.Identity?.GetUserType() == UserType.Supervisor || User.IsInRole(SupervisorID);
+        public bool IsAdministrator =>
+            IsSupervisor || User.Identity?.GetUserType() == UserType.Administrator || User.IsInRole(AdministratorID);
 
         public bool HasRole(string role)
         {
-            throw new NotImplementedException();
+            return Roles != null && Roles.Any(r => r.Name.Equals(role, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public bool HasAnyRole(IEnumerable<string> roles)
         {
-            throw new NotImplementedException();
+            if (IsSupervisor)
+                return true;
+
+            if (Roles == null || Roles.Count == 0)
+                return false;
+
+            foreach (var role in roles)
+            {
+                if (HasRole(role))
+                    return true;
+            }
+
+            return false;
         }
 
         public bool HasPermission(string objName, SecurityPermissions requiredPermissions)
         {
-            throw new NotImplementedException();
-        }
+            if (IsAdministrator)
+                return true;
 
-        public bool IsSupervisor { get; }
-        public bool IsAdministrator { get; }
-        public T Get<T>(string key) where T : class
-        {
-            throw new NotImplementedException();
-        }
+            foreach (var r in Roles)
+            {
+                if (r.Items == null || r.Items.Count == 0)
+                    continue;
 
-        public void Set<T>(string key, T value) where T : class
-        {
-            throw new NotImplementedException();
-        }
+                if (r.Items.Any(item => item.ObjectName.Equals(objName, StringComparison.CurrentCultureIgnoreCase)
+                                        && item.Permissions.HasFlag(requiredPermissions)))
+                    return true;
+            }
 
-        public Task<T> GetAsync<T>(string key) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task SetAsync<T>(string key, T value) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetBoolean(string key, bool value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool? GetBoolean(string key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetDouble(string key, double value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public double? GetDouble(string key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetInt64(string key, long value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public long? GetInt64(string key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public byte[] this[string index]
-        {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
+            return false;
         }
     }
 }

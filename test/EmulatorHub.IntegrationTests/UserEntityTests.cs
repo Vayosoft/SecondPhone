@@ -7,22 +7,21 @@ using Xunit.Abstractions;
 
 namespace EmulatorHub.IntegrationTests
 {
-    public class TestEntityTests : IClassFixture<DatabaseFixture>
+    public class UserEntityTests : IClassFixture<DatabaseFixture>
     {
-        private readonly ILogger<TestEntityTests> _logger;
+        private readonly ILogger<UserEntityTests> _logger;
 
-        public TestEntityTests(DatabaseFixture fixture, ITestOutputHelper testOutputHelper)
+        public UserEntityTests(DatabaseFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
             Fixture.Configure(options =>
             {
-                var loggerProvider = new XUnitLoggerProvider(testOutputHelper);
-                options.LoggerFactory = LoggerFactory.Create(builder => builder.AddProvider(loggerProvider));
-                //options.ConnectionString = "Server=192.168.10.11;Port=3306;Database=viot;Uid=admin;Pwd=~1q2w3e4r!;";
+                options.LoggerFactory = LoggerFactory
+                    .Create(builder => builder.AddProvider(new XUnitLoggerProvider(testOutputHelper)));
             });
             Fixture.Initialize();
 
-            _logger = XUnitLogger.CreateLogger<TestEntityTests>(testOutputHelper);
+            _logger = XUnitLogger.CreateLogger<UserEntityTests>(testOutputHelper);
         }
 
         public DatabaseFixture Fixture { get; }

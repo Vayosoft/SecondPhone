@@ -6,11 +6,11 @@ using Microsoft.Extensions.Hosting;
 namespace SecondPhone.Benchmarks
 {
     [MemoryDiagnoser]
-    public class Benchmarks
+    public class HttpBenchmarks
     {
         private static UserService UserService { get; }
 
-        static Benchmarks()
+        static HttpBenchmarks()
         {
             var host = new HostBuilder()
                 .ConfigureServices(services =>

@@ -9,12 +9,10 @@ using Logger = Serilog.Core.Logger;
 namespace SecondPhone.Benchmarks
 {
     [MemoryDiagnoser]
-    public class Loggers
+    public class LoggerBenchmarks
     {
-        private Logger _serilog0;
         private Logger _serilog;
 
-        private NLog.Logger _nlog0;
         private NLog.Logger _nlog;
 
         private const string LogMessage = "message with params: {param1}{param2}{param3}";
@@ -23,14 +21,14 @@ namespace SecondPhone.Benchmarks
         public void Setup()
         {
             _serilog = new LoggerConfiguration()
-                .WriteTo.File("d:\\serilog.txt", buffered: true, flushToDiskInterval: TimeSpan.FromMilliseconds(1000))
+                .WriteTo.File("serilog.txt", buffered: true, flushToDiskInterval: TimeSpan.FromMilliseconds(1000))
                 .CreateLogger();
 
             var config = new LoggingConfiguration();
             var fileTarget = new FileTarget
             {
                 Name = "FileTarget",
-                FileName = "d:\\nlog.txt"
+                FileName = "nlog.txt"
             };
             var target = new BufferingTargetWrapper()
             {
