@@ -1,6 +1,9 @@
-using EmulatorHub.Application.Services.Tokens;
-using Microsoft.AspNetCore.Authorization;
+using EmulatorHub.Domain.Entities;
+using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Vayosoft.Identity;
+using Vayosoft.Persistence;
 
 namespace EmulatorHub.API.Controllers
 {
@@ -8,18 +11,49 @@ namespace EmulatorHub.API.Controllers
     [Route("api/users")]
     public class UsersController : ControllerBase
     {
-        [HttpGet("getToken")]
-        public IActionResult GetToken()
+        private ILogger<Emulator> _logger;
+
+        public UsersController(ILogger<Emulator> logger)
         {
-            return Ok(TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(60)));
+            _logger = logger;
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet]
-        public IActionResult Test()
+        public async Task<IActionResult> GetUsers(HubDbContext db)
         {
-            var u = HttpContext.User;
-            return Ok(u);
+            return Ok(await db.Users.ToListAsync());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RegisterEmulator(string clientId, string deviceId,
+            [FromServices] IUnitOfWork db)
+        {
+            var user = await db.FindAsync<UserEntity>(1);
+            if (user is { } item)
+            {
+                var client = new MobileClient
+                {
+                    Id = clientId,
+                    User = user,
+                    ProviderId = user.ProviderId
+                };
+                db.Add(client);
+
+                var device = new Emulator
+                {
+                    Id = deviceId,
+                    Client = client,
+                    ProviderId = user.ProviderId,
+                };
+                db.Add(device);
+
+                await db.CommitAsync();
+                return Ok(device);
+            }
+
+            return NotFound();
+
         }
     }
 }

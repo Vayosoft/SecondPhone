@@ -3,7 +3,7 @@ using EmulatorHub.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace SecondPhone.Benchmarks
+namespace Benchmarks
 {
     [MemoryDiagnoser]
     public class HttpBenchmarks

@@ -1,5 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
-using SecondPhone.Benchmarks;
+using Benchmarks;
 
 BenchmarkRunner.Run<LoggerBenchmarks>();
 

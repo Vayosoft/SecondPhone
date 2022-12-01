@@ -10,6 +10,11 @@ namespace EmulatorHub.API.Controllers
     [ApiController]
     public class ClientsController : ControllerBase
     {
+        [HttpGet]
+        public async Task<IActionResult> GetClients(HubDbContext db) {
+            return Ok(await db.Clients.ToListAsync());
+        }
+
         [HttpPost("token/set")]
         public async Task<IActionResult> SetPushToken(
             [Required][FromHeader(Name = "x-client-id")] string clientId, 

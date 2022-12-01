@@ -11,7 +11,7 @@ namespace EmulatorHub.Application.Services
             _httpClient = httpClientFactory.CreateClient();
         }
 
-        public Task<UserEntity> GetUsersAsync()
+        public Task<List<UserEntity>> GetUsersAsync()
         {
             throw new NotImplementedException();
         }

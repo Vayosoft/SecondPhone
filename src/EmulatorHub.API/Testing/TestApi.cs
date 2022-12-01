@@ -1,8 +1,6 @@
 ﻿using EmulatorHub.Domain.Entities;
-using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Vayosoft.Identity;
 using Vayosoft.Persistence;
 
@@ -12,10 +10,7 @@ namespace EmulatorHub.API.Testing
     {
         public static IEndpointRouteBuilder MapTestApiV1(this IEndpointRouteBuilder routes)
         {
-            routes.MapGet("/users", GetAllUsers);
-            routes.MapGet("/devices", GetAllDevices);
-            routes.MapGet("/clients", GetAllClients);
-            routes.MapPost("/register", RegisterClient);
+            //routes.MapGet("/users", GetAllUsers);
 
             return routes;
         }
@@ -27,17 +22,6 @@ namespace EmulatorHub.API.Testing
 
             var user = await db.ListAsync<UserEntity>(userSpec);
             return TypedResults.Ok(user);
-        }
-
-
-        public static async Task<Ok<List<Emulator>>> GetAllDevices(HubDbContext db)
-        {
-            return TypedResults.Ok(await db.Devices.ToListAsync());
-        }
-
-        public static async Task<Ok<List<MobileClient>>> GetAllClients(HubDbContext db)
-        {
-            return TypedResults.Ok(await db.Clients.ToListAsync());
         }
 
         public static async Task<Results<Ok<Emulator>, NotFound>> GetItem(long id, IUnitOfWork db)
