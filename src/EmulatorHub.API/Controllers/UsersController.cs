@@ -1,4 +1,5 @@
 using EmulatorHub.Application.Services.Tokens;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmulatorHub.API.Controllers
@@ -11,6 +12,14 @@ namespace EmulatorHub.API.Controllers
         public IActionResult GetToken()
         {
             return Ok(TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(60)));
+        }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult Test()
+        {
+            var u = HttpContext.User;
+            return Ok(u);
         }
     }
 }
