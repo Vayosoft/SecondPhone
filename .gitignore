@@ -224,3 +224,4 @@ appsettings.json
 /Warehouse.API/appsettings.json
 /Warehouse.API/appsettings.Development.json
 /Warehouse.Host/appsettings.Development.json
+log

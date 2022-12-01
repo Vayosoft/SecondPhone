@@ -1,5 +1,4 @@
 ﻿using EmulatorHub.Infrastructure.Persistence;
-using LanguageExt.Pipes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;

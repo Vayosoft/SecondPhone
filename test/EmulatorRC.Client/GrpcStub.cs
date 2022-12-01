@@ -2,14 +2,12 @@
 using Grpc.Core;
 using Grpc.Net.Client.Configuration;
 using Grpc.Net.Client;
-using LanguageExt.Common;
 
 namespace EmulatorRC.Client;
 
 public class GrpcStub : IAsyncDisposable
 {
     private readonly GrpcChannel _channel;
-    private readonly ClientService.ClientServiceClient _client;
     private readonly AsyncDuplexStreamingCall<ScreenRequest, DeviceScreen> _stream;
     private readonly CancellationTokenSource _cts;
     private readonly Task _readTask;
@@ -46,7 +44,7 @@ public class GrpcStub : IAsyncDisposable
             }
         });
 
-        _client = new ClientService.ClientServiceClient(_channel);
+        var client = new ClientService.ClientServiceClient(_channel);
 
         var headers = new Metadata
         {
@@ -54,7 +52,7 @@ public class GrpcStub : IAsyncDisposable
             { "X-DEVICE-ID", "default" }
         };
 
-        _stream = _client.GetScreens(headers);
+        _stream = client.GetScreens(headers);
         _cts = new CancellationTokenSource();
         _readTask = ReadAsync(_cts.Token);
     }
