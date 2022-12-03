@@ -22,7 +22,7 @@ namespace EmulatorHub.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUsers(HubDbContext db)
         {
-            return Ok(await db.Users.ToListAsync());
+            return Ok(await db.Users.ToArrayAsync());
         }
 
         [HttpPost]
