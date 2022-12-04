@@ -8,6 +8,9 @@ using System.Security.Claims;
 using System.Text;
 using EmulatorHub.API.Hubs;
 using System.Text.Json.Serialization;
+using EmulatorHub.API.Services.Monitoring;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using EmulatorHub.API;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Debug()
@@ -17,6 +20,8 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
     {
+        var configuration = builder.Configuration;
+
         builder.WebHost.ConfigureKestrel(options => { options.AddServerHeader = false; });
         builder.Host.UseSerilog((context, services, config) => config
                 .ReadFrom.Configuration(context.Configuration)
@@ -72,6 +77,16 @@ try
                 policy.RequireClaim(ClaimTypes.NameIdentifier);
             });
         });
+
+        // HealthCheck
+        builder.Services
+            .AddHealthChecks()
+            .AddMySql(configuration["ConnectionStrings:DefaultConnection"], tags: new[] {"infrastructure", "db"})
+            .AddRedis(configuration["ConnectionStrings:RedisConnection"], tags: new[] {"infrastructure", "cache"});
+        //.AddMongoDb(configuration["ConnectionStrings:MongoDbConnection"], tags: new[] { "infrastructure", "db" });
+
+        // Metrics
+        builder.AddDiagnostics();
     }
 
     var app = builder.Build();
@@ -82,6 +97,13 @@ try
         {
             app.UseSerilogRequestLogging();
         }
+
+        // HealthCheck
+        app.MapHealthChecks("/health", new HealthCheckOptions()
+        {
+            AllowCachingResponses = false,
+            ResponseWriter = HealthCheckResponse.Write
+        });
 
         app.UseSwagger();
         app.UseSwaggerUI();

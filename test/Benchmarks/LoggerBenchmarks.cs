@@ -1,12 +1,12 @@
 ﻿using BenchmarkDotNet.Attributes;
-using NLog.Config;
-using NLog.Targets.Wrappers;
-using NLog.Targets;
 using NLog;
+using NLog.Config;
+using NLog.Targets;
+using NLog.Targets.Wrappers;
 using Serilog;
 using Logger = Serilog.Core.Logger;
 
-namespace SecondPhone.Benchmarks
+namespace Benchmarks
 {
     [MemoryDiagnoser]
     public class LoggerBenchmarks
