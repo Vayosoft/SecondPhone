@@ -26,7 +26,7 @@ try
         builder.Host.UseSerilog((context, services, config) => config
                 .ReadFrom.Configuration(context.Configuration)
                 .ReadFrom.Services(services)
-                .Enrich.WithProperty("ApplicationName", typeof(Program).Assembly.GetName().Name)
+                .Enrich.WithProperty("ApplicationName", typeof(Program).Assembly.GetName().Name!)
                 .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
 #if DEBUG
                 .Enrich.WithProperty("DebuggerAttached", Debugger.IsAttached)
@@ -81,8 +81,8 @@ try
         // HealthCheck
         builder.Services
             .AddHealthChecks()
-            .AddMySql(configuration["ConnectionStrings:DefaultConnection"], tags: new[] {"infrastructure", "db"})
-            .AddRedis(configuration["ConnectionStrings:RedisConnection"], tags: new[] {"infrastructure", "cache"});
+            .AddMySql(configuration["ConnectionStrings:DefaultConnection"] ?? string.Empty, tags: new[] {"infrastructure", "db"})
+            .AddRedis(configuration["ConnectionStrings:RedisConnection"] ?? string.Empty, tags: new[] {"infrastructure", "cache"});
         //.AddMongoDb(configuration["ConnectionStrings:MongoDbConnection"], tags: new[] { "infrastructure", "db" });
 
         // Metrics
