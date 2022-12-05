@@ -1,4 +1,6 @@
-﻿using EmulatorHub.Domain.Entities;
+﻿using App.Metrics;
+using App.Metrics.Counter;
+using EmulatorHub.Domain.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Vayosoft.Identity;
@@ -10,9 +12,22 @@ namespace EmulatorHub.API.Testing
     {
         public static IEndpointRouteBuilder MapTestApiV1(this IEndpointRouteBuilder routes)
         {
-            //routes.MapGet("/users", GetAllUsers);
+            routes.MapGet("/Increment", Increment);
 
             return routes;
+        }
+
+        public static Ok Increment(IMetrics metrics, string tag = null)
+        {
+            var tags = new MetricTags("userTag", string.IsNullOrEmpty(tag) ? "undefined" : tag);
+            var counterOptions = new CounterOptions
+            {
+                MeasurementUnit = Unit.Calls,
+                Name = "Counter",
+                ResetOnReporting = true
+            };
+            metrics.Measure.Counter.Increment(counterOptions, tags);
+            return TypedResults.Ok();
         }
 
         public static async Task<Ok<List<UserEntity>>> GetAllUsers(IDataProvider db)

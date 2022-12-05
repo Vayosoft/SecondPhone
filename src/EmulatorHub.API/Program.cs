@@ -98,6 +98,8 @@ try
             app.UseSerilogRequestLogging();
         }
 
+        //app.UseMetricsAllMiddleware();
+
         // HealthCheck
         app.MapHealthChecks("/health", new HealthCheckOptions()
         {

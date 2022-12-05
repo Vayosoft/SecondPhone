@@ -11,13 +11,13 @@ using App.Metrics.ReservoirSampling.Uniform;
 using App.Metrics.Scheduling;
 using App.Metrics.Timer;
 
-namespace EmulatorHub.API.Services.Diagnostic
+namespace EmulatorHub.Application.Services.Diagnostic
 {
     public static class MetricsRegistry
     {
-        public static readonly string Context = "EmulatorHub.API";
+        public static readonly string Context = "EmulatorHub";
 
-        public static TimerOptions TimerUsingAlgorithmRReservoir = new TimerOptions
+        public static TimerOptions TimerUsingAlgorithmRReservoir = new()
         {
             Context = Context,
             Name = "uniform",
