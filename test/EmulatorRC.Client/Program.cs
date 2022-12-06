@@ -1,6 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using EmulatorHub.Application.Services.Tokens;
+using EmulatorHub.Application.Services.IdentityProvider;
 using EmulatorRC.Client;
 using Grpc.Core;
 using Grpc.Net.Client;
