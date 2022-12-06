@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 
-namespace EmulatorHub.API.IdentityProvider.Authentication
+namespace EmulatorHub.API.Authentication
 {
     public class CustomSchemeOptions : AuthenticationSchemeOptions
     { }

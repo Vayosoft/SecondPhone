@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
-namespace EmulatorHub.API.IdentityProvider.Authentication
+namespace EmulatorHub.API.Authentication
 {
     /// <summary>
     /// https://referbruv.com/blog/implementing-custom-authentication-scheme-and-handler-in-aspnet-core-3x/
