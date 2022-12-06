@@ -57,6 +57,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.PushBrokers", "..\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Web", "..\Vayosoft\src\Vayosoft.Web\Vayosoft.Web.csproj", "{5B9D5EC7-0510-4FB1-82B6-7DBD85716529}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Web.Identity", "..\Vayosoft\src\Vayosoft.Web.Identity\Vayosoft.Web.Identity.csproj", "{90E7D285-3246-4110-AC4E-9DA6D35EAC2D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Caching", "..\Vayosoft\src\Vayosoft.Caching\Vayosoft.Caching.csproj", "{F5E5F225-D0E5-4A84-ACD4-09ECECF90EAF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -143,6 +147,14 @@ Global
 		{5B9D5EC7-0510-4FB1-82B6-7DBD85716529}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B9D5EC7-0510-4FB1-82B6-7DBD85716529}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B9D5EC7-0510-4FB1-82B6-7DBD85716529}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90E7D285-3246-4110-AC4E-9DA6D35EAC2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90E7D285-3246-4110-AC4E-9DA6D35EAC2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90E7D285-3246-4110-AC4E-9DA6D35EAC2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90E7D285-3246-4110-AC4E-9DA6D35EAC2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5E5F225-D0E5-4A84-ACD4-09ECECF90EAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5E5F225-D0E5-4A84-ACD4-09ECECF90EAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5E5F225-D0E5-4A84-ACD4-09ECECF90EAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5E5F225-D0E5-4A84-ACD4-09ECECF90EAF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -168,6 +180,8 @@ Global
 		{B455760C-7D0B-486B-82AC-96A19717561D} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 		{2C343965-1E85-4BC5-8922-440E51312EDB} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 		{5B9D5EC7-0510-4FB1-82B6-7DBD85716529} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
+		{90E7D285-3246-4110-AC4E-9DA6D35EAC2D} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
+		{F5E5F225-D0E5-4A84-ACD4-09ECECF90EAF} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC8D204D-5A9E-4019-AAE1-96FA5B8A99BB}

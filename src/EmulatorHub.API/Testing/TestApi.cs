@@ -1,5 +1,6 @@
 ﻿using App.Metrics;
 using App.Metrics.Counter;
+using EmulatorHub.Application.Services.IdentityProvider;
 using EmulatorHub.Domain.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,8 @@ namespace EmulatorHub.API.Testing
     {
         public static IEndpointRouteBuilder MapTestApiV1(this IEndpointRouteBuilder routes)
         {
-            routes.MapGet("/Increment", Increment);
+            routes.MapGet("/get_token", GetToken);
+            routes.MapGet("/increment", Increment);
 
             return routes;
         }
@@ -28,6 +30,10 @@ namespace EmulatorHub.API.Testing
             };
             metrics.Measure.Counter.Increment(counterOptions, tags);
             return TypedResults.Ok();
+        }
+        public static Ok<TokenResult> GetToken()
+        {
+            return TypedResults.Ok(TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(60)));
         }
 
         public static async Task<Ok<List<UserEntity>>> GetAllUsers(IDataProvider db)

@@ -2,15 +2,15 @@
 using EmulatorHub.Infrastructure;
 using Serilog;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
-using System.Text;
+using Vayosoft.Web.Identity;
 using EmulatorHub.API.Hubs;
 using System.Text.Json.Serialization;
 using EmulatorHub.API.Services.Monitoring;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using EmulatorHub.API;
+using System;
+using Vayosoft.Web.Swagger;
+using Vayosoft.Web.Identity.Authentication;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Debug()
@@ -33,50 +33,66 @@ try
 #endif
         );
 
-        builder.Services.AddMemoryCache();
+        builder.Services.AddApplicationCaching(configuration);
+        //builder.Services.AddMemoryCache();
         builder.Services.AddSignalR();
         builder.Services.AddControllers().AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
         });
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        //builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerService();
 
         builder.Services.AddHttpContextAccessor();
 
         builder.Services.AddHubDataContext(builder.Configuration);
         builder.Services.AddHubServices(builder.Configuration);
 
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = configuration.GetConnectionString("RedisConnection");
+            options.InstanceName = "SessionInstance";
+        });
+        builder.Services.AddSession(options =>
+        {
+            options.Cookie.Name = ".second_phone.session";
+            options.IdleTimeout = TimeSpan.FromSeconds(3600); //Default is 20 minutes.
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = false;
+        });
+
+        builder.Services.AddIdentityService(configuration);
 
         //Authentication
-        var symmetricKey = "qwertyuiopasdfghjklzxcvbnm123456"; //configuration["Jwt:Symmetric:Key"];
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(symmetricKey));
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
-            {
-                //options.IncludeErrorDetails = true; // <- for debugging
+        //var symmetricKey = "qwertyuiopasdfghjklzxcvbnm123456"; //configuration["Jwt:Symmetric:Key"];
+        //var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(symmetricKey));
+        //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        //    .AddJwtBearer(options =>
+        //    {
+        //        //options.IncludeErrorDetails = true; // <- for debugging
 
-                options.TokenValidationParameters =
-                    new TokenValidationParameters
-                    {
-                        ValidateActor = false,
-                        ValidateAudience = false,
-                        ValidateIssuer = false,
-                        RequireExpirationTime = true, // <- JWTs are required to have "exp" property set
-                        ValidateLifetime = true, // <- the "exp" will be validated
-                        RequireSignedTokens = true,
-                        IssuerSigningKey = signingKey,
-                    };
-            });
-        //Authorization
-        builder.Services.AddAuthorization(options =>
-        {
-            options.AddPolicy(JwtBearerDefaults.AuthenticationScheme, policy =>
-            {
-                policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
-                policy.RequireClaim(ClaimTypes.NameIdentifier);
-            });
-        });
+        //        options.TokenValidationParameters =
+        //            new TokenValidationParameters
+        //            {
+        //                ValidateActor = false,
+        //                ValidateAudience = false,
+        //                ValidateIssuer = false,
+        //                RequireExpirationTime = true, // <- JWTs are required to have "exp" property set
+        //                ValidateLifetime = true, // <- the "exp" will be validated
+        //                RequireSignedTokens = true,
+        //                IssuerSigningKey = signingKey,
+        //            };
+        //    });
+        ////Authorization
+        //builder.Services.AddAuthorization(options =>
+        //{
+        //    options.AddPolicy(JwtBearerDefaults.AuthenticationScheme, policy =>
+        //    {
+        //        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+        //        policy.RequireClaim(ClaimTypes.NameIdentifier);
+        //    });
+        //});
 
         // HealthCheck
         builder.Services
@@ -107,11 +123,14 @@ try
             ResponseWriter = HealthCheckResponse.Write
         });
 
-        app.UseSwagger();
-        app.UseSwaggerUI();
+        //app.UseSwagger();
+        //app.UseSwaggerUI();
+        app.UseSwaggerService();
 
-        app.UseAuthentication();
+        //app.UseAuthentication();
+        app.UseMiddleware<TokenAuthenticationMiddleware>();
         app.UseAuthorization();
+        app.UseSession();
 
         app.MapControllers();
 

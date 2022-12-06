@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmulatorHub.MySqlMigrations.Migrations
 {
     [DbContext(typeof(HubDbContext))]
-    [Migration("20221129094227_Initial")]
+    [Migration("20221206091532_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -28,7 +28,6 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .HasColumnName("id");
 
                     b.Property<string>("ClientId")
-                        .IsRequired()
                         .HasColumnType("varchar(255)")
                         .HasColumnName("client_id");
 
@@ -74,7 +73,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasColumnName("soft_deleted");
 
-                    b.Property<long>("UserId")
+                    b.Property<long?>("UserId")
                         .HasColumnType("bigint")
                         .HasColumnName("user_id");
 
@@ -95,11 +94,133 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.ToTable("clients", (string)null);
                 });
 
+            modelBuilder.Entity("Vayosoft.Identity.Security.SecurityObjectEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("objid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext")
+                        .HasColumnName("obj_desc");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("obj_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sec_objs");
+
+                    b.ToTable("sec_objs", (string)null);
+                });
+
+            modelBuilder.Entity("Vayosoft.Identity.Security.SecurityRoleEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("roleid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext")
+                        .HasColumnName("role_desc");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("role_name");
+
+                    b.Property<long?>("ProviderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("providerid");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sec_roles");
+
+                    b.ToTable("sec_roles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "f6694d71d26e40f5a2abb357177c9bdt",
+                            Name = "Support"
+                        },
+                        new
+                        {
+                            Id = "f6694d71d26e40f5a2abb357177c9bdx",
+                            Name = "Administrator"
+                        },
+                        new
+                        {
+                            Id = "f6694d71d26e40f5a2abb357177c9bdz",
+                            Name = "Supervisor"
+                        });
+                });
+
+            modelBuilder.Entity("Vayosoft.Identity.Security.SecurityRolePermissionsEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("permid");
+
+                    b.Property<string>("ObjectId")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("objid");
+
+                    b.Property<byte>("Permissions")
+                        .HasColumnType("tinyint unsigned")
+                        .HasColumnName("perms");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("roleid");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sec_role_permissions");
+
+                    b.ToTable("sec_role_permissions", (string)null);
+                });
+
+            modelBuilder.Entity("Vayosoft.Identity.Security.UserRoleEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("urid");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("roleid");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sec_user_roles");
+
+                    b.ToTable("sec_user_roles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "0e5085516ee34d4bab806757e41f6dd6",
+                            RoleId = "f6694d71d26e40f5a2abb357177c9bdz",
+                            UserId = 1L
+                        });
+                });
+
             modelBuilder.Entity("Vayosoft.Identity.Tokens.RefreshToken", b =>
                 {
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
-                        .HasColumnName("user_id");
+                        .HasColumnName("userid");
 
                     b.Property<string>("Token")
                         .HasColumnType("varchar(255)")
@@ -134,9 +255,9 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .HasColumnName("revoked_by_ip");
 
                     b.HasKey("UserId", "Token")
-                        .HasName("pk_refresh_token");
+                        .HasName("pk_refresh_tokens");
 
-                    b.ToTable("refresh_token", (string)null);
+                    b.ToTable("refresh_tokens", (string)null);
                 });
 
             modelBuilder.Entity("Vayosoft.Identity.UserEntity", b =>
@@ -144,45 +265,52 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasColumnName("id");
+                        .HasColumnName("userid");
 
                     b.Property<string>("CultureId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("longtext")
+                        .HasDefaultValue("he-IL")
                         .HasColumnName("culture_id");
 
                     b.Property<DateTime?>("Deregistered")
                         .HasColumnType("datetime(6)")
-                        .HasColumnName("deregistered");
+                        .HasColumnName("enddate");
 
                     b.Property<string>("Email")
                         .HasColumnType("longtext")
                         .HasColumnName("email");
 
-                    b.Property<int?>("LogLevel")
-                        .HasColumnType("int")
+                    b.Property<byte?>("LogLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint unsigned")
+                        .HasDefaultValue((byte)3)
                         .HasColumnName("log_level");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("longtext")
-                        .HasColumnName("password_hash");
+                        .HasColumnName("pwdhash");
 
                     b.Property<string>("Phone")
+                        .IsRequired()
                         .HasColumnType("longtext")
                         .HasColumnName("phone");
 
                     b.Property<long>("ProviderId")
                         .HasColumnType("bigint")
-                        .HasColumnName("provider_id");
+                        .HasColumnName("providerid");
 
                     b.Property<DateTime?>("Registered")
+                        .IsRequired()
                         .HasColumnType("datetime(6)")
-                        .HasColumnName("registered");
+                        .HasColumnName("regdate");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("int")
-                        .HasColumnName("type");
+                    b.Property<byte>("Type")
+                        .HasColumnType("tinyint unsigned")
+                        .HasColumnName("user_type");
 
                     b.Property<string>("Username")
+                        .IsRequired()
                         .HasColumnType("varchar(255)")
                         .HasColumnName("username");
 
@@ -191,7 +319,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
 
                     b.HasIndex("Username", "ProviderId")
                         .IsUnique()
-                        .HasDatabaseName("ix_users_username_provider_id");
+                        .HasDatabaseName("ix_users_username_providerid");
 
                     b.ToTable("users", (string)null);
 
@@ -203,9 +331,9 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                             Email = "su@vayosoft.com",
                             PasswordHash = "VBbXzW7xlaD3YiqcVrVehA==",
                             Phone = "0500000000",
-                            ProviderId = 1L,
+                            ProviderId = 1000L,
                             Registered = new DateTime(2022, 11, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Type = 4,
+                            Type = (byte)4,
                             Username = "su"
                         });
                 });
@@ -215,8 +343,6 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.HasOne("EmulatorHub.Domain.Entities.MobileClient", "Client")
                         .WithMany()
                         .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
                         .HasConstraintName("fk_devices_clients_client_id");
 
                     b.Navigation("Client");
@@ -227,8 +353,6 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.HasOne("Vayosoft.Identity.UserEntity", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
                         .HasConstraintName("fk_clients_users_user_id");
 
                     b.Navigation("User");
@@ -241,7 +365,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_refresh_token_users_user_entity_id");
+                        .HasConstraintName("fk_refresh_tokens_users_user_entity_id");
 
                     b.Navigation("User");
                 });

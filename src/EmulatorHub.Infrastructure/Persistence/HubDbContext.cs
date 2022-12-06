@@ -9,7 +9,7 @@ namespace EmulatorHub.Infrastructure.Persistence
     public sealed class HubDbContext : DataContext
     {
         private readonly IUserContext? _userContext;
-        public HubDbContext(DbContextOptions options, IUserContext? userContext = null) 
+        public HubDbContext(DbContextOptions<HubDbContext> options, IUserContext? userContext = null) 
             : base(options)
         {
             _userContext = userContext;

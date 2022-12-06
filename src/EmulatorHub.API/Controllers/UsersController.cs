@@ -1,9 +1,11 @@
 using EmulatorHub.Domain.Entities;
 using EmulatorHub.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Vayosoft.Identity;
 using Vayosoft.Persistence;
+using Vayosoft.Web.Identity.Authorization;
 
 namespace EmulatorHub.API.Controllers
 {
@@ -18,18 +20,18 @@ namespace EmulatorHub.API.Controllers
             _logger = logger;
         }
 
-        //[Authorize]
+        [PermissionAuthorization]
         [HttpGet]
-        public async Task<IActionResult> GetUsers(HubDbContext db)
+        public async Task<IActionResult> GetUsers(HubDbContext db, CancellationToken cancellationToken)
         {
-            return Ok(await db.Users.ToArrayAsync());
+            return Ok(await db.Users.ToArrayAsync(cancellationToken: cancellationToken));
         }
 
-        [HttpPost]
+        [HttpPost("/register")]
         public async Task<IActionResult> RegisterEmulator(string clientId, string deviceId,
-            [FromServices] IUnitOfWork db)
+            [FromServices] IUnitOfWork db, CancellationToken cancellationToken)
         {
-            var user = await db.FindAsync<UserEntity>(1);
+            var user = await db.FindAsync<UserEntity>(1, cancellationToken);
             if (user is { } item)
             {
                 var client = new MobileClient
@@ -48,7 +50,7 @@ namespace EmulatorHub.API.Controllers
                 };
                 db.Add(device);
 
-                await db.CommitAsync();
+                await db.CommitAsync(cancellationToken);
                 return Ok(device);
             }
 
