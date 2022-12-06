@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.0" />
+    <PackageReference Include="Vayosoft.Testing" Version="2.2.0" />
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -21,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Testing\Vayosoft.Testing.csproj" />
     <ProjectReference Include="..\..\src\EmulatorHub.Infrastructure\EmulatorHub.Infrastructure.csproj" />
   </ItemGroup>
 

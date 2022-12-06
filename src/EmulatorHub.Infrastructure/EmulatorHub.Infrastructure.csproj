@@ -7,9 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.EntityFramework.MySQL\Vayosoft.EntityFramework.MySQL.csproj" />
-    <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Persistence.EntityFramework\Vayosoft.Persistence.EntityFramework.csproj" />
-    <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.PushBrokers\Vayosoft.PushBrokers.csproj" />
+    <PackageReference Include="Vayosoft.EntityFramework.MySQL" Version="2.2.0" />
+    <PackageReference Include="Vayosoft.Persistence.EntityFramework" Version="2.2.0" />
+    <PackageReference Include="Vayosoft.PushBrokers" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\EmulatorHub\EmulatorHub.csproj" />
   </ItemGroup>
 
