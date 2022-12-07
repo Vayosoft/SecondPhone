@@ -49,7 +49,7 @@ namespace EmulatorRC.API.Services
             catch (Exception ex)
             {
                 _logger.LogError("{action} | CLIENT:[{deviceId}] Exception: {type} {message}",
-                    context.Method, ex.GetType(), deviceId, ex.Message);
+                    context.Method, deviceId, ex.GetType(), ex.Message);
             }
 
             return new Ack();
@@ -103,7 +103,7 @@ namespace EmulatorRC.API.Services
             catch (Exception ex)
             {
                 _logger.LogError("{action} | CLIENT:[{deviceId}] Exception: {type} {message}",
-                    context.Method, ex.GetType(), deviceId, ex.Message);
+                    context.Method, deviceId, ex.GetType(), ex.Message);
             }
         }
     }
