@@ -35,6 +35,9 @@ namespace EmulatorRC.API.Services
                 {
                     await responseStream.WriteAsync(data, cancellationToken);
                 }
+
+                _logger.LogInformation("{action} | EMULATOR:[{deviceId}] Stream closed.",
+                    context.Method, deviceId);
             }
             catch (OperationCanceledException)
             {
@@ -43,13 +46,8 @@ namespace EmulatorRC.API.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError("{action} | {type}|  EMULATOR:[{deviceId}] {message}",
+                _logger.LogError("{action} | EMULATOR:[{deviceId}] Exception: {type} {message}",
                     context.Method, ex.GetType(), deviceId, ex.Message);
-            }
-            finally
-            {
-                _logger.LogInformation("{action} | EMULATOR:[{deviceId}] Stream closed.", 
-                    context.Method, deviceId);
             }
         }
 
@@ -81,20 +79,20 @@ namespace EmulatorRC.API.Services
                 {
                     await _screens.WriteAsync(deviceId, request, cancellationToken);
                 }
+
+                _logger.LogInformation("{action} | EMULATOR:[{deviceId}] Stream closed.",
+                    context.Method, deviceId);
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException)
             {
-                _logger.LogError("{action} | {type}|  EMULATOR:[{deviceId}] {message}",
-                    context.Method, ex.GetType(), deviceId, ex.Message);
+                _logger.LogWarning("{action} | EMULATOR:[{deviceId}] Stream cancelled.",
+                    context.Method, deviceId);
             }
             catch (Exception ex)
             {
-                _logger.LogError("{action} | {type}| {message}", 
-                    context.Method, ex.GetType(), ex.Message);
+                _logger.LogError("{action} | EMULATOR:[{deviceId}] Exception: {type} {message}",
+                    context.Method, ex.GetType(), deviceId, ex.Message);
             }
-
-            _logger.LogInformation("{action} | EMULATOR:[{deviceId}] Stream closed.", 
-                context.Method, deviceId);
 
             return new Ack();
         }
