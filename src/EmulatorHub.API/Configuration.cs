@@ -18,15 +18,15 @@ namespace EmulatorHub.API
         {
             var filter = new MetricsFilter();
             var metrics = AppMetrics.CreateDefaultBuilder()
-                .Report.ToTextFile(
-                    options =>
-                    {
-                        options.MetricsOutputFormatter = new MetricsTextOutputFormatter();
-                        options.AppendMetricsToTextFile = false;
-                        options.Filter = filter;
-                        options.FlushInterval = TimeSpan.FromSeconds(60);
-                        options.OutputPathAndFileName = @"../../metrics/metrics.txt";
-                    })
+                //.Report.ToTextFile(
+                //    options =>
+                //    {
+                //        options.MetricsOutputFormatter = new MetricsTextOutputFormatter();
+                //        options.AppendMetricsToTextFile = false;
+                //        options.Filter = filter;
+                //        options.FlushInterval = TimeSpan.FromSeconds(60);
+                //        options.OutputPathAndFileName = @"../../metrics/metrics.txt";
+                //    })
                 .Build();
 
             builder.Services

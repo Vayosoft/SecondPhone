@@ -4,19 +4,19 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EmulatorHub.IntegrationTests
 {
-    public class UsersServiceTests
+    public class EmulatorTests
     {
-        private readonly UserService _userService;
+        private readonly EmulatorService _userService;
 
-        public UsersServiceTests()
+        public EmulatorTests()
         {
-            _userService = Server.Host.Services.GetRequiredService<UserService>();
+            _userService = Server.Host.Services.GetRequiredService<EmulatorService>();
         }
 
         [Fact]
         public async Task Can_get_users()
         {
-            var users = await _userService.GetUsersAsync();
+            var users = await _userService.GetEmulatorsAsync();
 
             Assert.Collection(users, entity => {});
         }

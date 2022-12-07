@@ -35,15 +35,19 @@ namespace EmulatorRC.API.Services
                     await responseStream.WriteAsync(data, cancellationSource.Token);
                 }
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("{action} | EMULATOR:[{deviceId}] Cancelled by emulator.",
+                    context.Method, deviceId);
+            }
             catch (Exception ex)
             {
-                _logger.LogError("{action} | {type}| {message}",
-                    context.Method, ex.GetType(), ex.Message);
+                _logger.LogError("{action} | {type}|  EMULATOR:[{deviceId}] {message}",
+                    context.Method, ex.GetType(), deviceId, ex.Message);
             }
             finally
             {
-                _logger.LogInformation("{action} | DEV:[{deviceId}] Stream closed.", 
+                _logger.LogInformation("{action} | EMULATOR:[{deviceId}] Stream closed.", 
                     context.Method, deviceId);
             }
         }
@@ -52,7 +56,7 @@ namespace EmulatorRC.API.Services
         {
             deviceId = context.GetDeviceIdOrDefault("default")!;
 
-            _logger.LogInformation("{action} | DEV:[{deviceId}] Connected.", context.Method, deviceId);
+            _logger.LogInformation("{action} | EMULATOR:[{deviceId}] Connected.", context.Method, deviceId);
 
             cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
                 context.CancellationToken, _lifeTime.ApplicationStopping);
@@ -71,19 +75,23 @@ namespace EmulatorRC.API.Services
 
             try
             {
-                await foreach(var request in requestStream.ReadAllAsync(cancellationSource.Token))
+                await foreach (var request in requestStream.ReadAllAsync(cancellationSource.Token))
                 {
                     await _screens.WriteAsync(deviceId, request, cancellationSource.Token);
                 }
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogError("{action} | {type}|  EMULATOR:[{deviceId}] {message}",
+                    context.Method, ex.GetType(), deviceId, ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError("{action} | {type}| {message}", 
                     context.Method, ex.GetType(), ex.Message);
             }
 
-            _logger.LogInformation("{action} | DEV:[{deviceId}] Stream closed.", 
+            _logger.LogInformation("{action} | EMULATOR:[{deviceId}] Stream closed.", 
                 context.Method, deviceId);
 
             return new Ack();

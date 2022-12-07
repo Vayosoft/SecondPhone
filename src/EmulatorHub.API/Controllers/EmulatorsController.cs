@@ -9,8 +9,10 @@ namespace EmulatorHub.API.Controllers
     public class EmulatorsController : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetEmulators(HubDbContext db) {
-            return Ok(await db.Devices.ToListAsync());
+        public async Task<IActionResult> GetEmulators(HubDbContext db)
+        {
+            var emulators = await db.Devices.ToListAsync();
+            return Ok(emulators);
         }
     }
 }

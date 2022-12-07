@@ -36,15 +36,19 @@ namespace EmulatorRC.API.Services
                     await _touchEvents.WriteAsync(deviceId, request, cancellationSource.Token);
                 }
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("{action} | CLIENT:[{deviceId}] Cancelled by client.",
+                    context.Method, deviceId);
+            }
             catch (Exception ex)
             {
                 _logger.LogError("{action} | {type}| {message}", 
                     context.Method, ex.GetType(), ex.Message);
             }
 
-            _logger.LogInformation("{action} | CLIENT:[{clientId}] Stream closed.",
-                context.Method, clientId);
+            _logger.LogInformation("{action} | CLIENT:[{deviceId}] Stream closed.",
+                context.Method, deviceId);
 
             return new Ack();
         }
@@ -55,8 +59,8 @@ namespace EmulatorRC.API.Services
             deviceId = context.GetDeviceIdOrDefault("default")!;
             clientId = context.GetClientId();
 
-            _logger.LogInformation("{action} | CLIENT:[{clientId}] Connected for device: {deviceId}.",
-                context.Method, clientId, deviceId);
+            _logger.LogInformation("{action} | CLIENT:[{deviceId}] Connected for device.",
+                context.Method, deviceId);
 
             cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
                 context.CancellationToken, _lifeTime.ApplicationStopping);
@@ -86,18 +90,22 @@ namespace EmulatorRC.API.Services
                     await responseStream.WriteAsync(response, cancellationSource.Token);
                 }
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogError("{action} | {type}| {message}",
+                    context.Method, ex.GetType(), ex.Message);
+            }
             catch (Exception ex)
             {
-                _logger.LogError("{action} | {type}| {message}", 
-                    context.Method, ex.GetType(), ex.Message);
+                _logger.LogError("{action} | {type}| CLIENT:[{deviceId}] {message}", 
+                    context.Method, ex.GetType(), deviceId, ex.Message);
             }
             finally
             {
                 //_channel.Unsubscribe(clientId, deviceId);
 
-                _logger.LogInformation("{action} | CLIENT:[{clientId}] Stream closed.",
-                    context.Method, clientId);
+                _logger.LogInformation("{action} | CLIENT:[{deviceId}] Stream closed.",
+                    context.Method, deviceId);
             }
         }
     }
