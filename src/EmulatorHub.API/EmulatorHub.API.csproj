@@ -24,6 +24,7 @@
 	  <PackageReference Include="AspNetCore.HealthChecks.MongoDb" Version="6.0.2" />
 	  <PackageReference Include="AspNetCore.HealthChecks.MySql" Version="6.0.2" />
 	  <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="6.0.4" />
+	  <PackageReference Include="Vayosoft.Web.Identity" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
