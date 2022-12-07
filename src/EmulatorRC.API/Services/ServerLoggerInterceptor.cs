@@ -25,7 +25,7 @@ namespace EmulatorRC.API.Services
             ServerCallContext context,
             UnaryServerMethod<TRequest, TResponse> continuation)
         {
-            //LogCall<TRequest, TResponse>(MethodType.Unary, context);
+            LogCall<TRequest, TResponse>(MethodType.Unary, context);
 
             try
             {
@@ -40,5 +40,52 @@ namespace EmulatorRC.API.Services
             }
         }
 
+        public override Task<TResponse> ClientStreamingServerHandler<TRequest, TResponse>(
+            IAsyncStreamReader<TRequest> requestStream,
+            ServerCallContext context,
+            ClientStreamingServerMethod<TRequest, TResponse> continuation)
+        {
+            LogCall<TRequest, TResponse>(MethodType.ClientStreaming, context);
+            return base.ClientStreamingServerHandler(requestStream, context, continuation);
+        }
+
+        public override Task ServerStreamingServerHandler<TRequest, TResponse>(
+            TRequest request,
+            IServerStreamWriter<TResponse> responseStream,
+            ServerCallContext context,
+            ServerStreamingServerMethod<TRequest, TResponse> continuation)
+        {
+            LogCall<TRequest, TResponse>(MethodType.ServerStreaming, context);
+            return base.ServerStreamingServerHandler(request, responseStream, context, continuation);
+        }
+
+        public override Task DuplexStreamingServerHandler<TRequest, TResponse>(
+            IAsyncStreamReader<TRequest> requestStream,
+            IServerStreamWriter<TResponse> responseStream,
+            ServerCallContext context,
+            DuplexStreamingServerMethod<TRequest, TResponse> continuation)
+        {
+            LogCall<TRequest, TResponse>(MethodType.DuplexStreaming, context);
+            return base.DuplexStreamingServerHandler(requestStream, responseStream, context, continuation);
+        }
+
+        private void LogCall<TRequest, TResponse>(MethodType methodType, ServerCallContext context)
+            where TRequest : class
+            where TResponse : class
+        {
+            _logger.LogWarning("Starting call. Type: {methodType}. Request: {request}. Response: {response}",
+                methodType, typeof(TRequest), typeof(TResponse));
+
+            WriteMetadata(context.RequestHeaders, "caller-user");
+            WriteMetadata(context.RequestHeaders, "caller-machine");
+            WriteMetadata(context.RequestHeaders, "caller-os");
+
+            void WriteMetadata(Metadata headers, string key)
+            {
+                var headerValue = headers.GetValue(key) ?? "(unknown)";
+                _logger.LogWarning($"{key}: {headerValue}");
+            }
+        }
     }
 }
+
