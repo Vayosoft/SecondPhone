@@ -30,9 +30,10 @@ namespace EmulatorRC.API.Services
 
             try
             {
-                await foreach (var data in _toucheEvents.ReadAllAsync(deviceId, cancellationSource.Token))
+                var cancellationToken = cancellationSource.Token;
+                await foreach (var data in _toucheEvents.ReadAllAsync(deviceId, cancellationToken))
                 {
-                    await responseStream.WriteAsync(data, cancellationSource.Token);
+                    await responseStream.WriteAsync(data, cancellationToken);
                 }
             }
             catch (OperationCanceledException)
@@ -75,9 +76,10 @@ namespace EmulatorRC.API.Services
 
             try
             {
-                await foreach (var request in requestStream.ReadAllAsync(cancellationSource.Token))
+                var cancellationToken = cancellationSource.Token;
+                await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
                 {
-                    await _screens.WriteAsync(deviceId, request, cancellationSource.Token);
+                    await _screens.WriteAsync(deviceId, request, cancellationToken);
                 }
             }
             catch (OperationCanceledException ex)

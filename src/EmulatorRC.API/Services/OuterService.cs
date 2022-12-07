@@ -31,9 +31,10 @@ namespace EmulatorRC.API.Services
 
             try
             {
-                await foreach (var request in requestStream.ReadAllAsync(cancellationSource.Token))
+                var cancellationToken = cancellationSource.Token;
+                await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
                 {
-                    await _touchEvents.WriteAsync(deviceId, request, cancellationSource.Token);
+                    await _touchEvents.WriteAsync(deviceId, request, cancellationToken);
                 }
             }
             catch (OperationCanceledException)
@@ -83,11 +84,11 @@ namespace EmulatorRC.API.Services
             {
                 //if (!_channel.Subscribe(clientId, deviceId))
                 //    throw new RpcException(new Status(StatusCode.Internal, "Subscription failed."));
-
-                await foreach (var request in requestStream.ReadAllAsync(cancellationSource.Token))
+                var cancellationToken = cancellationSource.Token;
+                await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
                 {
-                    var response = await _screens.ReadAsync(deviceId, request.Id, cancellationSource.Token);
-                    await responseStream.WriteAsync(response, cancellationSource.Token);
+                    var response = await _screens.ReadAsync(deviceId, request.Id, cancellationToken);
+                    await responseStream.WriteAsync(response, cancellationToken);
                 }
             }
             catch (OperationCanceledException ex)
