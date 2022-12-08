@@ -14,11 +14,11 @@ namespace EmulatorHub.API.Controllers
     {
         [ProducesResponseType(typeof(List<Emulator>), StatusCodes.Status200OK)]
         [HttpGet]
-        public async Task<IActionResult> GetEmulators(HubDbContext db)
+        public async Task<IActionResult> GetEmulators(HubDbContext db, CancellationToken cancellationToken)
         {
             return Ok(await db.Devices
                 .Include(d => d.Client)
-                .ToListAsync());
+                .ToListAsync(cancellationToken: cancellationToken));
         }
     }
 }

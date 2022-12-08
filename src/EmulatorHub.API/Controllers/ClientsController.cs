@@ -16,8 +16,8 @@ namespace EmulatorHub.API.Controllers
     {
         [ProducesResponseType(typeof(List<MobileClient>), StatusCodes.Status200OK)]
         [HttpGet]
-        public async Task<IActionResult> GetClients(HubDbContext db) {
-            return Ok(await db.Clients.ToListAsync());
+        public async Task<IActionResult> GetClients(HubDbContext db, CancellationToken cancellationToken) {
+            return Ok(await db.Clients.ToListAsync(cancellationToken: cancellationToken));
         }
 
         [HttpPost("token/set")]
