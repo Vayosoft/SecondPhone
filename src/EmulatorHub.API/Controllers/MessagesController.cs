@@ -54,7 +54,7 @@ namespace EmulatorHub.API.Controllers
 
             pushFactory
                 .GetFor("Android")
-                .Send(device.Client.PushToken, JObject.Parse(data));
+                .Send(device.Client.PushToken, JObject.Parse(data!));
 
             return Ok();
         }

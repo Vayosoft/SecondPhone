@@ -6,7 +6,7 @@ namespace EmulatorRC.API.Services.Interceptors
     //services.AddGrpc(options =>
     //{
     //    {
-    //        options.Interceptors.Add<ServerLoggerInterceptor>();
+    //        options.Interceptors.Add<LoggerInterceptor>();
     //        options.EnableDetailedErrors = true;
     //    }
     //});
@@ -76,15 +76,20 @@ namespace EmulatorRC.API.Services.Interceptors
             _logger.LogWarning("Starting call. Type: {methodType}. Request: {request}. Response: {response}",
                 methodType, typeof(TRequest), typeof(TResponse));
 
-            WriteMetadata(context.RequestHeaders, "caller-user");
-            WriteMetadata(context.RequestHeaders, "caller-machine");
-            WriteMetadata(context.RequestHeaders, "caller-os");
-
-            void WriteMetadata(Metadata headers, string key)
+            foreach (var header in context.RequestHeaders)
             {
-                var headerValue = headers.GetValue(key) ?? "(unknown)";
-                _logger.LogWarning($"{key}: {headerValue}");
+                _logger.LogWarning("{headerKey}: {headerValue}", header.Key, header.Value);
             }
+
+            //WriteMetadata(context.RequestHeaders, "caller-user");
+            //WriteMetadata(context.RequestHeaders, "caller-machine");
+            //WriteMetadata(context.RequestHeaders, "caller-os");
+
+            //void WriteMetadata(Metadata headers, string key)
+            //{
+            //    var headerValue = headers.GetValue(key) ?? "(unknown)";
+            //    _logger.LogWarning($"{key}: {headerValue}");
+            //}
         }
     }
 }

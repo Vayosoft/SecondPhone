@@ -1,4 +1,6 @@
-﻿using EmulatorRC.API.Channels;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using EmulatorRC.API.Channels;
 using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using Grpc.Core;
@@ -24,37 +26,25 @@ namespace EmulatorRC.API.Services
             _lifeTime = lifeTime;
         }
 
+        public override Task<Ack> Ping(Syn request, ServerCallContext context)
+        {
+            return Task.FromResult(new Ack());
+        }
+
         public override async Task GetTouchEvents(Syn request, IServerStreamWriter<TouchEvents> responseStream, ServerCallContext context)
         {
             Handshake(context, out var deviceId, out var cancellationSource);
 
-            //try
-            //{
-                var cancellationToken = cancellationSource.Token;
-                await foreach (var data in _toucheEvents.ReadAllAsync(deviceId, cancellationToken))
-                {
-                    await responseStream.WriteAsync(data, cancellationToken);
-                }
-
-                _logger.LogInformation("[{method}] Stream closed", context.Method);
-            //}
-            //catch (OperationCanceledException)
-            //{
-            //    _logger.LogWarning("{action} | EMULATOR:[{deviceId}] Cancelled by emulator.",
-            //        context.Method, deviceId);
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError("{action} | EMULATOR:[{deviceId}] Exception: {type} {message}",
-            //        context.Method, deviceId, ex.GetType(), ex.Message);
-            //}
+            var cancellationToken = cancellationSource.Token;
+            await foreach (var data in _toucheEvents.ReadAllAsync(deviceId, cancellationToken))
+            {
+                await responseStream.WriteAsync(data, cancellationToken);
+            }
         }
 
         private void Handshake(ServerCallContext context, out string deviceId, out CancellationTokenSource cancellationSource)
         {
             deviceId = context.GetDeviceIdOrDefault("default")!;
-
-            _logger.LogInformation("[{method}] Connected", context.Method);
 
             cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
                 context.CancellationToken, _lifeTime.ApplicationStopping);
@@ -70,28 +60,13 @@ namespace EmulatorRC.API.Services
             ServerCallContext context)
         {
             Handshake(context, out var deviceId, out var cancellationSource);
-
-            //try
-            //{
-                var cancellationToken = cancellationSource.Token;
-                await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
-                {
-                    await _screens.WriteAsync(deviceId, request, cancellationToken);
-                }
-
-                _logger.LogInformation("[{method}] Stream closed", context.Method);
-            //}
-            //catch (OperationCanceledException)
-            //{
-            //    _logger.LogWarning("{action} | EMULATOR:[{deviceId}] Stream cancelled.",
-            //        context.Method, deviceId);
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError("{action} | EMULATOR:[{deviceId}] Exception: {type} {message}",
-            //        context.Method, deviceId, ex.GetType(), ex.Message);
-            //}
-
+            
+            var cancellationToken = cancellationSource.Token;
+            await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
+            {
+                await _screens.WriteAsync(deviceId, request, cancellationToken);
+            }
+            
             return new Ack();
         }
     }
