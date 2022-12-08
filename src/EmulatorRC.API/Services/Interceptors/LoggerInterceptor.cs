@@ -1,7 +1,7 @@
-﻿using Grpc.Core.Interceptors;
-using Grpc.Core;
+﻿using Grpc.Core;
+using Grpc.Core.Interceptors;
 
-namespace EmulatorRC.API.Services
+namespace EmulatorRC.API.Services.Interceptors
 {
     //services.AddGrpc(options =>
     //{
@@ -11,11 +11,11 @@ namespace EmulatorRC.API.Services
     //    }
     //});
 
-    public class ServerLoggerInterceptor : Interceptor
+    public class LoggerInterceptor : Interceptor
     {
-        private readonly ILogger<ServerLoggerInterceptor> _logger;
+        private readonly ILogger<LoggerInterceptor> _logger;
 
-        public ServerLoggerInterceptor(ILogger<ServerLoggerInterceptor> logger)
+        public LoggerInterceptor(ILogger<LoggerInterceptor> logger)
         {
             _logger = logger;
         }

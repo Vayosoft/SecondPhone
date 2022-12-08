@@ -1,8 +1,8 @@
 ﻿using EmulatorRC.API.Extensions;
-using Grpc.Core.Interceptors;
 using Grpc.Core;
+using Grpc.Core.Interceptors;
 
-namespace EmulatorRC.API.Services
+namespace EmulatorRC.API.Services.Interceptors
 {
     public class ExceptionInterceptor : Interceptor
     {

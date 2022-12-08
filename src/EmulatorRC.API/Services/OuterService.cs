@@ -29,28 +29,26 @@ namespace EmulatorRC.API.Services
         {
             Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
 
-            try
-            {
+            //try
+            //{
                 var cancellationToken = cancellationSource.Token;
                 await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
                 {
                     await _touchEvents.WriteAsync(deviceId, request, cancellationToken);
                 }
 
-
-                _logger.LogInformation("{action} | CLIENT:[{deviceId}] Stream closed.",
-                    context.Method, deviceId);
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("{action} | CLIENT:[{deviceId}] Stream cancelled.",
-                    context.Method, deviceId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("{action} | CLIENT:[{deviceId}] Exception: {type} {message}",
-                    context.Method, deviceId, ex.GetType(), ex.Message);
-            }
+                _logger.LogInformation("[{method}] Stream closed", context.Method);
+            //}
+            //catch (OperationCanceledException)
+            //{
+            //    _logger.LogWarning("{action} | CLIENT:[{deviceId}] Stream cancelled.",
+            //        context.Method, deviceId);
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError("{action} | CLIENT:[{deviceId}] Exception: {type} {message}",
+            //        context.Method, deviceId, ex.GetType(), ex.Message);
+            //}
 
             return new Ack();
         }
@@ -61,8 +59,7 @@ namespace EmulatorRC.API.Services
             deviceId = context.GetDeviceIdOrDefault("default")!;
             clientId = context.GetClientId();
 
-            _logger.LogInformation("{action} | CLIENT:[{deviceId}] Connected for device.",
-                context.Method, deviceId);
+            _logger.LogInformation("[{method}] Connected", context.Method);
 
             cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
                 context.CancellationToken, _lifeTime.ApplicationStopping);
@@ -81,8 +78,8 @@ namespace EmulatorRC.API.Services
         {
             Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
 
-            try
-            {
+            //try
+            //{
                 //if (!_channel.Subscribe(clientId, deviceId))
                 //    throw new RpcException(new Status(StatusCode.Internal, "Subscription failed."));
                 var cancellationToken = cancellationSource.Token;
@@ -92,19 +89,18 @@ namespace EmulatorRC.API.Services
                     await responseStream.WriteAsync(response, cancellationToken);
                 }
 
-                _logger.LogInformation("{action} | CLIENT:[{deviceId}] Stream closed.",
-                    context.Method, deviceId);
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("{action} | CLIENT:[{deviceId}] Stream cancelled.",
-                    context.Method, deviceId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("{action} | CLIENT:[{deviceId}] Exception: {type} {message}",
-                    context.Method, deviceId, ex.GetType(), ex.Message);
-            }
+                _logger.LogInformation("[{method}] Stream closed", context.Method);
+            //}
+            //catch (OperationCanceledException)
+            //{
+            //    _logger.LogWarning("{action} | CLIENT:[{deviceId}] Stream cancelled.",
+            //        context.Method, deviceId);
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError("{action} | CLIENT:[{deviceId}] Exception: {type} {message}",
+            //        context.Method, deviceId, ex.GetType(), ex.Message);
+            //}
         }
     }
 }
