@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System.ComponentModel.DataAnnotations;
+using EmulatorHub.PushBroker.Application.Commands;
+using Vayosoft.Commands;
 using Vayosoft.PushBrokers;
 
 namespace EmulatorHub.API.Controllers
@@ -18,8 +20,12 @@ namespace EmulatorHub.API.Controllers
             [FromServices] HubDbContext db,
             [FromServices] ILogger<MessagesController> logger,
             [FromServices] PushBrokerFactory pushFactory,
+            [FromServices] ICommandBus commandBus,
             CancellationToken cancellationToken)
         {
+            //var result = await commandBus.Send(new SendPushMessage(deviceId, payload.ToString()), cancellationToken);
+            //return Ok();
+
             if (string.IsNullOrEmpty(deviceId))
             {
                 ModelState.AddModelError(nameof(deviceId), "DeviceId has not provided.");

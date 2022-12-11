@@ -61,6 +61,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Web.Identity", "..
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Caching", "..\Vayosoft\src\Vayosoft.Caching\Vayosoft.Caching.csproj", "{F5E5F225-D0E5-4A84-ACD4-09ECECF90EAF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Threading", "..\Vayosoft\src\Vayosoft.Threading\Vayosoft.Threading.csproj", "{7872EEE0-BC9A-4D6C-994C-7A2CA4E10A2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -155,6 +157,10 @@ Global
 		{F5E5F225-D0E5-4A84-ACD4-09ECECF90EAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5E5F225-D0E5-4A84-ACD4-09ECECF90EAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5E5F225-D0E5-4A84-ACD4-09ECECF90EAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7872EEE0-BC9A-4D6C-994C-7A2CA4E10A2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7872EEE0-BC9A-4D6C-994C-7A2CA4E10A2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7872EEE0-BC9A-4D6C-994C-7A2CA4E10A2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7872EEE0-BC9A-4D6C-994C-7A2CA4E10A2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -182,6 +188,7 @@ Global
 		{5B9D5EC7-0510-4FB1-82B6-7DBD85716529} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 		{90E7D285-3246-4110-AC4E-9DA6D35EAC2D} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 		{F5E5F225-D0E5-4A84-ACD4-09ECECF90EAF} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
+		{7872EEE0-BC9A-4D6C-994C-7A2CA4E10A2D} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC8D204D-5A9E-4019-AAE1-96FA5B8A99BB}

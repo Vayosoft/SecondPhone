@@ -19,6 +19,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Identity\Vayosoft.Identity.csproj" />
+    <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.PushBrokers\Vayosoft.PushBrokers.csproj" />
+    <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Threading\Vayosoft.Threading.csproj" />
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft\Vayosoft.csproj" />
   </ItemGroup>
 

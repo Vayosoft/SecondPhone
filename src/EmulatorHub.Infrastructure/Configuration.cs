@@ -1,13 +1,19 @@
 ﻿using EmulatorHub.Commons.Application.Services;
 using EmulatorHub.Infrastructure.Persistence;
+using EmulatorHub.PushBroker;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
+using FluentValidation;
+using Vayosoft;
 using Vayosoft.Caching;
 using Vayosoft.EntityFramework.MySQL;
 using Vayosoft.Identity;
 using Vayosoft.Identity.EntityFramework;
 using Vayosoft.Persistence;
 using Vayosoft.PushBrokers;
+using EmulatorHub.PushBroker.Application.Commands;
 
 namespace EmulatorHub.Infrastructure
 {
@@ -39,7 +45,19 @@ namespace EmulatorHub.Infrastructure
                 .AddScoped<IUserContext, UserContext>();
             services.AddPushBrokers();
 
+            services.AddCoreServices();
+            services.AddValidation();
+            services.AddPushBrokerServices();
+
             return services;
+        }
+
+        public static void AddValidation(this IServiceCollection services)
+        {
+            var d = Assembly.GetAssembly(typeof(Configuration));
+            //services.AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<SetProduct.CertificateRequestValidator>())
+            services.AddValidatorsFromAssembly(Assembly.GetAssembly(typeof(SendPushMessage)), ServiceLifetime.Transient);
+            //services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         }
     }
 }
