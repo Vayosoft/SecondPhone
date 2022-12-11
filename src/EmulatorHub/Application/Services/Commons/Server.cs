@@ -9,7 +9,7 @@ namespace EmulatorHub.Application.Services.Commons
             .ConfigureServices(services =>
             {
                 services.AddHttpClient();
-                services.AddTransient<UserService>();
+                services.AddTransient<EmulatorService>();
             })
             .Build();
     }

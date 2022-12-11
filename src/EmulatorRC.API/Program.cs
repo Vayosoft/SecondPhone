@@ -6,6 +6,7 @@ using EmulatorRC.API.Channels;
 using EmulatorRC.API.Hubs;
 using EmulatorRC.API.Model;
 using EmulatorRC.API.Services;
+using EmulatorRC.API.Services.Interceptors;
 using EmulatorRC.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
@@ -47,6 +48,9 @@ public class Program
 
                 builder.Services.AddGrpc(options =>
                 {
+                    options.Interceptors.Add<ExceptionInterceptor>();
+                    options.Interceptors.Add<LoggerInterceptor>();
+
                     options.EnableDetailedErrors = true;
                     options.MaxReceiveMessageSize = 2 * 1024 * 1024; // 2 MB
                     options.MaxSendMessageSize = 5 * 1024 * 1024; // 5 MB

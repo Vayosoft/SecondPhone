@@ -1,18 +1,23 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using EmulatorHub.API.Model;
+using EmulatorHub.Domain.Entities;
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace EmulatorHub.API.Controllers
 {
-    [Route("api/clients")]
+    [Produces("application/json")]
+    [ProducesErrorResponseType(typeof(void))]
     [ApiController]
+    [ApiVersion("1.0")]
+    [Route("api/clients")]
     public class ClientsController : ControllerBase
     {
+        [ProducesResponseType(typeof(List<MobileClient>), StatusCodes.Status200OK)]
         [HttpGet]
-        public async Task<IActionResult> GetClients(HubDbContext db) {
-            return Ok(await db.Clients.ToListAsync());
+        public async Task<IActionResult> GetClients(HubDbContext db, CancellationToken cancellationToken) {
+            return Ok(await db.Clients.ToListAsync(cancellationToken: cancellationToken));
         }
 
         [HttpPost("token/set")]

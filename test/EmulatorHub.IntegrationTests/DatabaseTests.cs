@@ -1,17 +1,19 @@
 using EmulatorHub.Domain.Entities;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Vayosoft.Identity;
 using Vayosoft.Testing;
+using Vayosoft.Utilities;
 using Xunit.Abstractions;
 
 namespace EmulatorHub.IntegrationTests
 {
-    public class UserEntityTests : IClassFixture<DatabaseFixture>
+    public class DatabaseTests : IClassFixture<DatabaseFixture>
     {
-        private readonly ILogger<UserEntityTests> _logger;
+        private readonly ILogger<DatabaseTests> _logger;
 
-        public UserEntityTests(DatabaseFixture fixture, ITestOutputHelper testOutputHelper)
+        public DatabaseTests(DatabaseFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
             Fixture.Configure(options =>
@@ -21,7 +23,7 @@ namespace EmulatorHub.IntegrationTests
             });
             Fixture.Initialize();
 
-            _logger = XUnitLogger.CreateLogger<UserEntityTests>(testOutputHelper);
+            _logger = XUnitLogger.CreateLogger<DatabaseTests>(testOutputHelper);
         }
 
         public DatabaseFixture Fixture { get; }
@@ -45,6 +47,15 @@ namespace EmulatorHub.IntegrationTests
             _logger.LogInformation("userId: {UserId}", user.Id);
 
             user.Id.Should().BeGreaterThan(0);
+        }
+
+        [Fact]
+        public async Task GetDevices()
+        {
+            await using var db = Fixture.CreateContext();
+            var devices = await db.Devices.ToListAsync();
+
+            _logger.LogInformation(devices.ToJson());
         }
     }
 }
