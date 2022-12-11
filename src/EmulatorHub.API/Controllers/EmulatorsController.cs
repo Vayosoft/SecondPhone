@@ -1,4 +1,4 @@
-﻿using EmulatorHub.Domain.Entities;
+﻿using EmulatorHub.Commons.Domain.Entities;
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

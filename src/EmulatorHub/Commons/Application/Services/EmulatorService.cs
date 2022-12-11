@@ -1,8 +1,8 @@
-﻿using EmulatorHub.Domain.Entities;
+﻿using EmulatorHub.Commons.Domain.Entities;
 using System.Text.Json;
 using Vayosoft.Identity;
 
-namespace EmulatorHub.Application.Services
+namespace EmulatorHub.Commons.Application.Services
 {
     public class EmulatorService
     {

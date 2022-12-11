@@ -1,11 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using EmulatorHub.Application.Services.IdentityProvider;
 using EmulatorRC.Client;
 using Grpc.Core;
 using Grpc.Net.Client;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
+using EmulatorHub.Commons.Application.Services.IdentityProvider;
 
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 //var url = "http://192.168.10.6:5006";

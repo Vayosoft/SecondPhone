@@ -1,6 +1,6 @@
 ﻿using Vayosoft.Commons.Entities;
 
-namespace EmulatorHub.Domain.Entities
+namespace EmulatorHub.Commons.Domain.Entities
 {
     public class Emulator : EntityBase<string>, IProviderId<long>
     {
