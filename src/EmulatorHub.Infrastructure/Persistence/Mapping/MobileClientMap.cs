@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using EmulatorHub.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Vayosoft.Persistence.EntityFramework;
+using EmulatorHub.Commons.Domain.Entities;
 
 namespace EmulatorHub.Infrastructure.Persistence.Mapping
 {

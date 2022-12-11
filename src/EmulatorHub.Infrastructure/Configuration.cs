@@ -1,4 +1,4 @@
-﻿using EmulatorHub.Application.Services;
+﻿using EmulatorHub.Commons.Application.Services;
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

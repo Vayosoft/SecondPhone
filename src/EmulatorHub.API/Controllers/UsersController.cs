@@ -1,3 +1,4 @@
+using EmulatorHub.Commons.Domain.Entities;
 using EmulatorHub.Domain.Entities;
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;

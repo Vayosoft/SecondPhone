@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Vayosoft.Commands;
 
-namespace EmulatorHub.Application.PushBroker.Commands
+namespace EmulatorHub.PushBroker.Application.Commands
 {
     public sealed record SendPushMessage(string DeviceId, string Message) : ICommand
     {
