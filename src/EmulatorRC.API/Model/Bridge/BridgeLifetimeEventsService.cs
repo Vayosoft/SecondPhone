@@ -67,7 +67,8 @@ public class BridgeLifetimeEventsService : IHostedService
             _loggerFactory,
             _streamChannel,
             _lifeTime,
-            _appCache)
+            _appCache,
+            null)
         {
             OptionNoDelay = true,
             OptionKeepAlive = true
@@ -83,7 +84,8 @@ public class BridgeLifetimeEventsService : IHostedService
             _loggerFactory,
             _streamChannel,
             _lifeTime,
-            _appCache)
+            _appCache,
+            bo.Inner.FakeImagePath)
         {
             OptionNoDelay = true,
             OptionKeepAlive = true
