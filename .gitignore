@@ -218,10 +218,14 @@ _Pvt_Extensions/
 ModelManifest.xml
 
 appsettings.json
-
-appsettings.json
-appsettings.json
 /Warehouse.API/appsettings.json
 /Warehouse.API/appsettings.Development.json
 /Warehouse.Host/appsettings.Development.json
+<<<<<<< HEAD
 log
+=======
+
+/src/External/
+
+
+>>>>>>> d50e6591263e5dc36db6bb1812d03bb97ae5bfed

@@ -25,6 +25,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\EmulatorRC\EmulatorRC.csproj" />
+    <ProjectReference Include="..\..\src\External\Commons.Core\Commons.Core.csproj" />
+    <ProjectReference Include="..\..\src\External\NetCoreServer\source\NetCoreServer\NetCoreServer.csproj" />
   </ItemGroup>
 
 </Project>
