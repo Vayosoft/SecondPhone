@@ -25,8 +25,8 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
         private bool _isQueueStreamRunning;
 
         private readonly byte[] _mockImageHeader;
-        private byte[] _fakeImg;
-        private byte[] _fakeImgLength;
+        private readonly byte[] _fakeImg;
+        private readonly byte[] _fakeImgLength;
 
         protected override ILogger Logger()
         {
@@ -40,7 +40,8 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             string secondBridgePrefix,
             ILoggerFactory logger, 
             IHostApplicationLifetime lifeTime,
-            ApplicationCache cache
+            ApplicationCache cache,
+            string fakeImagePath
             ) : base(server, streamChannel, thisBridgePrefix, secondBridgePrefix, lifeTime, cache)
         {
             if (server == null)
@@ -53,7 +54,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             
             _logger = logger.CreateLogger(ClientId);
             _mockImageHeader = CreateMockHeader(640, 480);
-            _fakeImg = File.ReadAllBytes(@"D:\Sources\SecondPhone\src\EmulatorRC.API\file-119.jpg");
+            _fakeImg = File.ReadAllBytes(fakeImagePath);
             _fakeImgLength = CreateLengthPrefix(_fakeImg);
 
         }

@@ -17,7 +17,8 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Servers
         private readonly TcpStreamChannel _streamChannel;
         private readonly ApplicationCache _cache;
         private readonly BridgeRole _bridgeRole;
-        
+        private readonly string _fakeImagePath;
+
         public string ThisSideName { get; }
         public string ThatSideName { get; }
 
@@ -31,7 +32,8 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Servers
             ILoggerFactory loggerFactory,
             TcpStreamChannel streamChannel,
             IHostApplicationLifetime lifeTime,
-            ApplicationCache cache
+            ApplicationCache cache,
+            string fakeImagePath
             ) : base(address, port)
         {
             ThisSideName = Guard.NotEmpty(thisSideName, nameof(thisSideName));
@@ -42,6 +44,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Servers
             _lifeTime = lifeTime;
             _cache = cache;
             _bridgeRole = role;
+            _fakeImagePath = fakeImagePath;
 
             if (bufferSize > 0)
             {
@@ -54,7 +57,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Servers
         {
             TcpSession s = _bridgeRole == BridgeRole.Outer
                 ? new TcpOuterBridgeSession(this, _streamChannel, ThisSideName, ThatSideName, _loggerFactory, _lifeTime, _cache)
-                : new TcpInnerBridgeSession(this, _streamChannel, ThisSideName, ThatSideName, _loggerFactory, _lifeTime, _cache);
+                : new TcpInnerBridgeSession(this, _streamChannel, ThisSideName, ThatSideName, _loggerFactory, _lifeTime, _cache, _fakeImagePath);
 
             _logger.LogInformation($"{ThisSideName} -> {ThatSideName} | new TCP connection");
             return s;
