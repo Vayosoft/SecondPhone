@@ -9,11 +9,11 @@ using Xunit.Abstractions;
 
 namespace EmulatorHub.IntegrationTests
 {
-    public class UserEntityTests : IClassFixture<DatabaseFixture>
+    public class DatabaseTests : IClassFixture<DatabaseFixture>
     {
-        private readonly ILogger<UserEntityTests> _logger;
+        private readonly ILogger<DatabaseTests> _logger;
 
-        public UserEntityTests(DatabaseFixture fixture, ITestOutputHelper testOutputHelper)
+        public DatabaseTests(DatabaseFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
             Fixture.Configure(options =>
@@ -23,7 +23,7 @@ namespace EmulatorHub.IntegrationTests
             });
             Fixture.Initialize();
 
-            _logger = XUnitLogger.CreateLogger<UserEntityTests>(testOutputHelper);
+            _logger = XUnitLogger.CreateLogger<DatabaseTests>(testOutputHelper);
         }
 
         public DatabaseFixture Fixture { get; }
