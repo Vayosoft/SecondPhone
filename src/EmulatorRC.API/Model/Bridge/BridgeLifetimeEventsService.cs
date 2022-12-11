@@ -55,7 +55,7 @@ public class BridgeLifetimeEventsService : IHostedService
 
         var outerSide = $"{bo.Name}.outer.{bo.Outer.TcpPort}";
         var innerSide = $"{bo.Name}.inner.{bo.Inner.TcpPort}";
-        var bufferSize = 128 * 1024 * 1024;
+        var bufferSize = 128 * 1024;
 
         _bridgeServers.Add(new TcpBridgeServer(
             BridgeRole.Outer,

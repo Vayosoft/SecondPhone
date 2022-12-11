@@ -27,16 +27,6 @@ public class TcpBridgeTests
     [Fact]
     public async Task TcpClientTest()
     {
-        var res = new DeviceSession
-        {
-            AccessToken = "123",
-            DeviceId = "aasdadsd",
-            StreamType = "cam"
-        }.ToJSON();
-        Helper.WriteLine(res);
-        return;
-
-
         var sw = new Stopwatch();
         var tcs = new TaskCompletionSource();
 

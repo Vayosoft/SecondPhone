@@ -21,9 +21,6 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
         private List<byte> _handshakeBuffer;
         private int _handshakeBufferLength;
 
-        private int _imageLength;
-        private List<byte> _imageBuffer;
-
         protected override ILogger Logger()
         {
             return _logger;
