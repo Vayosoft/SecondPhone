@@ -54,7 +54,6 @@ namespace EmulatorHub.Infrastructure
 
         public static void AddValidation(this IServiceCollection services)
         {
-            var d = Assembly.GetAssembly(typeof(Configuration));
             //services.AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<SetProduct.CertificateRequestValidator>())
             services.AddValidatorsFromAssembly(Assembly.GetAssembly(typeof(SendPushMessage)), ServiceLifetime.Transient);
             //services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));

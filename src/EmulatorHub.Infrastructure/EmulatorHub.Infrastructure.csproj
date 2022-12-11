@@ -6,10 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.4.0" />
-	</ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Caching\Vayosoft.Caching.csproj" />
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.EntityFramework.MySQL\Vayosoft.EntityFramework.MySQL.csproj" />

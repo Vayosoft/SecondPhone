@@ -14,7 +14,7 @@ namespace EmulatorHub.PushBroker
         public static IServiceCollection AddPushBrokerServices(this IServiceCollection services)
         {
             //services.AddPushBrokers();
-            //services.AddSingleton<MessageChannelHandler>();
+            services.AddSingleton<MessageChannelHandler>();
             services.AddSingleton<HandlerChannel<PushMessage, MessageChannelHandler>>();
             services.AddCommandHandler<SendPushMessage, Result<Unit>, HandleSendPushMessage>();
             return services;
