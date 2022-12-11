@@ -1,4 +1,3 @@
-using EmulatorHub.Domain.Entities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

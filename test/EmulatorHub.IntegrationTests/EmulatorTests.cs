@@ -1,5 +1,5 @@
-﻿using EmulatorHub.Application.Services;
-using EmulatorHub.Application.Services.Commons;
+﻿using EmulatorHub.Commons.Application.Services;
+using EmulatorHub.Commons.Application.Services.Commons;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EmulatorHub.IntegrationTests
