@@ -24,7 +24,7 @@ namespace EmulatorHub.API.Controllers
             {
                 ModelState.AddModelError(nameof(deviceId), "DeviceId has not provided.");
             }
-            var data = payload.ToString();
+            string data = payload.ToString();
             if (string.IsNullOrEmpty(data))
             {
                 ModelState.AddModelError(nameof(data), "Payload is empty.");
@@ -50,7 +50,7 @@ namespace EmulatorHub.API.Controllers
                 return Problem("The client has not token.");
             }
 
-            logger.LogInformation($"Sending push message...\r\n{data}");
+            logger.LogInformation("Sending push message...\r\n{data}", data);
 
             pushFactory
                 .GetFor("Android")
