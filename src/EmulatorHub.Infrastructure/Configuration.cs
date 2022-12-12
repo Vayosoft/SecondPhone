@@ -1,7 +1,6 @@
 ﻿using EmulatorHub.Commons.Application.Services;
 using EmulatorHub.Infrastructure.Persistence;
 using EmulatorHub.PushBroker;
-using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -12,21 +11,27 @@ using Vayosoft.EntityFramework.MySQL;
 using Vayosoft.Identity;
 using Vayosoft.Identity.EntityFramework;
 using Vayosoft.Persistence;
-using Vayosoft.PushBrokers;
 using EmulatorHub.PushBroker.Application.Commands;
 
 namespace EmulatorHub.Infrastructure
 {
     public static class Configuration
     {
-        public static IServiceCollection AddApplicationCaching(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddHubApplication(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddHttpContextAccessor();
+            services.AddScoped<IUserContext, UserContext>();
+
+            services.AddCoreServices();
+            services.AddValidation();
             services.AddCaching(configuration);
+            services.AddHubDataContext(configuration);
+            services.AddPushBrokerServices();
 
             return services;
         }
 
-        public static IServiceCollection AddHubDataContext(this IServiceCollection services, IConfiguration configuration)
+        private static IServiceCollection AddHubDataContext(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddMySqlContext<HubDbContext>(configuration);
             services
@@ -39,20 +44,7 @@ namespace EmulatorHub.Infrastructure
             return services;
         }
 
-        public static IServiceCollection AddHubServices(this IServiceCollection services, IConfiguration configuration)
-        {
-            services
-                .AddScoped<IUserContext, UserContext>();
-            services.AddPushBrokers();
-
-            services.AddCoreServices();
-            services.AddValidation();
-            services.AddPushBrokerServices();
-
-            return services;
-        }
-
-        public static void AddValidation(this IServiceCollection services)
+        private static void AddValidation(this IServiceCollection services)
         {
             //services.AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<SetProduct.CertificateRequestValidator>())
             services.AddValidatorsFromAssembly(Assembly.GetAssembly(typeof(SendPushMessage)), ServiceLifetime.Transient);

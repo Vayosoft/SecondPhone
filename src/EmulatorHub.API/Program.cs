@@ -8,7 +8,6 @@ using System.Text.Json.Serialization;
 using EmulatorHub.API.Services.Monitoring;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using EmulatorHub.API;
-using System;
 using Vayosoft.Web.Swagger;
 using Vayosoft.Web.Identity.Authentication;
 
@@ -33,7 +32,6 @@ try
 #endif
         );
 
-        builder.Services.AddApplicationCaching(configuration);
         //builder.Services.AddMemoryCache();
         builder.Services.AddSignalR();
         builder.Services.AddControllers().AddJsonOptions(options =>
@@ -44,10 +42,7 @@ try
         //builder.Services.AddSwaggerGen();
         builder.Services.AddSwaggerService();
 
-        builder.Services.AddHttpContextAccessor();
-
-        builder.Services.AddHubDataContext(builder.Configuration);
-        builder.Services.AddHubServices(builder.Configuration);
+        builder.Services.AddHubApplication(builder.Configuration);
 
         builder.Services.AddStackExchangeRedisCache(options =>
         {

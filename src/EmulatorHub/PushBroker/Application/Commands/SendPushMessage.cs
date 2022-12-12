@@ -21,7 +21,7 @@ namespace EmulatorHub.PushBroker.Application.Commands
             public SendPushMessageValidator()
             {
                 RuleFor(m => m.DeviceId)
-                    .NotEmpty().WithMessage("DeviceId has not provided.");
+                    .NotEmpty().MaximumLength(3).WithMessage("DeviceId has not provided.");
                 RuleFor(m => m.Message)
                     .NotEmpty().WithMessage("Payload is empty.");
             }
