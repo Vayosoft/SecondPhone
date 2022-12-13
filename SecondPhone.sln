@@ -63,6 +63,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Caching", "..\Vayo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Threading", "..\Vayosoft\src\Vayosoft.Threading\Vayosoft.Threading.csproj", "{7872EEE0-BC9A-4D6C-994C-7A2CA4E10A2D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Redis", "..\Vayosoft\src\Vayosoft.Redis\Vayosoft.Redis.csproj", "{084BCA70-7D8C-4F80-A49E-64BF72A1FA46}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -161,6 +163,10 @@ Global
 		{7872EEE0-BC9A-4D6C-994C-7A2CA4E10A2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7872EEE0-BC9A-4D6C-994C-7A2CA4E10A2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7872EEE0-BC9A-4D6C-994C-7A2CA4E10A2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{084BCA70-7D8C-4F80-A49E-64BF72A1FA46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{084BCA70-7D8C-4F80-A49E-64BF72A1FA46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{084BCA70-7D8C-4F80-A49E-64BF72A1FA46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{084BCA70-7D8C-4F80-A49E-64BF72A1FA46}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -189,6 +195,7 @@ Global
 		{90E7D285-3246-4110-AC4E-9DA6D35EAC2D} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 		{F5E5F225-D0E5-4A84-ACD4-09ECECF90EAF} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 		{7872EEE0-BC9A-4D6C-994C-7A2CA4E10A2D} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
+		{084BCA70-7D8C-4F80-A49E-64BF72A1FA46} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC8D204D-5A9E-4019-AAE1-96FA5B8A99BB}

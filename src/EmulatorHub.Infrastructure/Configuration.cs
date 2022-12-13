@@ -12,6 +12,7 @@ using Vayosoft.Identity;
 using Vayosoft.Identity.EntityFramework;
 using Vayosoft.Persistence;
 using EmulatorHub.PushBroker.Application.Commands;
+using Vayosoft.Redis;
 
 namespace EmulatorHub.Infrastructure
 {
@@ -24,7 +25,11 @@ namespace EmulatorHub.Infrastructure
 
             services.AddCoreServices();
             services.AddValidation();
-            services.AddCaching(configuration);
+
+            services
+                .AddRedisConnection()
+                .AddCaching(configuration);
+
             services.AddHubDataContext(configuration);
             services.AddPushBrokerServices();
 
