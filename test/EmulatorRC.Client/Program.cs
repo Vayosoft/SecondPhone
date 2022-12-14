@@ -10,6 +10,9 @@ using EmulatorHub.Commons.Application.Services.IdentityProvider;
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 //var url = "http://192.168.10.6:5006";
 var url = "http://localhost:5004";
+
+var cts = new CancellationTokenSource();
+
 var uploadTask = Task.Run(async () =>
 {
     try{
@@ -25,10 +28,12 @@ var uploadTask = Task.Run(async () =>
         {
             { "X-DEVICE-ID", "default" }
         };
+        var rnd = new Random();
+       
         using var call = client.UploadScreens(headers);
-        foreach (var enumerateFile in Enumerable.Range(0, 100))
+        while (!cts.IsCancellationRequested)
         {
-            var image = new byte[enumerateFile];
+            var image = new byte[rnd.Next(100 * 1024, 1 * 1024 * 1024)];
             await 50;
             await call.RequestStream.WriteAsync(new DeviceScreen
             {
@@ -53,7 +58,11 @@ try
     while (true)
     {
         var result = Console.ReadLine();
-        if (result is "1") break;
+        if (result is "1")
+        {
+            cts.Cancel();
+            break;
+        }
 
         await screenClient.SendAsync(result ?? string.Empty);
        // await screenClient2.SendAsync(result ?? string.Empty);

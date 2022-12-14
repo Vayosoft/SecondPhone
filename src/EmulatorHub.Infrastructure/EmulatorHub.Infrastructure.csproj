@@ -7,11 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Vayosoft.Caching" Version="2.2.0" />
-    <PackageReference Include="Vayosoft.EntityFramework.MySQL" Version="2.2.0" />
-    <PackageReference Include="Vayosoft.Identity.EntityFramework" Version="2.2.0" />
-    <PackageReference Include="Vayosoft.Persistence.EntityFramework" Version="2.2.0" />
-    <PackageReference Include="Vayosoft.PushBrokers" Version="2.2.0" />
+    <PackageReference Include="Vayosoft.Caching" Version="2.2.1" />
+    <PackageReference Include="Vayosoft.EntityFramework.MySQL" Version="2.2.1" />
+    <PackageReference Include="Vayosoft.Identity.EntityFramework" Version="2.2.1" />
+    <PackageReference Include="Vayosoft.Persistence.EntityFramework" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -37,18 +37,18 @@ namespace EmulatorRC.API.Channels
             _emulatorDataRepository.SetLastScreen(deviceId, new Screen(request.Id, request.Image.ToByteArray()));
         }
 
-        public async ValueTask<DeviceScreen> ReadAsync(string deviceId, string imageId, CancellationToken cancellationToken = default)
+        public ValueTask<DeviceScreen> ReadAsync(string deviceId, string imageId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(imageId))
             {
                 var screen = _emulatorDataRepository.GetLastScreen(deviceId);
                 if (screen != null)
                 {
-                    return new DeviceScreen
+                    return ValueTask.FromResult(new DeviceScreen
                     {
                         Id = screen.Id,
                         Image = UnsafeByteOperations.UnsafeWrap(screen.Image)
-                    };
+                    });
                 }
             }
 
@@ -64,7 +64,7 @@ namespace EmulatorRC.API.Channels
                 }
             }
 
-            return await channel.Reader.ReadAsync(cancellationToken);
+            return channel.Reader.ReadAsync(cancellationToken);
         }
 
         public void Dispose()

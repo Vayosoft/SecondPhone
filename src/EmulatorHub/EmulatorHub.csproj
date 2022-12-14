@@ -13,10 +13,13 @@
 
   <ItemGroup>
     <PackageReference Include="App.Metrics" Version="4.3.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.4.0" />
     <PackageReference Include="LanguageExt.Core" Version="4.4.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.25.1" />
-    <PackageReference Include="Vayosoft" Version="2.2.0" />
-    <PackageReference Include="Vayosoft.Identity" Version="2.2.0" />
+    <PackageReference Include="Vayosoft" Version="2.2.1" />
+    <PackageReference Include="Vayosoft.Identity" Version="2.2.1" />
+    <PackageReference Include="Vayosoft.PushBrokers" Version="2.2.1" />
+    <PackageReference Include="Vayosoft.Threading" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>
