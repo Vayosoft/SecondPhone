@@ -12,7 +12,7 @@ namespace EmulatorRC.API.Channels
         private readonly ConcurrentDictionary<string, Channel<DeviceScreen>> _channels = new();
         private readonly ConcurrentDictionary<string, object> _locks = new();
 
-        private readonly BoundedChannelOptions _options = new(1000)
+        private readonly BoundedChannelOptions _options = new(1)
         {
             SingleWriter = true,
             SingleReader = true,
