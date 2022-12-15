@@ -1,4 +1,5 @@
-﻿using App.Metrics;
+﻿using System.Buffers;
+using App.Metrics;
 using App.Metrics.Counter;
 using EmulatorHub.Commons.Application.Services.IdentityProvider;
 using EmulatorHub.Commons.Domain.Entities;
@@ -16,6 +17,7 @@ namespace EmulatorHub.API.Testing
         public static IEndpointRouteBuilder MapTestApiV1(this IEndpointRouteBuilder routes)
         {
             routes.MapGet("/get_token", GetToken);
+            routes.MapGet("/action", GetAction);
             routes.MapGet("/increment", Increment);
 
             return routes;
@@ -33,6 +35,22 @@ namespace EmulatorHub.API.Testing
             metrics.Measure.Counter.Increment(counterOptions, tags);
             return TypedResults.Ok();
         }
+        public static Ok GetAction(HttpContext context)
+        {
+            var somePool = ArrayPool<byte>.Shared;
+            byte[] buffer = somePool.Rent(1024);
+            try
+            {
+                //Array.Copy
+            }
+            finally
+            {
+                somePool.Return(buffer);
+            }
+
+            return TypedResults.Ok();
+        }
+
         public static Ok<TokenResult> GetToken()
         {
             return TypedResults.Ok(TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(60)));

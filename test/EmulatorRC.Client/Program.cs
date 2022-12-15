@@ -1,11 +1,13 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Buffers;
 using EmulatorRC.Client;
 using Grpc.Core;
 using Grpc.Net.Client;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
 using EmulatorHub.Commons.Application.Services.IdentityProvider;
+using System;
 
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 //var url = "http://192.168.10.6:5006";
@@ -26,19 +28,26 @@ var uploadTask = Task.Run(async () =>
         var client = new DeviceService.DeviceServiceClient(channel);
         var headers = new Metadata
         {
-            { "X-DEVICE-ID", "default" }
+            {"X-DEVICE-ID", "default"}
         };
-        var rnd = new Random();
-       
+
+        var pool = ArrayPool<byte>.Shared;
         using var call = client.UploadScreens(headers);
         while (!cts.IsCancellationRequested)
         {
-            var image = new byte[rnd.Next(100 * 1024, 1 * 1024 * 1024)];
-            await 50;
-            await call.RequestStream.WriteAsync(new DeviceScreen
+            var buffer = pool.Rent(50 * 1024);
+            try
             {
-                Image = ByteString.CopyFrom(image)
-            }, CancellationToken.None);
+                await call.RequestStream.WriteAsync(new DeviceScreen
+                {
+                    Image = ByteString.CopyFrom(buffer)
+                }, CancellationToken.None);
+            }
+            finally
+            {
+                pool.Return(buffer);
+            }
+           
         }
 
         await call.RequestStream.CompleteAsync();

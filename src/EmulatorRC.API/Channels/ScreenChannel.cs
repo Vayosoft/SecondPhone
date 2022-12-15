@@ -1,16 +1,14 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Channels;
 using EmulatorRC.API.Protos;
-using EmulatorRC.Services;
-using Google.Protobuf;
 
 namespace EmulatorRC.API.Channels
 {
     public sealed class ScreenChannel : IDisposable
     {
-        private readonly IEmulatorDataRepository _emulatorDataRepository;
         private readonly ConcurrentDictionary<string, Channel<DeviceScreen>> _channels = new();
         private readonly ConcurrentDictionary<string, object> _locks = new();
+        private readonly ConcurrentDictionary<string, DeviceScreen> _lastScreens = new();
 
         private readonly BoundedChannelOptions _options = new(1)
         {
@@ -19,11 +17,6 @@ namespace EmulatorRC.API.Channels
             AllowSynchronousContinuations = true,
             FullMode = BoundedChannelFullMode.DropOldest
         };
-
-        public ScreenChannel(IEmulatorDataRepository emulatorDataRepository)
-        {
-            _emulatorDataRepository = emulatorDataRepository;
-        }
 
         public async ValueTask WriteAsync(string deviceId, DeviceScreen request, CancellationToken cancellationToken = default)
         {
@@ -34,22 +27,14 @@ namespace EmulatorRC.API.Channels
                 await channel.Writer.WriteAsync(request, cancellationToken);
             }
 
-            _emulatorDataRepository.SetLastScreen(deviceId, new Screen(request.Id, request.Image.ToByteArray()));
+            _lastScreens[deviceId] = request;
         }
 
         public ValueTask<DeviceScreen> ReadAsync(string deviceId, string imageId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(imageId))
             {
-                var screen = _emulatorDataRepository.GetLastScreen(deviceId);
-                if (screen != null)
-                {
-                    return ValueTask.FromResult(new DeviceScreen
-                    {
-                        Id = screen.Id,
-                        Image = UnsafeByteOperations.UnsafeWrap(screen.Image)
-                    });
-                }
+                return ValueTask.FromResult(_lastScreens.TryGetValue(deviceId, out var screen) ? screen : null);
             }
 
             if (!_channels.TryGetValue(deviceId, out var channel))
