@@ -47,8 +47,10 @@ public class Program
                 builder.Services.AddSignalR();
 
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
-                builder.Services.AddSingleton<ScreenChannel>();
+                builder.Services.AddSingleton<DeviceScreenChannel>();
                 builder.Services.AddSingleton<TouchChannel>();
+				builder.Services.AddSingleton<DeviceInfoChannel>();
+
                 builder.Services.AddSingleton<TcpStreamChannel>();
                 builder.Services.AddSingleton<IMemoryCacheProvider, MemoryCacheProvider>();
                 builder.Services.AddSingleton<IPubSubCacheProvider, RedisProvider>();
