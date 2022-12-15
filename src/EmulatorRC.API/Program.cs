@@ -48,9 +48,9 @@ public class Program
 
                 builder.Services.AddGrpc(options =>
                 {
-                    options.Interceptors.Add<ExceptionInterceptor>();
                     options.Interceptors.Add<LoggerInterceptor>();
-
+                    options.Interceptors.Add<ExceptionInterceptor>();
+                    
                     options.EnableDetailedErrors = true;
                     options.MaxReceiveMessageSize = 2 * 1024 * 1024; // 2 MB
                     options.MaxSendMessageSize = 5 * 1024 * 1024; // 5 MB

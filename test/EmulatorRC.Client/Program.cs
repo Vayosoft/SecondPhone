@@ -7,9 +7,11 @@ using Grpc.Net.Client;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
 
+
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 //var url = "http://192.168.10.6:5006";
 var url = "http://localhost:5004";
+var cts = new CancellationTokenSource();
 var uploadTask = Task.Run(async () =>
 {
     try{
@@ -25,13 +27,17 @@ var uploadTask = Task.Run(async () =>
         {
             { "X-DEVICE-ID", "default" }
         };
+        ulong counter  = 0;
         using var call = client.UploadScreens(headers);
-        foreach (var enumerateFile in Enumerable.Range(0, 100))
+        while (!cts.IsCancellationRequested)
         {
-            var image = new byte[enumerateFile];
+
+            var image = new byte[counter++];
             await 50;
+           
             await call.RequestStream.WriteAsync(new DeviceScreen
             {
+                Id = "default",
                 Image = ByteString.CopyFrom(image)
             }, CancellationToken.None);
         }
@@ -53,7 +59,11 @@ try
     while (true)
     {
         var result = Console.ReadLine();
-        if (result is "1") break;
+        if (result is "0")
+        {
+            cts.Cancel();
+            break;
+        }
 
         await screenClient.SendAsync(result ?? string.Empty);
        // await screenClient2.SendAsync(result ?? string.Empty);
@@ -66,6 +76,7 @@ catch (Exception e)
 
 await uploadTask;
 await screenClient.DisposeAsync();
+cts.Dispose();
 Console.WriteLine("Done!");
 
 //AsymmetricKey.Create();
