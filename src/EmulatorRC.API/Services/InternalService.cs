@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using EmulatorRC.API.Channels;
+﻿using EmulatorRC.API.Channels;
 using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using Grpc.Core;
@@ -9,20 +7,20 @@ namespace EmulatorRC.API.Services
 {
     public sealed class InternalService : DeviceService.DeviceServiceBase
     {
-        private readonly ILogger<InternalService> _logger;
-        private readonly ScreenChannel _screens;
-        private readonly TouchChannel _toucheEvents;
+        private readonly DeviceScreenChannel _screens;
+        private readonly TouchChannel _touchEvents;
+        private readonly DeviceInfoChannel _deviceInfo;
         private readonly IHostApplicationLifetime _lifeTime;
 
         public InternalService(
-            ILogger<InternalService> logger,
-            ScreenChannel screens,
-            TouchChannel toucheEvents,
+            DeviceScreenChannel screens,
+            TouchChannel touchEvents,
+            DeviceInfoChannel deviceInfo,
             IHostApplicationLifetime lifeTime)
         {
-            _logger = logger;
             _screens = screens;
-            _toucheEvents = toucheEvents;
+            _touchEvents = touchEvents;
+            _deviceInfo = deviceInfo;
             _lifeTime = lifeTime;
         }
 
@@ -36,7 +34,7 @@ namespace EmulatorRC.API.Services
             Handshake(context, out var deviceId, out var cancellationSource);
 
             var cancellationToken = cancellationSource.Token;
-            await foreach (var data in _toucheEvents.ReadAllAsync(deviceId, cancellationToken))
+            await foreach (var data in _touchEvents.ReadAllAsync(deviceId, cancellationToken))
             {
                 await responseStream.WriteAsync(data, cancellationToken);
             }
@@ -50,9 +48,13 @@ namespace EmulatorRC.API.Services
                 context.CancellationToken, _lifeTime.ApplicationStopping);
         }
 
-        public override Task<Ack> SendDeviceInfo(DeviceInfo request, ServerCallContext context)
+        public override async Task<Ack> SendDeviceInfo(DeviceInfo request, ServerCallContext context)
         {
-            return base.SendDeviceInfo(request, context);
+            Handshake(context, out var deviceId, out var cancellationSource);
+
+            await _deviceInfo.WriteAsync(deviceId, request, cancellationSource.Token);
+
+            return new Ack();
         }
 
         public override async Task<Ack> UploadScreens(

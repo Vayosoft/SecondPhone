@@ -6,7 +6,7 @@ using Vayosoft.Identity.Extensions;
 using Vayosoft.Identity.Persistence;
 using Vayosoft.Identity.Security;
 
-namespace EmulatorHub.Application.Services
+namespace EmulatorHub.Commons.Application.Services
 {
     public class UserContext : IUserContext
     {
@@ -33,7 +33,7 @@ namespace EmulatorHub.Application.Services
         {
             var context = _httpContextAccessor.HttpContext;
             if (context?.User.Identity == null)
-                return false;
+                return await ValueTask.FromResult(false);
 
             List<RoleDTO> userRoles;
             if ((userRoles = await context.Session.GetAsync<List<RoleDTO>>("_roles")) == null)

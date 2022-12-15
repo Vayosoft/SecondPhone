@@ -1,4 +1,4 @@
-﻿namespace EmulatorHub.Application.Services.Authorization
+﻿namespace EmulatorHub.Commons.Application.Services.Authorization
 {
     //IAuthorizationPolicyProvider
     //https://learn.microsoft.com/ru-ru/aspnet/core/security/authorization/iauthorizationpolicyprovider?view=aspnetcore-6.0

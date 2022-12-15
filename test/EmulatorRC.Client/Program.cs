@@ -1,17 +1,21 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using EmulatorHub.Application.Services.IdentityProvider;
+using System.Buffers;
 using EmulatorRC.Client;
 using Grpc.Core;
 using Grpc.Net.Client;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
+using EmulatorHub.Commons.Application.Services.IdentityProvider;
+using System;
 
 
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
 //var url = "http://192.168.10.6:5006";
 var url = "http://localhost:5004";
+
 var cts = new CancellationTokenSource();
+
 var uploadTask = Task.Run(async () =>
 {
     try{
@@ -25,21 +29,26 @@ var uploadTask = Task.Run(async () =>
         var client = new DeviceService.DeviceServiceClient(channel);
         var headers = new Metadata
         {
-            { "X-DEVICE-ID", "default" }
+            {"X-DEVICE-ID", "default"}
         };
-        ulong counter  = 0;
+
+        var pool = ArrayPool<byte>.Shared;
         using var call = client.UploadScreens(headers);
         while (!cts.IsCancellationRequested)
         {
-
-            var image = new byte[counter++];
-            await 50;
-           
-            await call.RequestStream.WriteAsync(new DeviceScreen
+            var buffer = pool.Rent(50 * 1024);
+            try
             {
-                Id = "default",
-                Image = ByteString.CopyFrom(image)
-            }, CancellationToken.None);
+                await call.RequestStream.WriteAsync(new DeviceScreen
+                {
+                    Image = ByteString.CopyFrom(buffer)
+                }, CancellationToken.None);
+            }
+            finally
+            {
+                pool.Return(buffer);
+            }
+           
         }
 
         await call.RequestStream.CompleteAsync();
@@ -59,7 +68,8 @@ try
     while (true)
     {
         var result = Console.ReadLine();
-        if (result is "0")
+
+        if (result is "1")
         {
             cts.Cancel();
             break;

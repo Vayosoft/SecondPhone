@@ -8,21 +8,21 @@ namespace EmulatorRC.API.Services
 {
     public sealed class OuterService : ClientService.ClientServiceBase
     {
-        private readonly ILogger<OuterService> _logger;
-        private readonly ScreenChannel _screens;
+        private readonly DeviceScreenChannel _screens;
         private readonly TouchChannel _touchEvents;
+        private readonly DeviceInfoChannel _deviceInfo;
         private readonly IHostApplicationLifetime _lifeTime;
 
         public OuterService(
-            ILogger<OuterService> logger,
-            ScreenChannel screens, 
+            DeviceScreenChannel screens, 
             TouchChannel touchEvents, 
+            DeviceInfoChannel deviceInfo,
             IHostApplicationLifetime lifeTime)
         {
-            _logger = logger;
             _screens = screens;
             _touchEvents = touchEvents;
             _lifeTime = lifeTime;
+            _deviceInfo = deviceInfo;
         }
 
         public override async Task<Ack> SendTouchEvents(IAsyncStreamReader<TouchEvents> requestStream, ServerCallContext context)
@@ -48,9 +48,15 @@ namespace EmulatorRC.API.Services
                 context.CancellationToken, _lifeTime.ApplicationStopping);
         }
 
-        public override Task GetDeviceInfo(Syn request, IServerStreamWriter<DeviceInfo> responseStream, ServerCallContext context)
+        public override async Task GetDeviceInfo(Syn request, IServerStreamWriter<DeviceInfo> responseStream, ServerCallContext context)
         {
-            return base.GetDeviceInfo(request, responseStream, context);
+            Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
+
+            var cancellationToken = cancellationSource.Token;
+            await foreach (var data in _deviceInfo.ReadAllAsync(deviceId, cancellationToken))
+            {
+                await responseStream.WriteAsync(data, cancellationToken);
+            }
         }
 
         //[Authorize]

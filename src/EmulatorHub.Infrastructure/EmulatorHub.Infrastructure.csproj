@@ -10,7 +10,6 @@
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Caching\Vayosoft.Caching.csproj" />
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.EntityFramework.MySQL\Vayosoft.EntityFramework.MySQL.csproj" />
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Persistence.EntityFramework\Vayosoft.Persistence.EntityFramework.csproj" />
-    <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.PushBrokers\Vayosoft.PushBrokers.csproj" />
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Web.Identity\Vayosoft.Web.Identity.csproj" />
     <ProjectReference Include="..\EmulatorHub\EmulatorHub.csproj" />
   </ItemGroup>

@@ -14,17 +14,21 @@
   <ItemGroup>
     <PackageReference Include="App.Metrics" Version="4.3.0" />
     <PackageReference Include="LanguageExt.Core" Version="4.4.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.25.0" />
+    <PackageReference Include="System.Buffers" Version="4.5.1" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.25.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.4.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Identity\Vayosoft.Identity.csproj" />
+    <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.PushBrokers\Vayosoft.PushBrokers.csproj" />
+    <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Threading\Vayosoft.Threading.csproj" />
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft\Vayosoft.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Application\Specifications\" />
-    <Folder Include="Domain\Enums\" />
+    <Folder Include="Commons\Application\Specifications\" />
+    <Folder Include="Commons\Domain\Enums\" />
   </ItemGroup>
 
 </Project>

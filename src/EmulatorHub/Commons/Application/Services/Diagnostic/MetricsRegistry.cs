@@ -11,7 +11,7 @@ using App.Metrics.ReservoirSampling.Uniform;
 using App.Metrics.Scheduling;
 using App.Metrics.Timer;
 
-namespace EmulatorHub.Application.Services.Diagnostic
+namespace EmulatorHub.Commons.Application.Services.Diagnostic
 {
     public static class MetricsRegistry
     {
