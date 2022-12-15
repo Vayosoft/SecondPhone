@@ -22,7 +22,7 @@ namespace EmulatorRC.API.Channels
         public ValueTask<DeviceScreen> ReadAsync(string deviceId, string imageId, CancellationToken cancellationToken = default)
         {
             return string.IsNullOrEmpty(imageId) 
-                ? ValueTask.FromResult(_lastScreens.TryGetValue(deviceId, out var screen) ? screen : null) 
+                ? ValueTask.FromResult(_lastScreens.TryGetValue(deviceId, out var screen) ? screen : new DeviceScreen()) 
                 : GetOrCreateChannel(deviceId).Reader.ReadAsync(cancellationToken);
         }
     }
