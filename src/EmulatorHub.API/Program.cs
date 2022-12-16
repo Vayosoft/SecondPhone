@@ -32,21 +32,17 @@ try
 #endif
         );
 
-        builder.Services.AddApplicationCaching(configuration);
         //builder.Services.AddMemoryCache();
         builder.Services.AddSignalR();
         builder.Services.AddControllers().AddJsonOptions(options =>
         {
-            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         });
         builder.Services.AddEndpointsApiExplorer();
         //builder.Services.AddSwaggerGen();
         builder.Services.AddSwaggerService();
 
-        builder.Services.AddHttpContextAccessor();
-
-        builder.Services.AddHubDataContext(builder.Configuration);
-        builder.Services.AddHubServices(builder.Configuration);
+        builder.Services.AddHubApplication(builder.Configuration);
 
         builder.Services.AddStackExchangeRedisCache(options =>
         {

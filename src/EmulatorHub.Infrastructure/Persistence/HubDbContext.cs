@@ -1,4 +1,4 @@
-﻿using EmulatorHub.Domain.Entities;
+﻿using EmulatorHub.Commons.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Extensions;
@@ -23,7 +23,7 @@ namespace EmulatorHub.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
 
-            var providerId = _userContext?.User?.Identity.GetProviderId() ?? 1;
+            var providerId = _userContext?.User?.Identity.GetProviderId() ?? 0;
             modelBuilder
                 .Entity<Emulator>()
                 .HasQueryFilter(p => p.ProviderId == providerId)

@@ -1,5 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
-using EmulatorHub.Application.Services;
+using EmulatorHub.Commons.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -8,7 +8,7 @@ namespace Benchmarks
     [MemoryDiagnoser]
     public class HttpBenchmarks
     {
-        private static UserService UserService { get; }
+        private static EmulatorService UserService { get; }
 
         static HttpBenchmarks()
         {
@@ -16,11 +16,11 @@ namespace Benchmarks
                 .ConfigureServices(services =>
                 {
                     services.AddHttpClient();
-                    services.AddTransient<UserService>();
+                    services.AddTransient<EmulatorService>();
                 })
                 .Build();
 
-            UserService = host.Services.GetRequiredService<UserService>();
+            UserService = host.Services.GetRequiredService<EmulatorService>();
         }
 
 

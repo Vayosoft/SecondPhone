@@ -7,44 +7,36 @@ namespace EmulatorRC.API.Services
 {
     public sealed class InternalService : DeviceService.DeviceServiceBase
     {
-        private readonly ILogger<InternalService> _logger;
-        private readonly ScreenChannel _screens;
-        private readonly TouchChannel _toucheEvents;
+        private readonly DeviceScreenChannel _screens;
+        private readonly TouchChannel _touchEvents;
+        private readonly DeviceInfoChannel _deviceInfo;
         private readonly IHostApplicationLifetime _lifeTime;
 
         public InternalService(
-            ILogger<InternalService> logger,
-            ScreenChannel screens,
-            TouchChannel toucheEvents,
+            DeviceScreenChannel screens,
+            TouchChannel touchEvents,
+            DeviceInfoChannel deviceInfo,
             IHostApplicationLifetime lifeTime)
         {
-            _logger = logger;
             _screens = screens;
-            _toucheEvents = toucheEvents;
+            _touchEvents = touchEvents;
+            _deviceInfo = deviceInfo;
             _lifeTime = lifeTime;
+        }
+
+        public override Task<Ack> Ping(Syn request, ServerCallContext context)
+        {
+            return Task.FromResult(new Ack());
         }
 
         public override async Task GetTouchEvents(Syn request, IServerStreamWriter<TouchEvents> responseStream, ServerCallContext context)
         {
             Handshake(context, out var deviceId, out var cancellationSource);
 
-            try
+            var cancellationToken = cancellationSource.Token;
+            await foreach (var data in _touchEvents.ReadAllAsync(deviceId, cancellationToken))
             {
-                await foreach (var data in _toucheEvents.ReadAllAsync(deviceId, cancellationSource.Token))
-                {
-                    await responseStream.WriteAsync(data, cancellationSource.Token);
-                }
-            }
-            catch (OperationCanceledException) { }
-            catch (Exception ex)
-            {
-                _logger.LogError("{action} | {type}| {message}",
-                    context.Method, ex.GetType(), ex.Message);
-            }
-            finally
-            {
-                _logger.LogInformation("{action} | DEV:[{deviceId}] Stream closed.", 
-                    context.Method, deviceId);
+                await responseStream.WriteAsync(data, cancellationToken);
             }
         }
 
@@ -52,15 +44,17 @@ namespace EmulatorRC.API.Services
         {
             deviceId = context.GetDeviceIdOrDefault("default")!;
 
-            _logger.LogInformation("{action} | DEV:[{deviceId}] Connected.", context.Method, deviceId);
-
             cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
                 context.CancellationToken, _lifeTime.ApplicationStopping);
         }
 
-        public override Task<Ack> SendDeviceInfo(DeviceInfo request, ServerCallContext context)
+        public override async Task<Ack> SendDeviceInfo(DeviceInfo request, ServerCallContext context)
         {
-            return base.SendDeviceInfo(request, context);
+            Handshake(context, out var deviceId, out var cancellationSource);
+
+            await _deviceInfo.WriteAsync(deviceId, request, cancellationSource.Token);
+
+            return new Ack();
         }
 
         public override async Task<Ack> UploadScreens(
@@ -68,24 +62,13 @@ namespace EmulatorRC.API.Services
             ServerCallContext context)
         {
             Handshake(context, out var deviceId, out var cancellationSource);
-
-            try
+            
+            var cancellationToken = cancellationSource.Token;
+            await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
             {
-                await foreach(var request in requestStream.ReadAllAsync(cancellationSource.Token))
-                {
-                    await _screens.WriteAsync(deviceId, request, cancellationSource.Token);
-                }
+                await _screens.WriteAsync(deviceId, request, cancellationToken);
             }
-            catch (OperationCanceledException) { }
-            catch (Exception ex)
-            {
-                _logger.LogError("{action} | {type}| {message}", 
-                    context.Method, ex.GetType(), ex.Message);
-            }
-
-            _logger.LogInformation("{action} | DEV:[{deviceId}] Stream closed.", 
-                context.Method, deviceId);
-
+            
             return new Ack();
         }
     }

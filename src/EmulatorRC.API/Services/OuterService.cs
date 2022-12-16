@@ -8,43 +8,32 @@ namespace EmulatorRC.API.Services
 {
     public sealed class OuterService : ClientService.ClientServiceBase
     {
-        private readonly ILogger<OuterService> _logger;
-        private readonly ScreenChannel _screens;
+        private readonly DeviceScreenChannel _screens;
         private readonly TouchChannel _touchEvents;
+        private readonly DeviceInfoChannel _deviceInfo;
         private readonly IHostApplicationLifetime _lifeTime;
 
         public OuterService(
-            ILogger<OuterService> logger,
-            ScreenChannel screens, 
+            DeviceScreenChannel screens, 
             TouchChannel touchEvents, 
+            DeviceInfoChannel deviceInfo,
             IHostApplicationLifetime lifeTime)
         {
-            _logger = logger;
             _screens = screens;
             _touchEvents = touchEvents;
             _lifeTime = lifeTime;
+            _deviceInfo = deviceInfo;
         }
 
         public override async Task<Ack> SendTouchEvents(IAsyncStreamReader<TouchEvents> requestStream, ServerCallContext context)
         {
             Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
 
-            try
+            var cancellationToken = cancellationSource.Token;
+            await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
             {
-                await foreach (var request in requestStream.ReadAllAsync(cancellationSource.Token))
-                {
-                    await _touchEvents.WriteAsync(deviceId, request, cancellationSource.Token);
-                }
+                await _touchEvents.WriteAsync(deviceId, request, cancellationToken);
             }
-            catch (OperationCanceledException) { }
-            catch (Exception ex)
-            {
-                _logger.LogError("{action} | {type}| {message}", 
-                    context.Method, ex.GetType(), ex.Message);
-            }
-
-            _logger.LogInformation("{action} | CLIENT:[{clientId}] Stream closed.",
-                context.Method, clientId);
 
             return new Ack();
         }
@@ -55,16 +44,19 @@ namespace EmulatorRC.API.Services
             deviceId = context.GetDeviceIdOrDefault("default")!;
             clientId = context.GetClientId();
 
-            _logger.LogInformation("{action} | CLIENT:[{clientId}] Connected for device: {deviceId}.",
-                context.Method, clientId, deviceId);
-
             cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
                 context.CancellationToken, _lifeTime.ApplicationStopping);
         }
 
-        public override Task GetDeviceInfo(Syn request, IServerStreamWriter<DeviceInfo> responseStream, ServerCallContext context)
+        public override async Task GetDeviceInfo(Syn request, IServerStreamWriter<DeviceInfo> responseStream, ServerCallContext context)
         {
-            return base.GetDeviceInfo(request, responseStream, context);
+            Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
+
+            var cancellationToken = cancellationSource.Token;
+            await foreach (var data in _deviceInfo.ReadAllAsync(deviceId, cancellationToken))
+            {
+                await responseStream.WriteAsync(data, cancellationToken);
+            }
         }
 
         //[Authorize]
@@ -75,29 +67,13 @@ namespace EmulatorRC.API.Services
         {
             Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
 
-            try
+            //if (!_channel.Subscribe(clientId, deviceId))
+            //    throw new RpcException(new Status(StatusCode.Internal, "Subscription failed."));
+            var cancellationToken = cancellationSource.Token;
+            await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
             {
-                //if (!_channel.Subscribe(clientId, deviceId))
-                //    throw new RpcException(new Status(StatusCode.Internal, "Subscription failed."));
-
-                await foreach (var request in requestStream.ReadAllAsync(cancellationSource.Token))
-                {
-                    var response = await _screens.ReadAsync(deviceId, request.Id, cancellationSource.Token);
-                    await responseStream.WriteAsync(response, cancellationSource.Token);
-                }
-            }
-            catch (OperationCanceledException) { }
-            catch (Exception ex)
-            {
-                _logger.LogError("{action} | {type}| {message}", 
-                    context.Method, ex.GetType(), ex.Message);
-            }
-            finally
-            {
-                //_channel.Unsubscribe(clientId, deviceId);
-
-                _logger.LogInformation("{action} | CLIENT:[{clientId}] Stream closed.",
-                    context.Method, clientId);
+                var response = await _screens.ReadAsync(deviceId, request.Id, cancellationToken);
+                await responseStream.WriteAsync(response, cancellationToken);
             }
         }
     }

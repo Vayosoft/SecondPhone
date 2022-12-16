@@ -8,27 +8,29 @@ using Logger = Serilog.Core.Logger;
 
 namespace Benchmarks
 {
-    [MemoryDiagnoser]
+    [JsonExporterAttribute.Full]
     public class LoggerBenchmarks
     {
         private Logger _serilog;
-
         private NLog.Logger _nlog;
 
         private const string LogMessage = "message with params: {param1}{param2}{param3}";
+
+        private const string SerilogFile = "serilog.txt";
+        private const string NLogFile = "nlog.txt";
 
         [GlobalSetup]
         public void Setup()
         {
             _serilog = new LoggerConfiguration()
-                .WriteTo.File("serilog.txt", buffered: true, flushToDiskInterval: TimeSpan.FromMilliseconds(1000))
+                .WriteTo.File(SerilogFile, buffered: true, flushToDiskInterval: TimeSpan.FromMilliseconds(1000))
                 .CreateLogger();
 
             var config = new LoggingConfiguration();
             var fileTarget = new FileTarget
             {
                 Name = "FileTarget",
-                FileName = "nlog.txt"
+                FileName = NLogFile
             };
             var target = new BufferingTargetWrapper()
             {
@@ -44,6 +46,13 @@ namespace Benchmarks
             LogManager.Configuration = config;
             LogManager.ReconfigExistingLoggers();
             _nlog = LogManager.GetCurrentClassLogger();
+        }
+
+        [GlobalCleanup]
+        public void GlobalCleanup()
+        {
+            File.Delete(SerilogFile);
+            File.Delete(NLogFile);
         }
 
         [Benchmark]
