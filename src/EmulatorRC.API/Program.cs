@@ -2,9 +2,13 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using Commons.Cache;
+using Commons.Core.Application;
+using Commons.Core.Cache;
 using EmulatorRC.API.Channels;
 using EmulatorRC.API.Hubs;
 using EmulatorRC.API.Model;
+using EmulatorRC.API.Model.Bridge;
 using EmulatorRC.API.Services;
 using EmulatorRC.API.Services.Interceptors;
 using EmulatorRC.Services;
@@ -45,7 +49,12 @@ public class Program
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
                 builder.Services.AddSingleton<DeviceScreenChannel>();
                 builder.Services.AddSingleton<TouchChannel>();
-                builder.Services.AddSingleton<DeviceInfoChannel>();
+				builder.Services.AddSingleton<DeviceInfoChannel>();
+
+                builder.Services.AddSingleton<TcpStreamChannel>();
+                builder.Services.AddSingleton<IMemoryCacheProvider, MemoryCacheProvider>();
+                builder.Services.AddSingleton<IPubSubCacheProvider, RedisProvider>();
+                builder.Services.AddSingleton<ApplicationCache>();
 
                 builder.Services.AddGrpc(options =>
                 {
@@ -93,8 +102,11 @@ public class Program
                         policy.RequireClaim(ClaimTypes.NameIdentifier);
                     });
                 });
-            }
 
+                // Bridge services
+                builder.Services.AddHostedService<BridgeLifetimeEventsService>();
+            }
+            
             var app = builder.Build();
             {
                 app.UseExceptionHandler("/error");
@@ -126,9 +138,9 @@ public class Program
                         detail: exceptionFeature?.Error.Message ?? string.Empty
                     );
                 }).ExcludeFromDescription();
-
                 app.Run();
             }
+
         }
         catch (Exception e)
         {
@@ -138,6 +150,7 @@ public class Program
         finally
         {
             Log.CloseAndFlush();
+            
         }
     }
 }

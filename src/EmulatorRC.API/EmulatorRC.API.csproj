@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Model\Bridge\Config\" />
     <Folder Include="Snippets\" />
     <Folder Include="Snippets\Hubs\" />
   </ItemGroup>
@@ -25,6 +26,9 @@
 	</ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Commons\src\Commons.Cache\Commons.Cache.csproj" />
+    <ProjectReference Include="..\..\..\Commons\src\Commons.Core\Commons.Core.csproj" />
+    <ProjectReference Include="..\..\..\Commons\src\NetCoreServer\source\NetCoreServer\NetCoreServer.csproj" />
     <ProjectReference Include="..\..\src\EmulatorRC\EmulatorRC.csproj" />
   </ItemGroup>
 </Project>
