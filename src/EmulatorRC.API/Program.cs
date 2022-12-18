@@ -13,6 +13,7 @@ using EmulatorRC.API.Services;
 using EmulatorRC.API.Services.Interceptors;
 using EmulatorRC.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -32,7 +33,6 @@ public class Program
         {
             var builder = WebApplication.CreateBuilder(args);
             {
-                builder.WebHost.ConfigureKestrel(options => { options.AddServerHeader = false; });
                 builder.Host.UseSerilog((context, services, config) => config
                         .ReadFrom.Configuration(context.Configuration)
                         .ReadFrom.Services(services)
@@ -42,6 +42,15 @@ public class Program
                         .Enrich.WithProperty("DebuggerAttached", Debugger.IsAttached)
 #endif
                 );
+
+                builder.WebHost.ConfigureKestrel(options =>
+                {
+                    options.AddServerHeader = false;
+                    options.ListenLocalhost(5000, listenOptions =>
+                    {
+                        listenOptions.UseConnectionHandler<ConnectionService>();
+                    });
+                });
 
                 builder.Services.AddMemoryCache();
                 builder.Services.AddSignalR();
@@ -67,7 +76,7 @@ public class Program
                     // Small performance benefit to not add catch-all routes to handle UNIMPLEMENTED for unknown services
                     options.IgnoreUnknownServices = true;
                 })
-                .AddServiceOptions<InternalService>(options =>
+                .AddServiceOptions<InnerService>(options =>
                 {
                     options.EnableDetailedErrors = true;
                     options.MaxReceiveMessageSize = 5 * 1024 * 1024; // 2 MB
@@ -124,7 +133,7 @@ public class Program
                 app.UseAuthorization();
 
                 app.MapGrpcService<OuterService>();
-                app.MapGrpcService<InternalService>();
+                app.MapGrpcService<InnerService>();
 
                 app.MapHub<TouchEventsHub>("/chathub");
 

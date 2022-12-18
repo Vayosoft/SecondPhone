@@ -5,14 +5,14 @@ using Grpc.Core;
 
 namespace EmulatorRC.API.Services
 {
-    public sealed class InternalService : DeviceService.DeviceServiceBase
+    public sealed class InnerService : DeviceService.DeviceServiceBase
     {
         private readonly DeviceScreenChannel _screens;
         private readonly TouchChannel _touchEvents;
         private readonly DeviceInfoChannel _deviceInfo;
         private readonly IHostApplicationLifetime _lifeTime;
 
-        public InternalService(
+        public InnerService(
             DeviceScreenChannel screens,
             TouchChannel touchEvents,
             DeviceInfoChannel deviceInfo,

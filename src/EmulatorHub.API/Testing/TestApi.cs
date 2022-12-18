@@ -1,12 +1,9 @@
-﻿using System.Buffers;
-using App.Metrics;
+﻿using App.Metrics;
 using App.Metrics.Counter;
 using EmulatorHub.Commons.Application.Services.IdentityProvider;
 using EmulatorHub.Commons.Domain.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
-using Vayosoft.Caching;
 using Vayosoft.Identity;
 using Vayosoft.Persistence;
 
@@ -17,7 +14,6 @@ namespace EmulatorHub.API.Testing
         public static IEndpointRouteBuilder MapTestApiV1(this IEndpointRouteBuilder routes)
         {
             routes.MapGet("/get_token", GetToken);
-            routes.MapGet("/action", GetAction);
             routes.MapGet("/increment", Increment);
 
             return routes;
@@ -33,21 +29,6 @@ namespace EmulatorHub.API.Testing
                 ResetOnReporting = true
             };
             metrics.Measure.Counter.Increment(counterOptions, tags);
-            return TypedResults.Ok();
-        }
-        public static Ok GetAction(HttpContext context)
-        {
-            var somePool = ArrayPool<byte>.Shared;
-            byte[] buffer = somePool.Rent(1024);
-            try
-            {
-                //Array.Copy
-            }
-            finally
-            {
-                somePool.Return(buffer);
-            }
-
             return TypedResults.Ok();
         }
 
