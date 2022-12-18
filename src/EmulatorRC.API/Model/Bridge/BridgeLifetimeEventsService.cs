@@ -55,7 +55,7 @@ public class BridgeLifetimeEventsService : IHostedService
 
         var outerSide = $"{bo.Name}.outer.{bo.Outer.TcpPort}";
         var innerSide = $"{bo.Name}.inner.{bo.Inner.TcpPort}";
-        var bufferSize = 128 * 1024;
+        const int bufferSize = 128 * 1024;
 
         _bridgeServers.Add(new TcpBridgeServer(
             BridgeRole.Outer,
@@ -63,12 +63,11 @@ public class BridgeLifetimeEventsService : IHostedService
             innerSide,
             IPAddress.Any,
             bo.Outer.TcpPort,
-            bufferSize,
+            bo.Outer.Buffer > 0 ? bo.Outer.Buffer: bufferSize,
             _loggerFactory,
             _streamChannel,
             _lifeTime,
-            _appCache,
-            null)
+            _appCache)
         {
             OptionNoDelay = true,
             OptionKeepAlive = true
@@ -80,12 +79,11 @@ public class BridgeLifetimeEventsService : IHostedService
             outerSide,
             IPAddress.Any,
             bo.Inner.TcpPort,
-            bufferSize,
+            bo.Inner.Buffer > 0 ? bo.Inner.Buffer : bufferSize,
             _loggerFactory,
             _streamChannel,
             _lifeTime,
-            _appCache,
-            bo.Inner.FakeImagePath)
+            _appCache)
         {
             OptionNoDelay = true,
             OptionKeepAlive = true

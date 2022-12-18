@@ -34,4 +34,4 @@ public class Bridge
 }
 
 
-public record TcpData(byte[] Buffer, long Offset, long Length);
+// public record TcpData(byte[] Buffer, long Offset, long Length);
