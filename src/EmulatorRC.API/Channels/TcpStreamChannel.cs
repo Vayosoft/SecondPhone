@@ -1,12 +1,11 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Channels;
-using EmulatorRC.API.Model.Bridge.TCP.Servers;
 
 namespace EmulatorRC.API.Channels
 {
     public sealed class TcpStreamChannel : IDisposable
     {
-        private readonly ConcurrentDictionary<string, Channel<TcpData>> _channels = new();
+        private readonly ConcurrentDictionary<string, Channel<byte[]>> _channels = new();
         private readonly ConcurrentDictionary<string, object> _locks = new();
         private readonly object _deletingLock = new();
 
@@ -18,22 +17,22 @@ namespace EmulatorRC.API.Channels
             FullMode = BoundedChannelFullMode.DropOldest
         };
 
-        public async ValueTask WriteAsync(string streamId, TcpData data, CancellationToken cancellationToken = default)
+        public async ValueTask WriteAsync(string streamId, byte[] data, CancellationToken cancellationToken = default)
         {
             await this[streamId].Writer.WriteAsync(data, cancellationToken);
         }
 
-        public bool Write(string streamId, TcpData data)
+        public bool Write(string streamId, byte[] data)
         {
             return this[streamId].Writer.TryWrite(data);
         }
 
-        public IAsyncEnumerable<TcpData> ReadAllAsync(string streamId, CancellationToken cancellationToken = default)
+        public IAsyncEnumerable<byte[]> ReadAllAsync(string streamId, CancellationToken cancellationToken = default)
         {
             return this[streamId].Reader.ReadAllAsync(cancellationToken);
         }
 
-        private Channel<TcpData> this[string streamId]
+        private Channel<byte[]> this[string streamId]
         {
             get
             {
@@ -42,7 +41,7 @@ namespace EmulatorRC.API.Channels
                 {
                     if (!_channels.TryGetValue(streamId, out channel))
                     {
-                        channel = Channel.CreateBounded<TcpData>(_options);
+                        channel = Channel.CreateBounded<byte[]>(_options);
                         _channels.TryAdd(streamId, channel);
                     }
                 }
@@ -57,7 +56,7 @@ namespace EmulatorRC.API.Channels
             return this[streamId] != null;
         }
 
-        public bool TryGetChannel(string streamId, out Channel<TcpData> channel)
+        public bool TryGetChannel(string streamId, out Channel<byte[]> channel)
         {
             return _channels.TryGetValue(streamId, out channel);
         }

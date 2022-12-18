@@ -1,12 +1,11 @@
 ﻿using System.Net.Sockets;
-using System.Runtime.Intrinsics.X86;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Channels;
 using Commons.Core.Application;
 using Commons.Core.Exceptions;
-using Commons.Core.Helpers.DataSplitter;
+using Commons.Core.Helpers;
 using EmulatorRC.API.Channels;
-using EmulatorRC.API.Model.Bridge.TCP.Servers;
 using EmulatorRC.Entities;
 using NetCoreServer;
 
@@ -14,19 +13,17 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
 {
     public class TcpInnerBridgeSession : TcpBridgeSession
     {
-        private CancellationTokenSource _ctsFakeFireTokenSource;
         private readonly ILogger _logger;
         
         private DeviceSession _authData;
         private bool _isFirstPacket = true;
 
         private readonly object _streamLock = new();
-        private bool _isFakeStreamRunning;
         private bool _isQueueStreamRunning;
 
-        private readonly byte[] _mockImageHeader;
-        private readonly byte[] _fakeImg;
-        private readonly byte[] _fakeImgLength;
+        private const string PING_COMMAND = "CMD /v1/ping";
+
+        private const RegexOptions REGEX_OPTIONS = RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline;
 
         protected override ILogger Logger()
         {
@@ -40,8 +37,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             string secondBridgePrefix,
             ILoggerFactory logger, 
             IHostApplicationLifetime lifeTime,
-            ApplicationCache cache,
-            string fakeImagePath
+            ApplicationCache cache
             ) : base(server, streamChannel, thisBridgePrefix, secondBridgePrefix, lifeTime, cache)
         {
             if (server == null)
@@ -53,10 +49,6 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             ThisStreamId = ThatStreamId = string.Empty;
             
             _logger = logger.CreateLogger(ClientId);
-            _mockImageHeader = CreateMockHeader(640, 480);
-            _fakeImg = File.ReadAllBytes(fakeImagePath);
-            _fakeImgLength = CreateLengthPrefix(_fakeImg);
-
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
@@ -65,10 +57,13 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             {
                 try
                 {
-                    var tcpData = new TcpData(new byte[size], offset, size);
-                    System.Buffer.BlockCopy(buffer, (int)offset, tcpData.Buffer, 0, (int)size);
+                    var tcpData = buffer.SubArrayFast((int)offset, (int)size);
+                    System.Buffer.BlockCopy(buffer, (int)offset, tcpData, 0, (int)size);
 
-                    var payload = Encoding.UTF8.GetString(tcpData.Buffer);
+                    var payload = Encoding.UTF8.GetString(tcpData);
+                    if (payload == PING_COMMAND)
+                        return;
+
                     _logger.LogInformation("OnReceived | {thisSideName}: {message}", ThisSideName, payload);
                     if (_isFirstPacket)
                     {
@@ -79,7 +74,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                             return;
                         }
                     }
-
+                    
                     if (payload.StartsWith("GET /battery"))
                     {
                         SendAsync("\r\n\r\n100");
@@ -88,21 +83,12 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                     {
                         if (StreamChannel.TryGetChannel(ThisStreamId, out var channel)) // Outer exists, so bridge required
                         {
-                            // stop fake fire
-                            if (_isFakeStreamRunning)
-                                SwitchFakeFire(false);
-
                             // start reading from outer  (thatStream)
                             if(!_isQueueStreamRunning)
                                 StartThatStreamReadingTask();
                             
                             // forward received to outer (thisStream)
                             channel.Writer.TryWrite(tcpData);
-                        }
-                        else if (!_isFakeStreamRunning) // no Outer channels
-                        {
-                            // start fake fire
-                            SwitchFakeFire(true);
                         }
                     }
                 }
@@ -120,13 +106,27 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
         private bool Handshake(string payload)
         {
             DeviceSession authData = null;
-            if (payload.StartsWith("CMD /v2/video.4?"))
+            if (payload.StartsWith("CMD /v2/video.4?")) // CMD /v2/video.4?640x480&id=default1
             {
-                authData = new DeviceSession
-                {
-                    DeviceId = "default",
-                    StreamType = "cam"
-                };
+                var s = payload.Split("?")[1];
+                if (s.Length == 0)
+                    return false;
+
+                var m = Regex.Match(s, "(\\d+)x(\\d+)&id=(\\w+)", REGEX_OPTIONS);
+                if (!m.Success || m.Groups.Count < 4)
+                    return false;
+                
+                if (!int.TryParse(m.Groups[1].Value, out var w) || !int.TryParse(m.Groups[2].Value, out var h))
+                    return false;
+
+                var deviceId = m.Groups[3].Value;
+
+                if (w == 0 || h == 0 || string.IsNullOrEmpty(deviceId))
+                    return false;
+
+                SendAsync(CreateMockHeader(w, h));
+
+                authData = new DeviceSession { DeviceId = deviceId, StreamType = "cam" };
             }
 
             if (authData == null)
@@ -136,6 +136,8 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
 
             ThisStreamId = $"{ThisSideName}.{authData.DeviceId}.{authData.StreamType}";
             ThatStreamId = $"{ThatSideName}.{_authData.DeviceId}.{_authData.StreamType}";
+            
+
             return true;
         }
         
@@ -147,11 +149,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
 
                 await foreach (var data in StreamChannel.ReadAllAsync(ThatStreamId, AppCancellationToken))
                 {
-                    var b = new byte[data.Length];
-                    System.Buffer.BlockCopy(data.Buffer, 0, b, 0, (int)data.Length);
-
-                    // await File.WriteAllBytesAsync(@$"D:\temp\tcp_test\data\{Guid.NewGuid()}.jpg", b);
-                    var res = SendAsync(b, 0, b.Length);
+                    var res = SendAsync(data.SubArrayFast());
                     // _logger.LogInformation("SendToClientAsync: {side} | {ThatStreamId} -> {ThisStreamId}| {message}, {res}", ThisStreamId, ThatStreamId, ThisStreamId, Encoding.UTF8.GetString(b, 0, b.Length), res);
                 }
             }
@@ -167,8 +165,9 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
 
                 _isQueueStreamRunning = false;
 
-                if (IsConnected)
-                    SwitchFakeFire(true);
+                Disconnect();
+                // if (IsConnected)
+                // SwitchFakeFire(true);
             }
         }
 
@@ -198,80 +197,8 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
         {
             StreamChannel.DisposeChannel(ThisStreamId);
             StreamChannel.DisposeChannel(ThatStreamId);
-
-            SwitchFakeFire(false);
-
+            
             _logger.LogInformation("Side: {side} | {clientId} Pipe closed.", ThisStreamId, ClientId);
-        }
-
-
-        private void SwitchFakeFire(bool enable)
-        {
-            if (_isFakeStreamRunning == enable)
-                return;
-
-            lock (_streamLock)
-            {
-                if (_isFakeStreamRunning == enable)
-                    return;
-
-                if (_ctsFakeFireTokenSource != null)
-                {
-                    _ctsFakeFireTokenSource.Cancel();
-                    _ctsFakeFireTokenSource.Dispose();
-                    _ctsFakeFireTokenSource = null;
-                    _isFakeStreamRunning = false;
-                }
-                
-                if (enable)
-                {
-                    _ctsFakeFireTokenSource = CancellationTokenSource.CreateLinkedTokenSource(AppCancellationToken);
-                    ThreadPool.QueueUserWorkItem(_ => StartFakeFireTask(_ctsFakeFireTokenSource.Token));
-                    
-                    _isFakeStreamRunning = true;
-                }
-            }
-        }
-        
-        private async void StartFakeFireTask(CancellationToken cancellationToken)
-        {
-            _isFakeStreamRunning = true;
-            try
-            {
-                SendAsync(_mockImageHeader);
-                while (IsConnected && !StreamChannel.IsChannelExists(ThatStreamId) && !cancellationToken.IsCancellationRequested)
-                {
-                    SendAsync(_fakeImgLength);
-                    SendAsync(_fakeImg);
-                    await Task.Delay(200, cancellationToken);
-                }
-            }
-            catch (OperationCanceledException) {}
-            catch (Exception ex)
-            {
-                _logger.LogError("StartFakeFireTask: {side} | {type} | {message}", ThisSideName, ex.GetType(), ex.Message);
-            }
-            finally
-            {
-                _isFakeStreamRunning = false;
-                if (StreamChannel.IsChannelExists(ThatStreamId)) // outer connected
-                {
-                    StartThatStreamReadingTask();
-                }
-            }
-        }
-
-        private static byte[] CreateLengthPrefix(byte[] image)
-        {
-            var length = image.Length;
-            
-            var byteBuffer = new List<byte>();
-            byteBuffer.Add((byte)(length & 255));
-            byteBuffer.Add((byte)(length >> 8 & 255));
-            byteBuffer.Add((byte)(length >> 16 & 255));
-            byteBuffer.Add((byte)(length >> 24 & 255));
-            
-            return byteBuffer.ToArray();
         }
 
         private static byte[] CreateMockHeader(int width, int height)

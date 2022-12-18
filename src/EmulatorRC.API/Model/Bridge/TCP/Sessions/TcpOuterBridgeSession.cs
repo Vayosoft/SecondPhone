@@ -5,7 +5,6 @@ using Commons.Core.Exceptions;
 using Commons.Core.Helpers;
 using Commons.Core.Utilities;
 using EmulatorRC.API.Channels;
-using EmulatorRC.API.Model.Bridge.TCP.Servers;
 using EmulatorRC.Entities;
 using NetCoreServer;
 
@@ -56,11 +55,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             {
                 try
                 {
-                    // var x = buffer.SubArrayFast((int)offset, (int)size);
-
-                    var tcpData = new TcpData(new byte[size], offset, size);
-                    System.Buffer.BlockCopy(buffer, (int)offset, tcpData.Buffer, 0, (int)size);
-
+                    var tcpData = buffer.SubArrayFast((int)offset, (int)size);
                     if (_handshakeStatus == HandshakeStatus.Successful)
                     {
                         StreamChannel.Write(ThisStreamId, tcpData);
@@ -93,17 +88,21 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
 
 
         
-        private HandshakeStatus Handshake(ref TcpData tcpData)
+        private HandshakeStatus Handshake(ref byte[] tcpData)
         {
             try
             {
-                var data = tcpData.Buffer.SubArrayFast((int)tcpData.Offset, (int)tcpData.Length).ToList();
+                const int requiredHeaderLength = 4;
 
+                var data = tcpData.ToList();
                 if (_handshakeBuffer == null)
                 {
+                    if (tcpData.Length < requiredHeaderLength)
+                        throw new ArgumentException("handshake header required 4 bytes");
+
                     _handshakeBuffer = new List<byte>();
-                    _handshakeBufferLength = BitConverter.ToUInt16(data.Take(4).ToArray(), 0);
-                    data = data.Skip(4).ToList();
+                    _handshakeBufferLength = BitConverter.ToUInt16(data.Take(requiredHeaderLength).ToArray(), 0);
+                    data = data.Skip(requiredHeaderLength).ToList();
                 }
 
                 var restBuffer = new List<byte>();
@@ -133,7 +132,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
 
                     ThreadPool.QueueUserWorkItem(_ => { ReadThatStream(); });
 
-                    tcpData = new TcpData(restBuffer.ToArray(), 0, restBuffer.Count);
+                    tcpData = restBuffer.ToArray();
                     return HandshakeStatus.Successful;
                 }
 
@@ -142,7 +141,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             catch (Exception ex)
             {
                 _logger.LogError("Handshake.{thisSide} | {thisStream} | {type}: {error}, source: {source}, bufferLength: {bLength}", 
-                    ThisSideName, ThisStreamId, ex.GetType(), ex, Encoding.UTF8.GetString(tcpData.Buffer), tcpData.Length);
+                    ThisSideName, ThisStreamId, ex.GetType(), ex, Encoding.UTF8.GetString(tcpData), tcpData.Length);
                 return HandshakeStatus.Failed;
             }
         }
@@ -158,10 +157,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             {
                 await foreach (var data in StreamChannel.ReadAllAsync(ThatStreamId, AppCancellationToken))
                 {
-                    var b = new byte[data.Length];
-                    System.Buffer.BlockCopy(data.Buffer, 0, b, 0, (int)data.Length);
-
-                    var res = SendAsync(b, 0, b.Length);
+                    var res = SendAsync(data.SubArrayFast());
                     // _logger.LogInformation("SendToClientAsync: {side} | {ThatStreamId} -> {ThisStreamId}| {message}, {res}", ThisStreamId, ThatStreamId, ThisStreamId, Encoding.UTF8.GetString(b, 0, b.Length), res);
                 }
             }

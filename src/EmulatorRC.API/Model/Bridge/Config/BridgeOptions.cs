@@ -19,6 +19,5 @@ public class BridgeListener
     public int TcpPort { get; set; }
 
     public int Buffer { get; set; }
-    public string FakeImagePath { get; set; }
 
 }
