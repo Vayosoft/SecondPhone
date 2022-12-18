@@ -20,10 +20,11 @@ namespace EmulatorRC.API.Services
 
             try
             {
-                var cts = CancellationTokenSource.CreateLinkedTokenSource(connection.ConnectionClosed, _lifetime.ApplicationStopping);
+                var cts = CancellationTokenSource.CreateLinkedTokenSource(
+                    connection.ConnectionClosed, _lifetime.ApplicationStopping);
                 var cancellationToken = cts.Token;
 
-                while (!cancellationToken.IsCancellationRequested)
+                while (true)
                 {
                     var result = await connection.Transport.Input.ReadAsync(cancellationToken);
                     var buffer = result.Buffer;
