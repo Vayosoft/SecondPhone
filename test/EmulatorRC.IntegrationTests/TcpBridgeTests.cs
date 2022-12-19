@@ -23,7 +23,7 @@ public class TcpBridgeTests
 
 
     [Fact]
-    public async Task TcpClientTest()
+    public void TcpClientTest()
     {
         File.Delete(TargetFileName);
 
