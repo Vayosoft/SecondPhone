@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -18,7 +21,51 @@ namespace EmulatorRC.IntegrationTests
         }
 
         [Fact]
-        public async Task EchoTest()
+        public async Task EchoClient()
+        {
+            var cts = new CancellationTokenSource();
+            var token = cts.Token;
+
+            using var clientSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            await clientSocket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5000), token);
+
+
+            async Task OnReceive(Socket socket, CancellationToken cancellationToken)
+            {
+                try
+                {
+                    var buffer = new byte[1024];
+                    int bytes;
+                    while ((bytes = await socket.ReceiveAsync(buffer, cancellationToken: cancellationToken)) > 0)
+                    {
+                        var response = Encoding.UTF8.GetString(buffer, 0, bytes);
+                        _helper.WriteLine(response);
+                    }
+                }
+                catch (OperationCanceledException){ }
+            }
+
+            async Task Send(Socket socket)
+            {
+                await using var stream = new NetworkStream(socket);
+                var data = "1234567890\n"u8.ToArray();
+
+                for (var i = 0; i < 10; i++)
+                {
+                    using var memory = new MemoryStream(data);
+                    await memory.CopyToAsync(stream, token);
+                }
+            }
+
+            var receiving = OnReceive(clientSocket, token);
+            await Send(clientSocket);
+            cts.Cancel();
+            await receiving;
+            cts.Dispose();
+        }
+
+        [Fact]
+        public async Task EchoServer()
         {
             var cts = new CancellationTokenSource(20000);
             var builder = new WebHostBuilder();
