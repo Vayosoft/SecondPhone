@@ -29,7 +29,7 @@ namespace EmulatorRC.IntegrationTests
             using var clientSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
             await clientSocket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5000), token);
 
-
+            //https://habr.com/en/company/microsoft/blog/423105/
             async Task OnReceive(Socket socket, CancellationToken cancellationToken)
             {
                 try
