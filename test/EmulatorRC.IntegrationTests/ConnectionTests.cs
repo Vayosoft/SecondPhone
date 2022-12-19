@@ -23,14 +23,14 @@ namespace EmulatorRC.IntegrationTests
         [Fact]
         public async Task EchoClient()
         {
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
             var token = cts.Token;
 
             using var clientSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
             await clientSocket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5000), token);
 
-            //https://habr.com/en/company/microsoft/blog/423105/
-            async Task OnReceive(Socket socket, CancellationToken cancellationToken)
+            
+            async Task ReceiveAsync(Socket socket, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -45,7 +45,7 @@ namespace EmulatorRC.IntegrationTests
                 catch (OperationCanceledException){ }
             }
 
-            async Task Send(Socket socket)
+            async Task SendAsync(Socket socket)
             {
                 await using var stream = new NetworkStream(socket);
                 var data = "1234567890\n"u8.ToArray();
@@ -57,11 +57,10 @@ namespace EmulatorRC.IntegrationTests
                 }
             }
 
-            var receiving = OnReceive(clientSocket, token);
-            await Send(clientSocket);
+            var task = ReceiveAsync(clientSocket, token);
+            await SendAsync(clientSocket);
             cts.Cancel();
-            await receiving;
-            cts.Dispose();
+            await task;
         }
 
         [Fact]
