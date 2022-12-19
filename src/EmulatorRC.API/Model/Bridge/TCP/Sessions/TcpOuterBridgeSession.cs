@@ -162,6 +162,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
         {
             try
             {
+                _logger.LogInformation("INNER.ReadThatStream: ThatStreamId={ThatStreamId}", ThatStreamId);
                 await foreach (var data in StreamChannel.ReadAllAsync(ThatStreamId, AppCancellationToken))
                 {
                     var res = SendAsync(data.SubArrayFast());

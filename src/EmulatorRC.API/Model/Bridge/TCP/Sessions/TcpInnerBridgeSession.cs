@@ -34,11 +34,11 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
         public TcpInnerBridgeSession(TcpServer server,
             TcpStreamChannel streamChannel,
             string thisBridgePrefix,
-            string secondBridgePrefix,
+            string thatBridgePrefix,
             ILoggerFactory logger, 
             IHostApplicationLifetime lifeTime,
             ApplicationCache cache
-            ) : base(server, streamChannel, thisBridgePrefix, secondBridgePrefix, lifeTime, cache)
+            ) : base(server, streamChannel, thisBridgePrefix, thatBridgePrefix, lifeTime, cache)
         {
             if (server == null)
                 throw new CommonsException<ExceptionCode.Operation>(ExceptionCode.Operation.InvalidArgument, "TcpInnerBridgeSession| TcpServer required");
@@ -133,7 +133,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             _authData = authData;
 
             ThisStreamId = $"{ThisSideName}.{authData.DeviceId}.{authData.StreamType}";
-            ThatStreamId = $"{ThatSideName}.{_authData.DeviceId}.{_authData.StreamType}";
+            ThatStreamId = $"{ThatSideName}.{authData.DeviceId}.{authData.StreamType}";
 
             StreamChannel.RegisterChannel(ThatStreamId);
             StreamChannel.RegisterChannel(ThisStreamId);
@@ -147,6 +147,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             {
                 _isQueueStreamRunning = true;
 
+                _logger.LogInformation("INNER.ReadThatStream: ThatStreamId={ThatStreamId}", ThatStreamId);
                 await foreach (var data in StreamChannel.ReadAllAsync(ThatStreamId, AppCancellationToken))
                 {
                     var res = SendAsync(data.SubArrayFast());

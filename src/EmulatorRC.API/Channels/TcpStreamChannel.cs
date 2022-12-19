@@ -9,7 +9,7 @@ namespace EmulatorRC.API.Channels
         private readonly ConcurrentDictionary<string, object> _locks = new();
         private readonly object _deletingLock = new();
 
-        private readonly BoundedChannelOptions _options = new(1000)
+        private readonly BoundedChannelOptions _options = new(10000)
         {
             SingleWriter = true,
             SingleReader = true,
