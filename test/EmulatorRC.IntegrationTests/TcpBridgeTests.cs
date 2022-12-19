@@ -40,7 +40,7 @@ public class TcpBridgeTests
         while (!producerTcpClient.IsConnected)
             Thread.Yield();
 
-        await Task.Delay(10);
+        await Task.Delay(15);
 
         var emulatorClient = new TcpCoreClient("127.0.0.1", 5010, false, tcs);
         emulatorClient.OptionNoDelay = true;
@@ -52,11 +52,10 @@ public class TcpBridgeTests
 
         sw.Start();
 
-
         await tcs.Task;
 
-        while (emulatorClient.IsConnected)
-            Thread.Yield();
+        //while (emulatorClient.IsConnected)
+        //    Thread.Yield();
         sw.Stop();
 
         producerTcpClient.DisconnectAsync();
@@ -149,7 +148,7 @@ public class TcpBridgeTests
             {
                 Disconnect();
             }
-            _targetFileStream?.Flush();
+            //_targetFileStream?.Flush();
         }
 
         protected override void OnError(SocketError error)
