@@ -19,6 +19,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
         private HandshakeStatus _handshakeStatus;
         private List<byte> _handshakeBuffer;
         private int _handshakeBufferLength;
+        
 
         protected override ILogger Logger()
         {
@@ -55,6 +56,12 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             {
                 try
                 {
+                    if (size > 10485760) // 10MB
+                    {
+                        _logger.LogError("OnReceived.{thisSide} | {thisStream}: too big buffer size: {size}", ThisSideName, ThisStreamId, size);
+                        return;
+                    }
+                    
                     var tcpData = buffer.SubArrayFast((int)offset, (int)size);
                     if (_handshakeStatus == HandshakeStatus.Successful)
                     {

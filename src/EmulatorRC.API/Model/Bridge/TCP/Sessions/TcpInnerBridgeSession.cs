@@ -58,8 +58,6 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                 try
                 {
                     var tcpData = buffer.SubArrayFast((int)offset, (int)size);
-                    System.Buffer.BlockCopy(buffer, (int)offset, tcpData, 0, (int)size);
-
                     var payload = Encoding.UTF8.GetString(tcpData);
                     if (payload == PING_COMMAND)
                         return;
@@ -136,8 +134,10 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
 
             ThisStreamId = $"{ThisSideName}.{authData.DeviceId}.{authData.StreamType}";
             ThatStreamId = $"{ThatSideName}.{_authData.DeviceId}.{_authData.StreamType}";
-            
 
+            StreamChannel.RegisterChannel(ThatStreamId);
+            StreamChannel.RegisterChannel(ThisStreamId);
+            
             return true;
         }
         
@@ -150,6 +150,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                 await foreach (var data in StreamChannel.ReadAllAsync(ThatStreamId, AppCancellationToken))
                 {
                     var res = SendAsync(data.SubArrayFast());
+                    _logger.LogInformation("SendToClientAsync: data size: {size}", data.Length);
                     // _logger.LogInformation("SendToClientAsync: {side} | {ThatStreamId} -> {ThisStreamId}| {message}, {res}", ThisStreamId, ThatStreamId, ThisStreamId, Encoding.UTF8.GetString(b, 0, b.Length), res);
                 }
             }
