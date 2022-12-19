@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Vayosoft.Caching" Version="2.2.1" />
+    <PackageReference Include="Vayosoft.EntityFramework.MySQL" Version="2.2.1" />
+    <PackageReference Include="Vayosoft.Identity.EntityFramework" Version="2.2.1" />
+    <PackageReference Include="Vayosoft.Persistence.EntityFramework" Version="2.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EmulatorHub\EmulatorHub.csproj" />
+  </ItemGroup>
+
+</Project>

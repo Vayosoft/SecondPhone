@@ -3,6 +3,7 @@ syntax = "proto3";
 option csharp_namespace = "EmulatorRC.API.Protos";
 
 service DeviceService {
+	rpc Ping(Syn) returns(Ack);
 	rpc SendDeviceInfo(DeviceInfo) returns(Ack);
 	rpc UploadScreens(stream DeviceScreen) returns (Ack);
 	rpc GetTouchEvents (Syn) returns (stream TouchEvents);
@@ -17,6 +18,8 @@ message DeviceScreen {
 message DeviceInfo {
   int32 width = 1;
   int32 height = 2;
+  int32 microphone = 3;
+  int32 camera = 4;
 }
 
 message TouchEvents {

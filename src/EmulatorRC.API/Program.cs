@@ -10,6 +10,7 @@ using EmulatorRC.API.Hubs;
 using EmulatorRC.API.Model;
 using EmulatorRC.API.Model.Bridge;
 using EmulatorRC.API.Services;
+using EmulatorRC.API.Services.Interceptors;
 using EmulatorRC.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
@@ -46,8 +47,10 @@ public class Program
                 builder.Services.AddSignalR();
 
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
-                builder.Services.AddSingleton<ScreenChannel>();
+                builder.Services.AddSingleton<DeviceScreenChannel>();
                 builder.Services.AddSingleton<TouchChannel>();
+				builder.Services.AddSingleton<DeviceInfoChannel>();
+
                 builder.Services.AddSingleton<TcpStreamChannel>();
                 builder.Services.AddSingleton<IMemoryCacheProvider, MemoryCacheProvider>();
                 builder.Services.AddSingleton<IPubSubCacheProvider, RedisProvider>();
@@ -55,6 +58,9 @@ public class Program
 
                 builder.Services.AddGrpc(options =>
                 {
+                    options.Interceptors.Add<LoggerInterceptor>();
+                    options.Interceptors.Add<ExceptionInterceptor>();
+                    
                     options.EnableDetailedErrors = true;
                     options.MaxReceiveMessageSize = 2 * 1024 * 1024; // 2 MB
                     options.MaxSendMessageSize = 5 * 1024 * 1024; // 5 MB

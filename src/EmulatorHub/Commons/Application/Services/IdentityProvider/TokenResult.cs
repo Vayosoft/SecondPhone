@@ -1,4 +1,4 @@
-﻿namespace EmulatorHub.Tokens
+﻿namespace EmulatorHub.Commons.Application.Services.IdentityProvider
 {
     public class TokenResult
     {

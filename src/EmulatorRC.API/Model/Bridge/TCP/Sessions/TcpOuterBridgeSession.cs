@@ -79,7 +79,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                         }
                     }
 
-                    if(_handshakeStatus == HandshakeStatus.Successful)
+                    if(_handshakeStatus == HandshakeStatus.Successful && tcpData.Length > 0)
                         StreamChannel.Write(ThisStreamId, tcpData);
                 }
                 catch (Exception ex)
@@ -132,7 +132,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                     _authData = authData;
 
                     ThisStreamId = $"{ThisSideName}.{authData.DeviceId}.{authData.StreamType}";
-                    ThatStreamId = $"{ThatStreamId}.{_authData.DeviceId}.{_authData.StreamType}";
+                    ThatStreamId = $"{ThatSideName}.{authData.DeviceId}.{authData.StreamType}";
 
                     StreamChannel.RegisterChannel(ThatStreamId);
                     StreamChannel.RegisterChannel(ThisStreamId);

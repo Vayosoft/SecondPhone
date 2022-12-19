@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace EmulatorHub.Tokens
+namespace EmulatorHub.Commons.Application.Services.IdentityProvider
 {
     public static class TokenUtils
     {
@@ -21,7 +21,7 @@ namespace EmulatorHub.Tokens
 
                 // Add whatever claims you'd want the generated token to include
                 claims: new List<Claim> {
-                    new(ClaimTypes.Name, Guid.NewGuid().ToString("N")),
+                    new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString("N")),
                 },
                 notBefore: jwtDate,
                 expires: jwtDate.Add(timeout), // Should be short lived. For logins, it's may be fine to use 24h
