@@ -34,11 +34,11 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
         public TcpInnerBridgeSession(TcpServer server,
             TcpStreamChannel streamChannel,
             string thisBridgePrefix,
-            string secondBridgePrefix,
+            string thatBridgePrefix,
             ILoggerFactory logger, 
             IHostApplicationLifetime lifeTime,
             ApplicationCache cache
-            ) : base(server, streamChannel, thisBridgePrefix, secondBridgePrefix, lifeTime, cache)
+            ) : base(server, streamChannel, thisBridgePrefix, thatBridgePrefix, lifeTime, cache)
         {
             if (server == null)
                 throw new CommonsException<ExceptionCode.Operation>(ExceptionCode.Operation.InvalidArgument, "TcpInnerBridgeSession| TcpServer required");
@@ -58,8 +58,6 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                 try
                 {
                     var tcpData = buffer.SubArrayFast((int)offset, (int)size);
-                    System.Buffer.BlockCopy(buffer, (int)offset, tcpData, 0, (int)size);
-
                     var payload = Encoding.UTF8.GetString(tcpData);
                     if (payload == PING_COMMAND)
                         return;
@@ -135,9 +133,11 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             _authData = authData;
 
             ThisStreamId = $"{ThisSideName}.{authData.DeviceId}.{authData.StreamType}";
-            ThatStreamId = $"{ThatSideName}.{_authData.DeviceId}.{_authData.StreamType}";
-            
+            ThatStreamId = $"{ThatSideName}.{authData.DeviceId}.{authData.StreamType}";
 
+            StreamChannel.RegisterChannel(ThatStreamId);
+            StreamChannel.RegisterChannel(ThisStreamId);
+            
             return true;
         }
         
@@ -147,9 +147,11 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             {
                 _isQueueStreamRunning = true;
 
+                _logger.LogInformation("INNER.ReadThatStream: ThatStreamId={ThatStreamId}", ThatStreamId);
                 await foreach (var data in StreamChannel.ReadAllAsync(ThatStreamId, AppCancellationToken))
                 {
                     var res = SendAsync(data.SubArrayFast());
+                    _logger.LogInformation("SendToClientAsync: data size: {size}", data.Length);
                     // _logger.LogInformation("SendToClientAsync: {side} | {ThatStreamId} -> {ThisStreamId}| {message}, {res}", ThisStreamId, ThatStreamId, ThisStreamId, Encoding.UTF8.GetString(b, 0, b.Length), res);
                 }
             }

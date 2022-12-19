@@ -5,8 +5,6 @@ using Commons.Core.Cryptography;
 using Commons.Core.Extensions;
 using Commons.Core.Helpers;
 using Xunit.Abstractions;
-using Commons.Core.Utilities;
-using System.Text;
 
 namespace EmulatorRC.IntegrationTests;
 
@@ -30,19 +28,11 @@ public class TcpBridgeTests
         File.Delete(TargetFileName);
 
         var sw = new Stopwatch();
-        var tcs = new TaskCompletionSource();
+        var tcsProducer = new TaskCompletionSource();
+        var tcsReceiver = new TaskCompletionSource();
 
-        var producerTcpClient = new TcpCoreClient("127.0.0.1", 5009, true, tcs);
-        producerTcpClient.OptionNoDelay = true;
-        /*producerTcpClient.OptionReceiveBufferSize = 8 * 1024 * 1024;
-        producerTcpClient.OptionSendBufferSize = 8 * 1024 * 1024;*/
-        producerTcpClient.ConnectAsync();
-        while (!producerTcpClient.IsConnected)
-            Thread.Yield();
 
-        await Task.Delay(15);
-
-        var emulatorClient = new TcpCoreClient("127.0.0.1", 5010, false, tcs);
+        var emulatorClient = new TcpCoreClient("127.0.0.1", 5010, false, tcsReceiver);
         emulatorClient.OptionNoDelay = true;
         /*emulatorClient.OptionReceiveBufferSize = 8 * 1024 * 1024;
         emulatorClient.OptionSendBufferSize = 8 * 1024 * 1024;*/
@@ -50,16 +40,23 @@ public class TcpBridgeTests
         while (!emulatorClient.IsConnected)
             Thread.Yield();
 
+
+        var producerTcpClient = new TcpCoreClient("127.0.0.1", 5009, true, tcsProducer);
+        producerTcpClient.OptionNoDelay = true;
+        /*producerTcpClient.OptionReceiveBufferSize = 8 * 1024 * 1024;
+        producerTcpClient.OptionSendBufferSize = 8 * 1024 * 1024;*/
+        producerTcpClient.ConnectAsync();
+        while (!producerTcpClient.IsConnected)
+            Thread.Yield();
+        
         sw.Start();
-
-        await tcs.Task;
-
-        //while (emulatorClient.IsConnected)
-        //    Thread.Yield();
+        Task.WaitAll(tcsProducer.Task, tcsReceiver.Task);
         sw.Stop();
 
         producerTcpClient.DisconnectAsync();
-
+        while (emulatorClient.IsConnected || producerTcpClient.IsConnected)
+            Thread.Yield();
+        
         var mb = Math.Round(new FileInfo(SourceFileName).Length / 1024.0 / 1024.0 / sw.Elapsed.TotalSeconds, 2);
         
         Helper.WriteLine($"time={sw.ElapsedMilliseconds}(ms), ~{mb} (MB/sec)");
@@ -119,10 +116,11 @@ public class TcpBridgeTests
         }
 
 
+        // producer
         private async void StartSourceWrite()
         {
             //Send(CreateMockHeader(640, 480));
-            var userBuffer = new byte[1024];
+            var userBuffer = new byte[2048];
             int readBytes;
             while ((readBytes = await _sourceFileStream!.ReadAsync(userBuffer)) != 0)
             {
@@ -143,12 +141,13 @@ public class TcpBridgeTests
             _writtenBytes += size;
             // _helper.WriteLine($"received={size}, {_writtenBytes}/{_sourceSize}");
             _targetFileStream?.Write(buffer, (int)offset, (int)size);
+            _targetFileStream?.Flush();
 
             if (_writtenBytes >= _sourceSize)
             {
                 Disconnect();
+                _taskCompletion.TrySetResult();
             }
-            //_targetFileStream?.Flush();
         }
 
         protected override void OnError(SocketError error)

@@ -45,6 +45,22 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Commons.Cache", "..\Commons
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetCoreServer", "..\Commons\src\NetCoreServer\source\NetCoreServer\NetCoreServer.csproj", "{FA9EC2C4-D1EE-4211-BA25-5BF4983D055D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "resources", "resources", "{F2095A28-4416-4C68-A6C3-47E85084EE91}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "images", "images", "{9E9B1FA0-C2AA-4DE3-87CA-4649766A57C1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "droidcam", "droidcam", "{742E4C65-D99D-4A53-8146-FD1A487F0715}"
+	ProjectSection(SolutionItems) = preProject
+		resources\images\droidcam\1280x720.jpg = resources\images\droidcam\1280x720.jpg
+		resources\images\droidcam\1920x1080.jpg = resources\images\droidcam\1920x1080.jpg
+		resources\images\droidcam\640x480.jpg = resources\images\droidcam\640x480.jpg
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{173484FC-5CDA-4B59-A1E7-44E5D1B0E51C}"
+	ProjectSection(SolutionItems) = preProject
+		resources\images\test\test-img-1.jpg = resources\images\test\test-img-1.jpg
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -126,6 +142,9 @@ Global
 		{1C466929-81AC-4919-9008-BBBC064B5C2B} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 		{F075DD39-932E-4636-8B90-49DE69A18E35} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
 		{FA9EC2C4-D1EE-4211-BA25-5BF4983D055D} = {9DE71ED2-5278-49CE-989F-1E9B591E266B}
+		{9E9B1FA0-C2AA-4DE3-87CA-4649766A57C1} = {F2095A28-4416-4C68-A6C3-47E85084EE91}
+		{742E4C65-D99D-4A53-8146-FD1A487F0715} = {9E9B1FA0-C2AA-4DE3-87CA-4649766A57C1}
+		{173484FC-5CDA-4B59-A1E7-44E5D1B0E51C} = {9E9B1FA0-C2AA-4DE3-87CA-4649766A57C1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC8D204D-5A9E-4019-AAE1-96FA5B8A99BB}
