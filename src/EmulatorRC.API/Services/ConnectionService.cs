@@ -1,5 +1,12 @@
-﻿using System.Text;
+﻿using System.Buffers;
+using System.IO.Pipelines;
+using System.Net.Sockets;
+using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
+using System.Text;
+using EmulatorRC.API.Channels;
 using Microsoft.AspNetCore.Connections;
+using Newtonsoft.Json.Linq;
 
 namespace EmulatorRC.API.Services
 {
@@ -22,16 +29,16 @@ namespace EmulatorRC.API.Services
             {
                 var cts = CancellationTokenSource.CreateLinkedTokenSource(
                     connection.ConnectionClosed, _lifetime.ApplicationStopping);
-                var cancellationToken = cts.Token;
+                var token = cts.Token;
 
                 while (true)
                 {
-                    var result = await connection.Transport.Input.ReadAsync(cancellationToken);
+                    var result = await connection.Transport.Input.ReadAsync(token);
                     var buffer = result.Buffer;
 
                     foreach (var segment in buffer)
                     {
-                        await connection.Transport.Output.WriteAsync(segment, cancellationToken);
+                        await connection.Transport.Output.WriteAsync(segment, token);
                     }
 
                     if (result.IsCompleted)
