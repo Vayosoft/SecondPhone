@@ -1,6 +1,8 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Commons.Core.Cryptography;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting;
@@ -13,54 +15,79 @@ namespace EmulatorRC.IntegrationTests
 {
     public class ConnectionTests
     {
-        private readonly ITestOutputHelper _helper;
+        private readonly ITestOutputHelper _logger;
 
-        public ConnectionTests(ITestOutputHelper helper)
+        public ConnectionTests(ITestOutputHelper logger)
         {
-            _helper = helper;
+            _logger = logger;
         }
+
+        private const string SourceFilePath = "../../../data/Smith_CleanArchAspNetCore.pptx";
+        private const string DestinationFilePath = "../../../data/Smith_CleanArchAspNetCore_Copy.pptx";
 
         [Fact]
         public async Task EchoClient()
         {
-            using var cts = new CancellationTokenSource();
-            var token = cts.Token;
+            var sourceFileLength = new FileInfo(SourceFilePath).Length;
+            using var cts = new CancellationTokenSource(5000);
+            var cancellationToken = cts.Token;
 
             using var clientSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            await clientSocket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5000), token);
+            await clientSocket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5000), cancellationToken);
 
-            
-            async Task ReceiveAsync(Socket socket, CancellationToken cancellationToken)
+            async Task ReceiveAsync(Socket socket, CancellationToken token)
+            {
+                var stopwatch = new Stopwatch();
+                long totalLength = 0;
+                try
+                {
+                    int bytesRead;
+                    var buffer = new byte[4096];
+                    //await using var networkStream = new NetworkStream(socket);
+                    await using var fileStream =
+                        new FileStream(DestinationFilePath, FileMode.OpenOrCreate, FileAccess.Write);
+                    //while ((bytesRead = await networkStream.ReadAsync(buffer, token)) > 0)
+                    stopwatch.Start();
+                    while ((bytesRead = await socket.ReceiveAsync(buffer, token)) > 0)
+                    {
+                        await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), token);
+                        totalLength += bytesRead;
+                        if (totalLength != sourceFileLength) continue;
+                        break;
+                    }
+                }
+                catch (OperationCanceledException) { }
+                finally
+                {
+                    stopwatch.Stop();
+                }
+
+                var bps = Math.Round((double)totalLength / 1024 / 1024 / stopwatch.Elapsed.TotalSeconds, 2);
+                _logger.WriteLine("Elapsed: {0} (~{1} MB/sec)", stopwatch.Elapsed, bps);
+            }
+
+            async Task SendAsync(Socket socket, CancellationToken token)
             {
                 try
                 {
-                    var buffer = new byte[1024];
-                    int bytes;
-                    while ((bytes = await socket.ReceiveAsync(buffer, cancellationToken: cancellationToken)) > 0)
+                    int bytesRead;
+                    var buffer = new byte[4096];
+                    //await using var networkStream = new NetworkStream(socket);
+                    await using var fileStream = new FileStream(SourceFilePath, FileMode.Open, FileAccess.Read);
+                    while ((bytesRead = await fileStream.ReadAsync(buffer, token)) > 0)
                     {
-                        var response = Encoding.UTF8.GetString(buffer, 0, bytes);
-                        _helper.WriteLine(response);
+                        //await networkStream.WriteAsync(buffer.AsMemory(0, bytesRead), token);
+                        await socket.SendAsync(buffer.AsMemory(0, bytesRead), token);
                     }
                 }
                 catch (OperationCanceledException){ }
             }
 
-            async Task SendAsync(Socket socket)
-            {
-                await using var stream = new NetworkStream(socket);
-                var data = "1234567890\n"u8.ToArray();
+            await Task.WhenAll(ReceiveAsync(clientSocket, cancellationToken), SendAsync(clientSocket, cancellationToken));
 
-                for (var i = 0; i < 10; i++)
-                {
-                    using var memory = new MemoryStream(data);
-                    await memory.CopyToAsync(stream, token);
-                }
-            }
+            Assert.Equal(new FileInfo(SourceFilePath).MD5(), new FileInfo(DestinationFilePath).MD5());
 
-            var task = ReceiveAsync(clientSocket, token);
-            await SendAsync(clientSocket);
-            cts.Cancel();
-            await task;
+            File.Delete(DestinationFilePath);
         }
 
         [Fact]
@@ -90,7 +117,7 @@ namespace EmulatorRC.IntegrationTests
                 })
                 .ConfigureLogging(loggingBuilder =>
                 {
-                    loggingBuilder.AddProvider(new XUnitLoggerProvider(_helper));
+                    loggingBuilder.AddProvider(new XUnitLoggerProvider(_logger));
                 });
 
             var app = builder.Build();
@@ -112,12 +139,12 @@ namespace EmulatorRC.IntegrationTests
 
                 while (true)
                 {
-                    var result = await connection.Transport.Input.ReadAsync();
+                    var result = await connection.Transport.Input.ReadAsync(connection.ConnectionClosed);
                     var buffer = result.Buffer;
 
                     foreach (var segment in buffer)
                     {
-                        await connection.Transport.Output.WriteAsync(segment);
+                        await connection.Transport.Output.WriteAsync(segment, connection.ConnectionClosed);
                     }
 
                     if (result.IsCompleted)

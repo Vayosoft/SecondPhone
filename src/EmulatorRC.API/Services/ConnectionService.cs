@@ -31,7 +31,6 @@ namespace EmulatorRC.API.Services
 
                     foreach (var segment in buffer)
                     {
-                        _logger.LogInformation("{data}", Encoding.UTF8.GetString(segment.ToArray()));
                         await connection.Transport.Output.WriteAsync(segment, cancellationToken);
                     }
 
