@@ -1,18 +1,47 @@
-﻿using System.Buffers;
+﻿using EmulatorRC.API.Channels;
+using EmulatorRC.Entities;
+using Microsoft.AspNetCore.Connections;
+using System.Buffers;
 using System.IO.Pipelines;
 using System.Text.Json;
-using EmulatorRC.API.Channels;
-using EmulatorRC.Entities;
 
-namespace EmulatorRC.API.Services.Sessions
+namespace EmulatorRC.API.Services
 {
-    public sealed class StreamSession
+    public class OuterStreamHandler : ConnectionHandler
     {
         private readonly StreamChannel _channel;
+        private readonly ILogger<OuterStreamHandler> _logger;
+        private readonly IHostApplicationLifetime _lifetime;
 
-        public StreamSession(StreamChannel channel)
+        public OuterStreamHandler(
+            StreamChannel channel,
+            ILogger<OuterStreamHandler> logger,
+            IHostApplicationLifetime lifetime)
         {
             _channel = channel;
+            _logger = logger;
+            _lifetime = lifetime;
+        }
+
+        public override async Task OnConnectedAsync(ConnectionContext connection)
+        {
+            _logger.LogInformation("{connectionId} connected", connection.ConnectionId);
+
+            try
+            {
+                var cts = CancellationTokenSource.CreateLinkedTokenSource(
+                    connection.ConnectionClosed, _lifetime.ApplicationStopping);
+                var token = cts.Token;
+
+                _ = ReadAsync("default", connection.Transport.Output, token);
+                await WriteAsync("default", connection.Transport.Input, token);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("{connectionId} => {error}", connection.ConnectionId, e.Message);
+            }
+
+            _logger.LogInformation("{connectionId} disconnected", connection.ConnectionId);
         }
 
         public async Task ReadAsync(string deviceId, PipeWriter output, CancellationToken token)
@@ -43,7 +72,7 @@ namespace EmulatorRC.API.Services.Sessions
             }
         }
 
-        public async Task WriteAsync(string deviceId, PipeReader input, CancellationToken token)
+        private async Task WriteAsync(string deviceId, PipeReader input, CancellationToken token)
         {
             DeviceSession session = null;
 
@@ -51,7 +80,6 @@ namespace EmulatorRC.API.Services.Sessions
             {
                 var result = await input.ReadAsync(token);
                 var buffer = result.Buffer;
-
                 session ??= Handshake(ref buffer);
 
                 foreach (var segment in buffer)

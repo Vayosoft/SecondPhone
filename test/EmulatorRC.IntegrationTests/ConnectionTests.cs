@@ -33,7 +33,7 @@ namespace EmulatorRC.IntegrationTests
         public async Task EchoClient()
         {
             var sourceFileLength = new FileInfo(SourceFilePath).Length;
-            using var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource(5000);
             var cancellationToken = cts.Token;
 
             using var clientSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -55,7 +55,7 @@ namespace EmulatorRC.IntegrationTests
 
                 await socket.SendAsync(header, token);
             }
-
+            
             async Task ReceiveAsync(Socket socket, CancellationToken token)
             {
                 long totalLength = 0;

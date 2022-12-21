@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <Folder Include="Model\Bridge\Config\" />
+    <Folder Include="Services\Sessions\" />
     <Folder Include="Snippets\" />
     <Folder Include="Snippets\Hubs\" />
   </ItemGroup>
