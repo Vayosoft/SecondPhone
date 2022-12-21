@@ -12,8 +12,8 @@ namespace EmulatorRC.IntegrationTests;
 public class TcpBridgeTests
 {
     // private const string SourceFileName = @"D:\Distr\MySoft\a.txt";
-    private const string SourceFileName = @"D:\Distr\MySoft\VirtualBox-6.1.2-135663-Win.exe";
-    private const string TargetFileName = @"D:\temp\tcp_test\VirtualBox-6.1.2-135663-Win.exe";
+    private const string SourceFileName = "../../../data/Smith_CleanArchAspNetCore.pptx";
+    private const string TargetFileName = "../../../data/Smith_CleanArchAspNetCore_Copy.pptx";
     public ITestOutputHelper Helper;
 
     public TcpBridgeTests(ITestOutputHelper helper)
@@ -25,8 +25,6 @@ public class TcpBridgeTests
     [Fact]
     public void TcpClientTest()
     {
-        File.Delete(TargetFileName);
-
         var sw = new Stopwatch();
         var tcsProducer = new TaskCompletionSource();
         var tcsReceiver = new TaskCompletionSource();
@@ -66,6 +64,8 @@ public class TcpBridgeTests
 
         Helper.WriteLine($"sourceHash={shash}");
         Helper.WriteLine($"targetHash={thash}, equal: {shash == thash}");
+
+        File.Delete(TargetFileName);
     }
 
     class TcpCoreClient : NetCoreServer.TcpClient

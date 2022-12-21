@@ -1,8 +1,12 @@
 ﻿using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using Commons.Core.Cryptography;
+using Commons.Core.Extensions;
+using EmulatorRC.Entities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting;
@@ -29,15 +33,31 @@ namespace EmulatorRC.IntegrationTests
         public async Task EchoClient()
         {
             var sourceFileLength = new FileInfo(SourceFilePath).Length;
-            using var cts = new CancellationTokenSource(5000);
+            using var cts = new CancellationTokenSource();
             var cancellationToken = cts.Token;
 
             using var clientSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
             await clientSocket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5000), cancellationToken);
 
+            async Task Handshake(Socket socket, CancellationToken token)
+            {
+                var handshake = JsonSerializer.SerializeToUtf8Bytes(
+                    new DeviceSession
+                    {
+                        DeviceId = "default",
+                        StreamType = "cam",
+                    });
+
+                var header = handshake.Length.ToByteArray();
+
+                Array.Resize(ref header, 4 + handshake.Length);
+                Array.Copy(handshake, 0, header, 4, handshake.Length);
+
+                await socket.SendAsync(header, token);
+            }
+
             async Task ReceiveAsync(Socket socket, CancellationToken token)
             {
-                var stopwatch = new Stopwatch();
                 long totalLength = 0;
                 try
                 {
@@ -47,7 +67,7 @@ namespace EmulatorRC.IntegrationTests
                     await using var fileStream =
                         new FileStream(DestinationFilePath, FileMode.OpenOrCreate, FileAccess.Write);
                     //while ((bytesRead = await networkStream.ReadAsync(buffer, token)) > 0)
-                    stopwatch.Start();
+
                     while ((bytesRead = await socket.ReceiveAsync(buffer, token)) > 0)
                     {
                         await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), token);
@@ -57,13 +77,6 @@ namespace EmulatorRC.IntegrationTests
                     }
                 }
                 catch (OperationCanceledException) { }
-                finally
-                {
-                    stopwatch.Stop();
-                }
-
-                var bps = Math.Round((double)totalLength / 1024 / 1024 / stopwatch.Elapsed.TotalSeconds, 2);
-                _logger.WriteLine("Elapsed: {0} (~{1} MB/sec)", stopwatch.Elapsed, bps);
             }
 
             async Task SendAsync(Socket socket, CancellationToken token)
@@ -83,9 +96,18 @@ namespace EmulatorRC.IntegrationTests
                 catch (OperationCanceledException){ }
             }
 
+            await Handshake(clientSocket, cancellationToken);
+
+            var stopwatch = new Stopwatch();
+
+            stopwatch.Start();
             await Task.WhenAll(ReceiveAsync(clientSocket, cancellationToken), SendAsync(clientSocket, cancellationToken));
+            stopwatch.Stop();
 
             Assert.Equal(new FileInfo(SourceFilePath).MD5(), new FileInfo(DestinationFilePath).MD5());
+
+            var bps = Math.Round((double)sourceFileLength / 1024 / 1024 / stopwatch.Elapsed.TotalSeconds, 2);
+            _logger.WriteLine("Elapsed: {0} ~{1} (MB/sec)", stopwatch.Elapsed, bps);
 
             File.Delete(DestinationFilePath);
         }

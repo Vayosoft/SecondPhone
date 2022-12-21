@@ -11,6 +11,7 @@ using EmulatorRC.API.Model;
 using EmulatorRC.API.Model.Bridge;
 using EmulatorRC.API.Services;
 using EmulatorRC.API.Services.Interceptors;
+using EmulatorRC.API.Services.Sessions;
 using EmulatorRC.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Connections;
@@ -48,7 +49,7 @@ public class Program
                     options.AddServerHeader = false;
                     options.ListenLocalhost(5000, listenOptions =>
                     {
-                        listenOptions.UseConnectionHandler<ConnectionService>();
+                        listenOptions.UseConnectionHandler<StreamService>();
                     });
                 });
 
@@ -58,8 +59,10 @@ public class Program
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
                 builder.Services.AddSingleton<DeviceScreenChannel>();
                 builder.Services.AddSingleton<TouchChannel>();
-				builder.Services.AddSingleton<DeviceInfoChannel>();
-				builder.Services.AddSingleton<BufferChannel>();
+				builder.Services.AddSingleton<DeviceInfoChannel>();	
+                builder.Services.AddSingleton<StreamChannel>();
+				builder.Services.AddTransient<StreamSession>();
+
 
                 builder.Services.AddSingleton<TcpStreamChannel>();
                 builder.Services.AddSingleton<IMemoryCacheProvider, MemoryCacheProvider>();
