@@ -1,9 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System.Buffers;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using Commons.Core.Cryptography;
 using Commons.Core.Extensions;
 using EmulatorRC.Entities;
@@ -36,27 +38,55 @@ namespace EmulatorRC.IntegrationTests
             using var cts = new CancellationTokenSource(5000);
             var cancellationToken = cts.Token;
 
-            using var clientSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            await clientSocket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5000), cancellationToken);
+            var client = new Client();
+            await client.ConnectAsync(cancellationToken);
 
-            async Task Handshake(Socket socket, CancellationToken token)
+            var emulator = new Emulator(sourceFileLength);
+            await emulator.ConnectAsync(cancellationToken);
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            await Task.WhenAll(emulator.StartAsync(cancellationToken), client.StartAsync(cancellationToken));
+            stopwatch.Stop();
+
+            Assert.Equal(new FileInfo(SourceFilePath).MD5(), new FileInfo(DestinationFilePath).MD5());
+
+            var bps = Math.Round((double)sourceFileLength / 1024 / 1024 / stopwatch.Elapsed.TotalSeconds, 2);
+            _logger.WriteLine("Elapsed: {0} ~{1} (MB/sec)", stopwatch.Elapsed, bps);
+
+            File.Delete(DestinationFilePath);
+        }
+
+        public class Emulator
+        {
+            private readonly long _sourceFileLength;
+            private readonly Socket _socket;
+            public Emulator(long sourceFileLength)
             {
-                var handshake = JsonSerializer.SerializeToUtf8Bytes(
-                    new DeviceSession
-                    {
-                        DeviceId = "default",
-                        StreamType = "cam",
-                    });
+                _sourceFileLength = sourceFileLength;
+                _socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            }
 
-                var header = handshake.Length.ToByteArray();
+            public async Task ConnectAsync(CancellationToken cancellationToken)
+            {
+                await _socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5001), cancellationToken);
+                await Handshake(_socket, cancellationToken);
+            }
 
-                Array.Resize(ref header, 4 + handshake.Length);
-                Array.Copy(handshake, 0, header, 4, handshake.Length);
+            private static async Task Handshake(Socket socket, CancellationToken token)
+            {
+                const string handshake = "CMD /v2/video.4?640x480&id=default";
+                var header = Encoding.UTF8.GetBytes(handshake);
 
                 await socket.SendAsync(header, token);
             }
-            
-            async Task ReceiveAsync(Socket socket, CancellationToken token)
+
+            public Task StartAsync(CancellationToken cancellationToken)
+            {
+                return ReceiveAsync(_socket, cancellationToken);
+            }
+
+            private async Task ReceiveAsync(Socket socket, CancellationToken token)
             {
                 long totalLength = 0;
                 try
@@ -72,14 +102,58 @@ namespace EmulatorRC.IntegrationTests
                     {
                         await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), token);
                         totalLength += bytesRead;
-                        if (totalLength != sourceFileLength) continue;
+                        if (totalLength != _sourceFileLength) continue;
                         break;
                     }
                 }
                 catch (OperationCanceledException) { }
             }
 
-            async Task SendAsync(Socket socket, CancellationToken token)
+            public void Dispose()
+            {
+                _socket.Disconnect(false);
+                _socket.Dispose();
+            }
+        }
+
+        public class Client : IDisposable
+        {
+            private readonly Socket _socket;
+
+            public Client()
+            {
+                _socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            }
+
+            public async Task ConnectAsync(CancellationToken cancellationToken)
+            {
+                await _socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5000), cancellationToken);
+                await Handshake(_socket, cancellationToken);
+            }
+
+            public Task StartAsync(CancellationToken cancellationToken)
+            {
+                return SendAsync(_socket, cancellationToken);
+            }
+
+            private static async Task Handshake(Socket socket, CancellationToken token)
+            {
+                var handshake = JsonSerializer.SerializeToUtf8Bytes(
+                    new DeviceSession
+                    {
+                        DeviceId = "default",
+                        StreamType = "cam",
+                    });
+
+                var header = handshake.Length.ToByteArray();
+
+                Array.Resize(ref header, 4 + handshake.Length);
+                Array.Copy(handshake, 0, header, 4, handshake.Length);
+
+                await socket.SendAsync(header, token);
+            }
+
+            private static async Task SendAsync(Socket socket, CancellationToken token)
             {
                 try
                 {
@@ -96,20 +170,11 @@ namespace EmulatorRC.IntegrationTests
                 catch (OperationCanceledException){ }
             }
 
-            await Handshake(clientSocket, cancellationToken);
-
-            var stopwatch = new Stopwatch();
-
-            stopwatch.Start();
-            await Task.WhenAll(ReceiveAsync(clientSocket, cancellationToken), SendAsync(clientSocket, cancellationToken));
-            stopwatch.Stop();
-
-            Assert.Equal(new FileInfo(SourceFilePath).MD5(), new FileInfo(DestinationFilePath).MD5());
-
-            var bps = Math.Round((double)sourceFileLength / 1024 / 1024 / stopwatch.Elapsed.TotalSeconds, 2);
-            _logger.WriteLine("Elapsed: {0} ~{1} (MB/sec)", stopwatch.Elapsed, bps);
-
-            File.Delete(DestinationFilePath);
+            public void Dispose()
+            {
+                _socket.Disconnect(false);
+                _socket.Dispose();
+            }
         }
 
         [Fact]

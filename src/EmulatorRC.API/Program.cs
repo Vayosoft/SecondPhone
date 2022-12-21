@@ -50,6 +50,10 @@ public class Program
                     {
                         listenOptions.UseConnectionHandler<OuterStreamHandler>();
                     });
+                    options.ListenLocalhost(5001, listenOptions =>
+                    {
+                        listenOptions.UseConnectionHandler<InnerStreamHandler>();
+                    });
                 });
 
                 builder.Services.AddMemoryCache();

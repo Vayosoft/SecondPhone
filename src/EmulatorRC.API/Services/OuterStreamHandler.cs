@@ -33,46 +33,17 @@ namespace EmulatorRC.API.Services
                     connection.ConnectionClosed, _lifetime.ApplicationStopping);
                 var token = cts.Token;
 
-                _ = ReadAsync("default", connection.Transport.Output, token);
-                await WriteAsync("default", connection.Transport.Input, token);
+                await OnReceiveAsync("default", connection.Transport.Input, token);
             }
             catch (Exception e)
             {
-                _logger.LogError("{connectionId} => {error}", connection.ConnectionId, e.Message);
+                _logger.LogError("{connectionId} => {error}", connection.ConnectionId, e.Message, e.StackTrace);
             }
 
             _logger.LogInformation("{connectionId} disconnected", connection.ConnectionId);
         }
 
-        public async Task ReadAsync(string deviceId, PipeWriter output, CancellationToken token)
-        {
-            while (true)
-            {
-                if (_channel.TryGetChannel(deviceId, out var channel))
-                {
-                    var result = await channel.Reader.ReadAsync(token);
-                    var buffer = result.Buffer;
-
-                    foreach (var segment in buffer)
-                    {
-                        await output.WriteAsync(segment, token);
-                    }
-
-                    if (result.IsCompleted)
-                    {
-                        break;
-                    }
-
-                    channel.Reader.AdvanceTo(buffer.End);
-                }
-                else
-                {
-                    await Task.Delay(1000, token);
-                }
-            }
-        }
-
-        private async Task WriteAsync(string deviceId, PipeReader input, CancellationToken token)
+        private async Task OnReceiveAsync(string deviceId, PipeReader input, CancellationToken token)
         {
             DeviceSession session = null;
 
