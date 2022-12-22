@@ -46,11 +46,11 @@ public class Program
                 builder.WebHost.ConfigureKestrel(options =>
                 {
                     options.AddServerHeader = false;
-                    options.ListenLocalhost(5009, listenOptions =>
+                    options.ListenAnyIP(5009, listenOptions =>
                     {
                         listenOptions.UseConnectionHandler<OuterStreamHandler>();
                     });
-                    options.ListenLocalhost(5010, listenOptions =>
+                    options.ListenAnyIP(5010, listenOptions =>
                     {
                         listenOptions.UseConnectionHandler<InnerStreamHandler>();
                     });

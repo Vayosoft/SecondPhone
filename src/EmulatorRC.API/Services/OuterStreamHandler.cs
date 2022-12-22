@@ -1,4 +1,5 @@
-﻿using EmulatorRC.API.Channels;
+﻿using Commons.Core.Models;
+using EmulatorRC.API.Channels;
 using EmulatorRC.Entities;
 using Microsoft.AspNetCore.Connections;
 using System.Buffers;
@@ -33,7 +34,28 @@ namespace EmulatorRC.API.Services
                     connection.ConnectionClosed, _lifetime.ApplicationStopping);
                 var token = cts.Token;
 
-                await OnReceiveAsync("default", connection.Transport.Input, token);
+                DeviceSession session = null;
+
+                while (true)
+                {
+                    var result = await connection.Transport.Input.ReadAsync(token);
+                    var buffer = result.Buffer;
+                    session ??= Handshake(ref buffer);
+
+                    foreach (var segment in buffer)
+                    {
+                        await _channel.GetOrCreateChannel(session.DeviceId).Writer.WriteAsync(segment, token);
+                    }
+
+                    if (result.IsCompleted)
+                    {
+                        break;
+                    }
+
+                    connection.Transport.Input.AdvanceTo(buffer.End);
+                }
+
+                await connection.Transport.Input.CompleteAsync();
             }
             catch (Exception e)
             {
@@ -41,32 +63,6 @@ namespace EmulatorRC.API.Services
             }
 
             _logger.LogInformation("{connectionId} disconnected", connection.ConnectionId);
-        }
-
-        private async Task OnReceiveAsync(string deviceId, PipeReader input, CancellationToken token)
-        {
-            DeviceSession session = null;
-
-            while (true)
-            {
-                var result = await input.ReadAsync(token);
-                var buffer = result.Buffer;
-                session ??= Handshake(ref buffer);
-
-                foreach (var segment in buffer)
-                {
-                    await _channel.GetOrCreateChannel(deviceId).Writer.WriteAsync(segment, token);
-                }
-
-                if (result.IsCompleted)
-                {
-                    break;
-                }
-
-                input.AdvanceTo(buffer.End);
-            }
-
-            await input.CompleteAsync();
         }
 
         private static DeviceSession Handshake(ref ReadOnlySequence<byte> buffer)

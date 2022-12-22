@@ -34,7 +34,6 @@ namespace EmulatorRC.API.Services
                     connection.ConnectionClosed, _lifetime.ApplicationStopping);
                 var token = cts.Token;
 
-                _ = ReadAsync("default", connection.Transport.Output, token);
                 DeviceSession session = null;
 
                 while (!token.IsCancellationRequested)
@@ -42,7 +41,11 @@ namespace EmulatorRC.API.Services
                     var result = await connection.Transport.Input.ReadAsync(token);
                     var buffer = result.Buffer;
 
-                    session ??= Handshake(ref buffer, connection.Transport.Output);
+                    if (session == null)
+                    {
+                        session = Handshake(ref buffer, connection.Transport.Output);
+                        _ = ReadFromChannelAsync(session.DeviceId, connection.Transport.Output, token);
+                    }
 
                     if (result.IsCompleted)
                     {
@@ -60,7 +63,7 @@ namespace EmulatorRC.API.Services
             _logger.LogInformation("{connectionId} disconnected", connection.ConnectionId);
         }
 
-        public async Task ReadAsync(string deviceId, PipeWriter output, CancellationToken token)
+        public async Task ReadFromChannelAsync(string deviceId, PipeWriter output, CancellationToken token)
         {
             while (true)
             {
