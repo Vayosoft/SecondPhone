@@ -35,16 +35,21 @@ namespace EmulatorRC.API.Services
                 var token = cts.Token;
 
                 DeviceSession session = null;
+                Pipe channel = null;
 
                 while (true)
                 {
                     var result = await connection.Transport.Input.ReadAsync(token);
                     var buffer = result.Buffer;
-                    session ??= Handshake(ref buffer);
+                    if (session == null)
+                    {
+                        session = Handshake(ref buffer);
+                        channel = _channel.GetOrCreateChannel(session.DeviceId);
+                    }
 
                     foreach (var segment in buffer)
                     {
-                        await _channel.GetOrCreateChannel(session.DeviceId).Writer.WriteAsync(segment, token);
+                        await channel.Writer.WriteAsync(segment, token);
                     }
 
                     if (result.IsCompleted)
