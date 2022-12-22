@@ -44,14 +44,20 @@ public class Program
 #endif
                 );
 
+                var configuration = builder.Configuration;
+
                 builder.WebHost.ConfigureKestrel(options =>
                 {
                     options.AddServerHeader = false;
-                    options.ListenAnyIP(5009, listenOptions =>
+
+                    var innerPort = configuration.GetValue<int>("Bridge:Inner:TcpPort");
+                    var outerPort = configuration.GetValue<int>("Bridge:Outer:TcpPort");
+
+                    options.ListenAnyIP(outerPort, listenOptions =>
                     {
                         listenOptions.UseConnectionHandler<OuterHandler>();
                     });
-                    options.ListenAnyIP(5010, listenOptions =>
+                    options.ListenAnyIP(innerPort, listenOptions =>
                     {
                         listenOptions.UseConnectionHandler<InnerHandler>();
                     });

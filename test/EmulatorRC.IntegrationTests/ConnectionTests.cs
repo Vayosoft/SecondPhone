@@ -31,6 +31,11 @@ namespace EmulatorRC.IntegrationTests
         [Fact]
         public async Task EchoClient()
         {
+            if (File.Exists(DestinationFilePath))
+            {
+                File.Delete(DestinationFilePath);
+            }
+
             var sourceFileLength = new FileInfo(SourceFilePath).Length;
             using var cts = new CancellationTokenSource(5000);
             var cancellationToken = cts.Token;
