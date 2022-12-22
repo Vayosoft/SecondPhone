@@ -5,6 +5,7 @@ using System.Buffers;
 using System.IO.Pipelines;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 
 namespace EmulatorRC.API.Handlers
 {
@@ -67,29 +68,37 @@ namespace EmulatorRC.API.Handlers
 
         public async Task ReadFromChannelAsync(string deviceId, PipeWriter output, CancellationToken token)
         {
-            while (true)
+            try
             {
-                if (_channel.TryGetChannel(deviceId, out var channel))
+                while (true)
                 {
-                    var result = await channel.Reader.ReadAsync(token);
-                    var buffer = result.Buffer;
-
-                    foreach (var segment in buffer)
+                    if (_channel.TryGetChannel(deviceId, out var channel))
                     {
-                        await output.WriteAsync(segment, token);
-                    }
+                        var result = await channel.Reader.ReadAsync(token);
+                        var buffer = result.Buffer;
 
-                    if (result.IsCompleted)
+                        foreach (var segment in buffer)
+                        {
+                            await output.WriteAsync(segment, token);
+                        }
+
+                        if (result.IsCompleted)
+                        {
+                            break;
+                        }
+
+                        channel.Reader.AdvanceTo(buffer.End);
+                    }
+                    else
                     {
-                        break;
+                        await Task.Delay(1000, token);
                     }
-
-                    channel.Reader.AdvanceTo(buffer.End);
                 }
-                else
-                {
-                    await Task.Delay(1000, token);
-                }
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "ReadFromChannel => {error}\r\n", e.Message);
             }
         }
 
