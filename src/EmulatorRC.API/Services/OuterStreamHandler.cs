@@ -1,5 +1,4 @@
-﻿using Commons.Core.Models;
-using EmulatorRC.API.Channels;
+﻿using EmulatorRC.API.Channels;
 using EmulatorRC.Entities;
 using Microsoft.AspNetCore.Connections;
 using System.Buffers;
@@ -34,22 +33,36 @@ namespace EmulatorRC.API.Services
                     connection.ConnectionClosed, _lifetime.ApplicationStopping);
                 var token = cts.Token;
 
-                DeviceSession session = null;
-                Pipe channel = null;
+                HandshakeStatus status = default;
+                Pipe channel = default;
 
                 while (true)
                 {
                     var result = await connection.Transport.Input.ReadAsync(token);
                     var buffer = result.Buffer;
-                    if (session == null)
-                    {
-                        session = Handshake(ref buffer);
-                        channel = _channel.GetOrCreateChannel(session.DeviceId);
-                    }
 
-                    foreach (var segment in buffer)
+                    switch (status)
                     {
-                        await channel.Writer.WriteAsync(segment, token);
+                        case HandshakeStatus.Successful:
+                        {
+                            foreach (var segment in buffer)
+                            {
+                                await channel!.Writer.WriteAsync(segment, token);
+                            }
+
+                            break;
+                        }
+                        case HandshakeStatus.Pending:
+                            status = Handshake(ref buffer, out var session);
+                            channel = status switch
+                            {
+                                HandshakeStatus.Successful => _channel.GetOrCreateChannel(session.DeviceId),
+                                HandshakeStatus.Failed => throw new Exception("Authentication required"),
+
+                                _ => channel
+                            };
+
+                            break;
                     }
 
                     if (result.IsCompleted)
@@ -57,7 +70,7 @@ namespace EmulatorRC.API.Services
                         break;
                     }
 
-                    connection.Transport.Input.AdvanceTo(buffer.End);
+                    connection.Transport.Input.AdvanceTo(status != HandshakeStatus.Pending ? buffer.End : buffer.Start);
                 }
 
                 await connection.Transport.Input.CompleteAsync();
@@ -70,23 +83,61 @@ namespace EmulatorRC.API.Services
             _logger.LogInformation("{connectionId} disconnected", connection.ConnectionId);
         }
 
-        private static DeviceSession Handshake(ref ReadOnlySequence<byte> buffer)
+        private HandshakeStatus Handshake(ref ReadOnlySequence<byte> buffer, out DeviceSession session)
         {
-            var reader = new SequenceReader<byte>(buffer);
-
-            if (reader.TryReadExact(4, out var header))
+            try
             {
-                var length = BitConverter.ToInt32(header.FirstSpan);
-                if (reader.TryReadExact(length, out var handshake))
+                if (buffer.IsSingleSegment)
                 {
-                    var deviceSession = JsonSerializer.Deserialize<DeviceSession>(handshake.FirstSpan);
-                    buffer = buffer.Slice(4 + length);
+                    var span = buffer.FirstSpan;
+                    var length = BitConverter.ToInt32(span[..4]);
 
-                    return deviceSession;
+                    if (span.Length < length + 4)
+                    {
+                        session = null;
+                        return HandshakeStatus.Pending;
+                    }
+
+                    session = JsonSerializer.Deserialize<DeviceSession>(span.Slice(4, length));
+                    buffer = buffer.Slice(4 + length);
+                }
+                else
+                {
+                    var reader = new SequenceReader<byte>(buffer);
+
+                    if (!reader.TryReadExact(4, out var header))
+                    {
+                        session = null;
+                        return HandshakeStatus.Pending;
+                    }
+
+                    var length = BitConverter.ToInt32(header.FirstSpan);
+                    if (!reader.TryReadExact(length, out var handshake))
+                    {
+                        session = null;
+                        return HandshakeStatus.Pending;
+                    }
+
+                    session = JsonSerializer.Deserialize<DeviceSession>(handshake.FirstSpan);
+                    buffer = buffer.Slice(4 + length);
                 }
             }
+            catch (Exception e)
+            {
+                _logger.LogError(e,"Handshake => {error}\r\n", e.Message);
 
-            throw new OperationCanceledException("Not authenticated");
+                session = null;
+                return HandshakeStatus.Failed;
+            }
+
+            return HandshakeStatus.Successful;
+        }
+
+        public enum HandshakeStatus : byte
+        {
+            Pending,
+            Successful,
+            Failed
         }
     }
 }

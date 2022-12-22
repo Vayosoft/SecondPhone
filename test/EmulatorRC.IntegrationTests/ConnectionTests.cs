@@ -1,11 +1,8 @@
-﻿using System.Buffers;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
 using Commons.Core.Cryptography;
 using Commons.Core.Extensions;
 using EmulatorRC.Entities;
@@ -46,7 +43,7 @@ namespace EmulatorRC.IntegrationTests
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            await Task.WhenAll(emulator.StartAsync(cancellationToken), client.StartAsync(cancellationToken));
+            await Task.WhenAll(emulator.StartAsync(cancellationToken), client.StartWithFileAsync(cancellationToken));
             stopwatch.Stop();
 
             Assert.Equal(new FileInfo(SourceFilePath).MD5(), new FileInfo(DestinationFilePath).MD5());
@@ -55,6 +52,17 @@ namespace EmulatorRC.IntegrationTests
             _logger.WriteLine("Elapsed: {0} ~{1} (MB/sec)", stopwatch.Elapsed, bps);
 
             File.Delete(DestinationFilePath);
+        }
+
+        [Fact]
+        public async Task SingleClient()
+        {
+            using var cts = new CancellationTokenSource(30000);
+            var cancellationToken = cts.Token;
+
+            var client = new Client();
+            await client.ConnectAsync(cancellationToken);
+            await client.StartWithImagesAsync(cancellationToken);
         }
 
         public class Emulator
@@ -134,9 +142,58 @@ namespace EmulatorRC.IntegrationTests
                 await Handshake(_socket, cancellationToken);
             }
 
-            public Task StartAsync(CancellationToken cancellationToken)
+            public Task StartWithFileAsync(CancellationToken cancellationToken)
             {
                 return SendAsync(_socket, cancellationToken);
+            }
+
+            public async Task StartWithImagesAsync(CancellationToken cancellationToken)
+            {
+                try
+                {
+                    while (!cancellationToken.IsCancellationRequested)
+                    {
+                        var files = Directory.EnumerateFiles("../../../data/images/");
+                        foreach (var file in files)
+                        {
+                            var data = await File.ReadAllBytesAsync(file, cancellationToken);
+
+                            var length = data.Length.ToByteArray();
+                            await _socket.SendAsync(length, cancellationToken);
+                            await _socket.SendAsync(data, cancellationToken);
+                            await Task.Delay(60, cancellationToken);
+                        }
+                    }
+                    
+                }
+                catch (OperationCanceledException) { }
+            }
+
+            private static byte[] CreateMockHeader(int width, int height)
+            {
+                const int some1 = 0x21; //25,
+                const int some2 = 0x307fe8f5;
+
+                var byteBuffer = new List<byte>
+                {
+                    //0x02, 0x80 - 640
+                    (byte) (width >> 8 & 255),
+                    (byte) (width & 255),
+                    //0x01, 0xe0 - 480
+                    (byte)(height >> 8 & 255),
+                    (byte)(height & 255),
+                    //0x21 - 33
+                    (byte)(some1 & 255),
+                    //0xf5, 0xe8, 0x7f, 0x30
+                    (byte)(some2 & 255),
+                    (byte)(some2 >> 8 & 255),
+                    (byte)(some2 >> 16 & 255),
+                    (byte)(some2 >> 24 & 255)
+                };
+
+                // byteBuffer.Reverse();
+
+                return byteBuffer.ToArray();
             }
 
             private static async Task Handshake(Socket socket, CancellationToken token)
@@ -150,10 +207,11 @@ namespace EmulatorRC.IntegrationTests
 
                 var header = handshake.Length.ToByteArray();
 
-                Array.Resize(ref header, 4 + handshake.Length);
-                Array.Copy(handshake, 0, header, 4, handshake.Length);
+                //Array.Resize(ref header, 4 + handshake.Length);
+                //Array.Copy(handshake, 0, header, 4, handshake.Length);
 
                 await socket.SendAsync(header, token);
+                await socket.SendAsync(handshake, token);
             }
 
             private static async Task SendAsync(Socket socket, CancellationToken token)
