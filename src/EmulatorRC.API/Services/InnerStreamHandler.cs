@@ -104,15 +104,15 @@ namespace EmulatorRC.API.Services
 
                 var m = Regex.Match(s, "(\\d+)x(\\d+)&id=(\\w+)", RegexOptions);
                 if (!m.Success || m.Groups.Count < 4)
-                    throw new OperationCanceledException("Not authenticated");
+                    throw new Exception("Authentication required");
 
                 if (!int.TryParse(m.Groups[1].Value, out var w) || !int.TryParse(m.Groups[2].Value, out var h))
-                    throw new OperationCanceledException("Not authenticated");
+                    throw new Exception("Authentication required");
 
                 var deviceId = m.Groups[3].Value;
 
                 if (w == 0 || h == 0 || string.IsNullOrEmpty(deviceId))
-                    throw new OperationCanceledException("Not authenticated");
+                    throw new Exception("Authentication required");
 
                 buffer = buffer.Slice(buffer.End);
 
@@ -121,7 +121,7 @@ namespace EmulatorRC.API.Services
                 return new DeviceSession { DeviceId = deviceId, StreamType = "cam" };
             }
 
-            throw new OperationCanceledException("Not authenticated");
+            throw new Exception("Authentication required");
         }
 
         private static byte[] CreateMockHeader(int width, int height)
