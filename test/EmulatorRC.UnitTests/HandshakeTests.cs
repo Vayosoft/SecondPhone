@@ -1,5 +1,9 @@
 ﻿using System.Buffers;
+using System.IO;
+using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using EmulatorRC.Entities;
 
@@ -8,7 +12,7 @@ namespace EmulatorRC.UnitTests
     public class HandshakeTests
     {
         [Fact]
-        public void Handshake()
+        public void EmulatorHandshake()
         {
             const string handshake = "CMD /v2/video.4?640x480&id=default";
             var buffer = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(handshake));
@@ -21,7 +25,7 @@ namespace EmulatorRC.UnitTests
                                                   System.Text.RegularExpressions.RegexOptions.IgnoreCase |
                                                   System.Text.RegularExpressions.RegexOptions.Singleline;
 
-        public DeviceSession ParseInnerHeader(ref ReadOnlySequence<byte> buffer)
+        public static DeviceSession ParseInnerHeader(ref ReadOnlySequence<byte> buffer)
         {
             var payload = Encoding.UTF8.GetString(buffer.First.Span);
             if (payload.StartsWith("CMD /v2/video.4?"))
@@ -44,6 +48,74 @@ namespace EmulatorRC.UnitTests
             }
 
             throw new OperationCanceledException("Not authenticated");
+        }
+
+        [Fact]
+        public void ClientHandshake()
+        {
+            var handshake = JsonSerializer.SerializeToUtf8Bytes(
+                new DeviceSession
+                {
+                    DeviceId = "default",
+                    StreamType = "cam",
+                });
+
+            var header = BitConverter.GetBytes(handshake.Length);
+
+            Array.Resize(ref header, 4 + handshake.Length);
+            Array.Copy(handshake, 0, header, 4, handshake.Length);
+
+            var buffer = new ReadOnlySequence<byte>(header);
+            var status = ParseOuterHeader(ref buffer, out var session);
+
+            Assert.Equal("default", session.DeviceId);
+        }
+
+        private static HandshakeStatus ParseOuterHeader(ref ReadOnlySequence<byte> buffer, out DeviceSession session)
+        {
+            if (buffer.IsSingleSegment)
+            {
+                var span = buffer.FirstSpan;
+                var length = BitConverter.ToInt32(span[..4]);
+
+                if (span.Length < length + 4)
+                {
+                    session = null;
+                    return HandshakeStatus.Pending;
+                }
+
+                session = JsonSerializer.Deserialize<DeviceSession>(span.Slice(4, length));
+                buffer = buffer.Slice(4 + length);
+            }
+            else
+            {
+                var reader = new SequenceReader<byte>(buffer);
+
+                if (!reader.TryReadExact(4, out var header))
+                {
+                    session = null;
+                    return HandshakeStatus.Pending;
+                }
+
+                var length = BitConverter.ToInt32(header.FirstSpan);
+                if (!reader.TryReadExact(length, out var handshake))
+                {
+                    session = null;
+                    return HandshakeStatus.Pending;
+                }
+
+                session = JsonSerializer.Deserialize<DeviceSession>(handshake.FirstSpan);
+                buffer = buffer.Slice(4 + length);
+            }
+
+            return HandshakeStatus.Successful;
+        }
+
+        public enum HandshakeStatus : byte
+        {
+            Pending,
+            Successful,
+            Failed
         }
     }
 }
