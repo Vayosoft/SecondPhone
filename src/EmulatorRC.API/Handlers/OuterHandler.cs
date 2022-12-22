@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace EmulatorRC.API.Handlers
 {
-    public class OuterHandler : ConnectionHandler
+    public sealed class OuterHandler : ConnectionHandler
     {
         private readonly StreamChannel _channel;
         private readonly ILogger<OuterHandler> _logger;

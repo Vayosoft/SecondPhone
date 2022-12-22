@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace EmulatorRC.API.Handlers
 {
-    public class InnerHandler : ConnectionHandler
+    public sealed class InnerHandler : ConnectionHandler
     {
         private readonly StreamChannel _channel;
         private readonly ILogger<InnerHandler> _logger;
