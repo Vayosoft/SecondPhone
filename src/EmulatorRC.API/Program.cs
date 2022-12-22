@@ -6,6 +6,7 @@ using Commons.Cache;
 using Commons.Core.Application;
 using Commons.Core.Cache;
 using EmulatorRC.API.Channels;
+using EmulatorRC.API.Handlers;
 using EmulatorRC.API.Hubs;
 using EmulatorRC.API.Model;
 using EmulatorRC.API.Model.Bridge;
@@ -48,11 +49,11 @@ public class Program
                     options.AddServerHeader = false;
                     options.ListenAnyIP(5009, listenOptions =>
                     {
-                        listenOptions.UseConnectionHandler<OuterStreamHandler>();
+                        listenOptions.UseConnectionHandler<OuterHandler>();
                     });
                     options.ListenAnyIP(5010, listenOptions =>
                     {
-                        listenOptions.UseConnectionHandler<InnerStreamHandler>();
+                        listenOptions.UseConnectionHandler<InnerHandler>();
                     });
                 });
 
