@@ -75,7 +75,8 @@ namespace EmulatorRC.API.Handlers
 
                 await connection.Transport.Input.CompleteAsync();
             }
-            catch(ConnectionResetException e){}
+            catch (ConnectionResetException) { }
+            catch (OperationCanceledException) { }
             catch (Exception e)
             {
                 _logger.LogError(e, "{connectionId} => {error}", connection.ConnectionId, e.Message);

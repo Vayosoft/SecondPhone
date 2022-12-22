@@ -55,7 +55,8 @@ namespace EmulatorRC.API.Handlers
                     connection.Transport.Input.AdvanceTo(buffer.End);
                 }
             }
-            catch (ConnectionResetException e) { }
+            catch (ConnectionResetException) { }
+            catch (OperationCanceledException) { }
             catch (Exception e)
             {
                 _logger.LogError(e, "{connectionId} => {error}", connection.ConnectionId, e.Message);
