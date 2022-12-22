@@ -46,11 +46,11 @@ public class Program
                 builder.WebHost.ConfigureKestrel(options =>
                 {
                     options.AddServerHeader = false;
-                    options.ListenLocalhost(5000, listenOptions =>
+                    options.ListenLocalhost(5009, listenOptions =>
                     {
                         listenOptions.UseConnectionHandler<OuterStreamHandler>();
                     });
-                    options.ListenLocalhost(5001, listenOptions =>
+                    options.ListenLocalhost(5010, listenOptions =>
                     {
                         listenOptions.UseConnectionHandler<InnerStreamHandler>();
                     });
@@ -119,7 +119,7 @@ public class Program
                 });
 
                 // Bridge services
-                builder.Services.AddHostedService<BridgeLifetimeEventsService>();
+                //builder.Services.AddHostedService<BridgeLifetimeEventsService>();
             }
             
             var app = builder.Build();

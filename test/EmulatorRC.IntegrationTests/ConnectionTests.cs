@@ -69,7 +69,7 @@ namespace EmulatorRC.IntegrationTests
 
             public async Task ConnectAsync(CancellationToken cancellationToken)
             {
-                await _socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5001), cancellationToken);
+                await _socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5010), cancellationToken);
                 await Handshake(_socket, cancellationToken);
             }
 
@@ -97,12 +97,15 @@ namespace EmulatorRC.IntegrationTests
                     await using var fileStream =
                         new FileStream(DestinationFilePath, FileMode.OpenOrCreate, FileAccess.Write);
                     //while ((bytesRead = await networkStream.ReadAsync(buffer, token)) > 0)
-
                     while ((bytesRead = await socket.ReceiveAsync(buffer, token)) > 0)
                     {
+                        if (bytesRead is 0 or 9)
+                        {
+                            continue;
+                        }
                         await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), token);
                         totalLength += bytesRead;
-                        if (totalLength != _sourceFileLength) continue;
+                        if (totalLength < _sourceFileLength) continue;
                         break;
                     }
                 }
@@ -127,7 +130,7 @@ namespace EmulatorRC.IntegrationTests
 
             public async Task ConnectAsync(CancellationToken cancellationToken)
             {
-                await _socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5000), cancellationToken);
+                await _socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5009), cancellationToken);
                 await Handshake(_socket, cancellationToken);
             }
 

@@ -35,11 +35,26 @@ namespace EmulatorRC.API.Services
                 var token = cts.Token;
 
                 _ = ReadAsync("default", connection.Transport.Output, token);
-                await OnReceiveAsync(connection.Transport.Input, token);
+                DeviceSession session = null;
+
+                while (!token.IsCancellationRequested)
+                {
+                    var result = await connection.Transport.Input.ReadAsync(token);
+                    var buffer = result.Buffer;
+
+                    session ??= Handshake(ref buffer, connection.Transport.Output);
+
+                    if (result.IsCompleted)
+                    {
+                        break;
+                    }
+
+                    connection.Transport.Input.AdvanceTo(buffer.End);
+                }
             }
             catch (Exception e)
             {
-                _logger.LogError("{connectionId} => {error}", connection.ConnectionId, e.Message, e.StackTrace);
+                _logger.LogError(e,"{connectionId} => {error}", connection.ConnectionId, e.Message);
             }
 
             _logger.LogInformation("{connectionId} disconnected", connection.ConnectionId);
@@ -73,30 +88,10 @@ namespace EmulatorRC.API.Services
             }
         }
 
-        private static async Task OnReceiveAsync(PipeReader input, CancellationToken token)
-        {
-            DeviceSession session = null;
-
-            while (!token.IsCancellationRequested)
-            {
-                var result = await input.ReadAsync(token);
-                var buffer = result.Buffer;
-
-                session ??= Handshake(ref buffer);
-
-                if (result.IsCompleted)
-                {
-                    break;
-                }
-
-                input.AdvanceTo(buffer.End);
-            }
-        }
-
         private const RegexOptions RegexOptions = System.Text.RegularExpressions.RegexOptions.Compiled |
                                                   System.Text.RegularExpressions.RegexOptions.IgnoreCase |
                                                   System.Text.RegularExpressions.RegexOptions.Singleline;
-        private static DeviceSession Handshake(ref ReadOnlySequence<byte> buffer)
+        private static DeviceSession Handshake(ref ReadOnlySequence<byte> buffer, PipeWriter output)
         {
             var payload = Encoding.UTF8.GetString(buffer.First.Span);
             if (payload.StartsWith("CMD /v2/video.4?"))
@@ -117,10 +112,39 @@ namespace EmulatorRC.API.Services
 
                 buffer = buffer.Slice(buffer.End);
 
+                output.WriteAsync(CreateMockHeader(w, h));
+
                 return new DeviceSession { DeviceId = deviceId, StreamType = "cam" };
             }
 
             throw new OperationCanceledException("Not authenticated");
+        }
+
+        private static byte[] CreateMockHeader(int width, int height)
+        {
+            const int some1 = 0x21; //25,
+            const int some2 = 0x307fe8f5;
+
+            var byteBuffer = new List<byte>
+            {
+                //0x02, 0x80 - 640
+                (byte) (width >> 8 & 255),
+                (byte) (width & 255),
+                //0x01, 0xe0 - 480
+                (byte)(height >> 8 & 255),
+                (byte)(height & 255),
+                //0x21 - 33
+                (byte)(some1 & 255),
+                //0xf5, 0xe8, 0x7f, 0x30
+                (byte)(some2 & 255),
+                (byte)(some2 >> 8 & 255),
+                (byte)(some2 >> 16 & 255),
+                (byte)(some2 >> 24 & 255)
+            };
+
+            // byteBuffer.Reverse();
+
+            return byteBuffer.ToArray();
         }
     }
 }

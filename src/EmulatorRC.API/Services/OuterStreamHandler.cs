@@ -37,7 +37,7 @@ namespace EmulatorRC.API.Services
             }
             catch (Exception e)
             {
-                _logger.LogError("{connectionId} => {error}", connection.ConnectionId, e.Message, e.StackTrace);
+                _logger.LogError(e, "{connectionId} => {error}", connection.ConnectionId, e.Message);
             }
 
             _logger.LogInformation("{connectionId} disconnected", connection.ConnectionId);
