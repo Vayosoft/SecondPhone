@@ -91,9 +91,10 @@ namespace EmulatorRC.API.Services
             }
         }
 
-        private const RegexOptions RegexOptions = System.Text.RegularExpressions.RegexOptions.Compiled |
-                                                  System.Text.RegularExpressions.RegexOptions.IgnoreCase |
-                                                  System.Text.RegularExpressions.RegexOptions.Singleline;
+        private const RegexOptions RegexOptions = 
+            System.Text.RegularExpressions.RegexOptions.Compiled |
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase |
+            System.Text.RegularExpressions.RegexOptions.Singleline;
         private static DeviceSession Handshake(ref ReadOnlySequence<byte> buffer, PipeWriter output)
         {
             var payload = Encoding.UTF8.GetString(buffer.First.Span);
@@ -128,7 +129,7 @@ namespace EmulatorRC.API.Services
             const int some1 = 0x21; //25,
             const int some2 = 0x307fe8f5;
 
-            var byteBuffer = new List<byte>
+            var byteBuffer = new List<byte>(9)
             {
                 //0x02, 0x80 - 640
                 (byte) (width >> 8 & 255),
@@ -144,8 +145,6 @@ namespace EmulatorRC.API.Services
                 (byte)(some2 >> 16 & 255),
                 (byte)(some2 >> 24 & 255)
             };
-
-            // byteBuffer.Reverse();
 
             return byteBuffer.ToArray();
         }

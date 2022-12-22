@@ -169,33 +169,6 @@ namespace EmulatorRC.IntegrationTests
                 catch (OperationCanceledException) { }
             }
 
-            private static byte[] CreateMockHeader(int width, int height)
-            {
-                const int some1 = 0x21; //25,
-                const int some2 = 0x307fe8f5;
-
-                var byteBuffer = new List<byte>
-                {
-                    //0x02, 0x80 - 640
-                    (byte) (width >> 8 & 255),
-                    (byte) (width & 255),
-                    //0x01, 0xe0 - 480
-                    (byte)(height >> 8 & 255),
-                    (byte)(height & 255),
-                    //0x21 - 33
-                    (byte)(some1 & 255),
-                    //0xf5, 0xe8, 0x7f, 0x30
-                    (byte)(some2 & 255),
-                    (byte)(some2 >> 8 & 255),
-                    (byte)(some2 >> 16 & 255),
-                    (byte)(some2 >> 24 & 255)
-                };
-
-                // byteBuffer.Reverse();
-
-                return byteBuffer.ToArray();
-            }
-
             private static async Task Handshake(Socket socket, CancellationToken token)
             {
                 var handshake = JsonSerializer.SerializeToUtf8Bytes(
