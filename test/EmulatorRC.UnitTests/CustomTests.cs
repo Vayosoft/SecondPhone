@@ -99,10 +99,10 @@ public partial class TestEvent : BaseEvent
     public DateTime StartDate { set; get; }
 
     [JsonProperty("dp"), JsonPropertyName("dp")]
-    public List<string>? Departments { set; get; }
+    public List<string> Departments { set; get; }
 
     [JsonProperty("c"), JsonPropertyName("c")]
-    public Dictionary<string, long>? Counters { set; get; }
+    public Dictionary<string, long> Counters { set; get; }
 }
 
 [MemoryPackable]

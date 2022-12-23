@@ -45,7 +45,7 @@ namespace EmulatorRC.API.Handlers
 
                     if (status == HandshakeStatus.Pending)
                     {
-                        status = Handshake(ref buffer, out var session);
+                        status = ProcessHandshake(ref buffer, out var session);
                         channel = status switch
                         {
                             HandshakeStatus.Successful => _channel.GetOrCreateChannel(session.DeviceId),
@@ -86,7 +86,7 @@ namespace EmulatorRC.API.Handlers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private HandshakeStatus Handshake(ref ReadOnlySequence<byte> buffer, out DeviceSession session)
+        private HandshakeStatus ProcessHandshake(ref ReadOnlySequence<byte> buffer, out DeviceSession session)
         {
             var reader = new SequenceReader<byte>(buffer);
             try
