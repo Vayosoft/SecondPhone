@@ -79,10 +79,10 @@ namespace EmulatorRC.UnitTests
                 return HandshakeStatus.Pending;
             }
 
-            ////Span<byte> payload = stackalloc byte[length];
-            ////header.CopyTo(payload);
+            Span<byte> payload = stackalloc byte[length];
+            header.CopyTo(payload);
             
-            session = JsonSerializer.Deserialize<DeviceSession>(header.FirstSpan);
+            session = JsonSerializer.Deserialize<DeviceSession>(payload);
             buffer = buffer.Slice(reader.Position);
 
             return HandshakeStatus.Successful;
