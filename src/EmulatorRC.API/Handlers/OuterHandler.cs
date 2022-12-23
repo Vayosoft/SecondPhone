@@ -89,40 +89,16 @@ namespace EmulatorRC.API.Handlers
         {
             try
             {
-                if (buffer.IsSingleSegment)
+                var reader = new SequenceReader<byte>(buffer);
+
+                if (!reader.TryReadLittleEndian(out int length) || !reader.TryReadExact(length, out var header))
                 {
-                    var span = buffer.FirstSpan;
-                    var length = BitConverter.ToInt32(span[..4]);
-
-                    if (span.Length < length + 4)
-                    {
-                        session = null;
-                        return HandshakeStatus.Pending;
-                    }
-
-                    session = JsonSerializer.Deserialize<DeviceSession>(span.Slice(4, length));
-                    buffer = buffer.Slice(4 + length);
+                    session = null;
+                    return HandshakeStatus.Pending;
                 }
-                else
-                {
-                    var reader = new SequenceReader<byte>(buffer);
 
-                    if (!reader.TryReadExact(4, out var header))
-                    {
-                        session = null;
-                        return HandshakeStatus.Pending;
-                    }
-
-                    var length = BitConverter.ToInt32(header.FirstSpan);
-                    if (!reader.TryReadExact(length, out var handshake))
-                    {
-                        session = null;
-                        return HandshakeStatus.Pending;
-                    }
-
-                    session = JsonSerializer.Deserialize<DeviceSession>(handshake.FirstSpan);
-                    buffer = buffer.Slice(4 + length);
-                }
+                session = JsonSerializer.Deserialize<DeviceSession>(header.FirstSpan);
+                buffer = buffer.Slice(reader.Position);
             }
             catch (Exception e)
             {

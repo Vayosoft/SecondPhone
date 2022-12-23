@@ -2,6 +2,7 @@
 using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using Grpc.Core;
+using System.Runtime.CompilerServices;
 
 namespace EmulatorRC.API.Services
 {
@@ -40,6 +41,7 @@ namespace EmulatorRC.API.Services
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Handshake(ServerCallContext context, out string deviceId, out CancellationTokenSource cancellationSource)
         {
             deviceId = context.GetDeviceIdOrDefault("default")!;

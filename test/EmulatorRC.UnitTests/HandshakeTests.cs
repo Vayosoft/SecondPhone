@@ -1,7 +1,5 @@
 ﻿using System.Buffers;
-using System.IO;
-using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -68,45 +66,24 @@ namespace EmulatorRC.UnitTests
             var buffer = new ReadOnlySequence<byte>(header);
             var status = ParseOuterHeader(ref buffer, out var session);
 
-            Assert.Equal("default", session.DeviceId);
+            Assert.Equal(HandshakeStatus.Successful, status);
         }
 
         private static HandshakeStatus ParseOuterHeader(ref ReadOnlySequence<byte> buffer, out DeviceSession session)
         {
-            if (buffer.IsSingleSegment)
+            var reader = new SequenceReader<byte>(buffer);
+
+            if (!reader.TryReadLittleEndian(out int length) || !reader.TryReadExact(length, out var header))
             {
-                var span = buffer.FirstSpan;
-                var length = BitConverter.ToInt32(span[..4]);
-
-                if (span.Length < length + 4)
-                {
-                    session = null;
-                    return HandshakeStatus.Pending;
-                }
-
-                session = JsonSerializer.Deserialize<DeviceSession>(span.Slice(4, length));
-                buffer = buffer.Slice(4 + length);
+                session = null;
+                return HandshakeStatus.Pending;
             }
-            else
-            {
-                var reader = new SequenceReader<byte>(buffer);
 
-                if (!reader.TryReadExact(4, out var header))
-                {
-                    session = null;
-                    return HandshakeStatus.Pending;
-                }
-
-                var length = BitConverter.ToInt32(header.FirstSpan);
-                if (!reader.TryReadExact(length, out var handshake))
-                {
-                    session = null;
-                    return HandshakeStatus.Pending;
-                }
-
-                session = JsonSerializer.Deserialize<DeviceSession>(handshake.FirstSpan);
-                buffer = buffer.Slice(4 + length);
-            }
+            ////Span<byte> payload = stackalloc byte[length];
+            ////header.CopyTo(payload);
+            
+            session = JsonSerializer.Deserialize<DeviceSession>(header.FirstSpan);
+            buffer = buffer.Slice(reader.Position);
 
             return HandshakeStatus.Successful;
         }

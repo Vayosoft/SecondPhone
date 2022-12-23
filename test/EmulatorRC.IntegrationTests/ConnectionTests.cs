@@ -191,6 +191,7 @@ namespace EmulatorRC.IntegrationTests
                 //Array.Copy(handshake, 0, header, 4, handshake.Length);
 
                 await socket.SendAsync(header, token);
+                await Task.Delay(200, CancellationToken.None);
                 await socket.SendAsync(handshake, token);
             }
 

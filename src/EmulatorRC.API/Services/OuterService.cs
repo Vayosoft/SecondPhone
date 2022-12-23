@@ -2,6 +2,7 @@
 using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using Grpc.Core;
+using System.Runtime.CompilerServices;
 
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
 namespace EmulatorRC.API.Services
@@ -38,6 +39,7 @@ namespace EmulatorRC.API.Services
             return new Ack();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Handshake(ServerCallContext context, out string deviceId, out string clientId,
             out CancellationTokenSource cancellationSource)
         {
