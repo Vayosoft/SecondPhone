@@ -1,9 +1,11 @@
 ﻿using EmulatorRC.API.Channels;
 using EmulatorRC.Entities;
 using Microsoft.AspNetCore.Connections;
+using Pipelines.Sockets.Unofficial.Arenas;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 
 namespace EmulatorRC.API.Handlers
@@ -13,6 +15,8 @@ namespace EmulatorRC.API.Handlers
         private readonly StreamChannel _channel;
         private readonly ILogger<OuterHandler> _logger;
         private readonly IHostApplicationLifetime _lifetime;
+
+        private const int MaxStackLength = 128;
 
         public OuterHandler(
             StreamChannel channel,
@@ -97,10 +101,27 @@ namespace EmulatorRC.API.Handlers
                     return HandshakeStatus.Pending;
                 }
 
-                Span<byte> payload = stackalloc byte[length];
-                header.CopyTo(payload);
+                if (length < MaxStackLength)
+                {
+                    Span<byte> payload = stackalloc byte[length];
+                    header.CopyTo(payload);
+                    session = JsonSerializer.Deserialize<DeviceSession>(payload);
+                }
+                else
+                {
+                    var payload = ArrayPool<byte>.Shared.Rent(length);
 
-                session = JsonSerializer.Deserialize<DeviceSession>(payload);
+                    try
+                    {
+                        header.CopyTo(payload);
+                        session = JsonSerializer.Deserialize<DeviceSession>(payload.AsSpan()[..length]);
+                    }
+                    finally
+                    {
+                        ArrayPool<byte>.Shared.Return(payload);
+                    }
+                }
+
                 buffer = buffer.Slice(reader.Position);
             }
             catch (Exception e)
