@@ -5,11 +5,11 @@ using System.Buffers;
 using System.IO.Pipelines;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Channels;
+using Commons.Core.Extensions;
 
 namespace EmulatorRC.API.Handlers
 {
-    public sealed class InnerHandler : ConnectionHandler
+    public sealed partial class InnerHandler : ConnectionHandler
     {
         private readonly StreamChannel _channel;
         private readonly ILogger<InnerHandler> _logger;
@@ -44,8 +44,12 @@ namespace EmulatorRC.API.Handlers
 
                     if (session == null)
                     {
-                        session = Handshake(ref buffer, connection.Transport.Output);
+                        session = ProcessHandshake(ref buffer, connection.Transport.Output);
                         _ = ReadFromChannelAsync(session.DeviceId, connection.Transport.Output, token);
+                    }
+                    else
+                    {
+                        ProcessCommand(buffer, connection.Transport.Output);
                     }
 
                     if (result.IsCompleted)
@@ -102,37 +106,47 @@ namespace EmulatorRC.API.Handlers
             }
         }
 
-        private const RegexOptions RegexOptions =
-            System.Text.RegularExpressions.RegexOptions.Compiled |
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase |
-            System.Text.RegularExpressions.RegexOptions.Singleline;
-        private static DeviceSession Handshake(ref ReadOnlySequence<byte> buffer, PipeWriter output)
+        private static ReadOnlySpan<byte> CommandPing => "CMD /v1/ping"u8;
+        private static ReadOnlySpan<byte> CommandVideo => "CMD /v2/video.4?"u8;
+        private static ReadOnlySpan<byte> GetBattery => "GET /battery"u8;
+
+        private static SequencePosition ProcessCommand(ReadOnlySequence<byte> buffer, PipeWriter output)
         {
-            var payload = Encoding.UTF8.GetString(buffer.First.Span);
-            if (payload.StartsWith("CMD /v2/video.4?"))
+            var reader = new SequenceReader<byte>(buffer);
+
+            if (reader.IsNext(CommandPing, true))
             {
-                var s = payload.Split("?")[1];
 
-                var m = Regex.Match(s, "(\\d+)x(\\d+)&id=(\\w+)", RegexOptions);
-                if (!m.Success || m.Groups.Count < 4)
-                    throw new Exception("Authentication required");
-
-                if (!int.TryParse(m.Groups[1].Value, out var w) || !int.TryParse(m.Groups[2].Value, out var h))
-                    throw new Exception("Authentication required");
-
-                var deviceId = m.Groups[3].Value;
-
-                if (w == 0 || h == 0 || string.IsNullOrEmpty(deviceId))
-                    throw new Exception("Authentication required");
-
-                buffer = buffer.Slice(buffer.End);
-
-                output.WriteAsync(CreateMockHeader(w, h));
-
-                return new DeviceSession { DeviceId = deviceId, StreamType = "cam" };
+            }
+            else if (reader.IsNext(GetBattery, true))
+            {
+                _ = output.WriteAsync("\r\n\r\n100".ToByteArray());
             }
 
-            throw new Exception("Authentication required");
+            return reader.Position;
+        }
+
+        [GeneratedRegex("(\\d+)x(\\d+)&id=(\\w+)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+        private static partial Regex HandshakeRegex();
+
+        private static DeviceSession ProcessHandshake(ref ReadOnlySequence<byte> buffer, PipeWriter output)
+        {
+            var reader = new SequenceReader<byte>(buffer);
+
+            if (!reader.IsNext(CommandVideo, true)) throw new Exception("Authentication required");
+
+            var str = Encoding.UTF8.GetString(reader.UnreadSequence);
+            var m = HandshakeRegex().Match(str);
+
+            if (!m.Success || m.Groups.Count < 4) throw new Exception("Authorization required");
+
+            if (!int.TryParse(m.Groups[1].Value, out var w) || !int.TryParse(m.Groups[2].Value, out var h)) throw new Exception("Authorization required");
+        
+            buffer = buffer.Slice(buffer.End);
+
+            _ = output.WriteAsync(CreateMockHeader(w, h));
+
+            return new DeviceSession {DeviceId = m.Groups[3].Value, StreamType = "cam"};
         }
 
         private static byte[] CreateMockHeader(int width, int height)
