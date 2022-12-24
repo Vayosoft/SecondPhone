@@ -28,52 +28,46 @@ namespace EmulatorRC.UnitTests
     
         [GeneratedRegex("(\\d+)x(\\d+)&id=(\\w+)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline)]
         private static partial Regex HandshakeRegex();
-        public static DeviceSession ParseInnerHeader3(ref ReadOnlySequence<byte> buffer)
+        private static DeviceSession ParseInnerHeader3(ref ReadOnlySequence<byte> buffer)
         {
             var reader = new SequenceReader<byte>(buffer);
 
-            while (!reader.End)
+            if (reader.IsNext(CommandVideo, true))
             {
-                if (reader.IsNext(CommandVideo, true))
+                var str = Encoding.UTF8.GetString(reader.UnreadSequence);
+                var m = HandshakeRegex().Match(str);
+                if (!m.Success || m.Groups.Count < 4)
                 {
-                    var str = Encoding.UTF8.GetString(reader.UnreadSequence);
-                    var m = HandshakeRegex().Match(str);
-                    if (!m.Success || m.Groups.Count < 4)
-                    {
-                        throw new Exception("Authorization required");
-                    }
-                    var width = m.Groups[1].Value;
-                    var height = m.Groups[2].Value;
-                    var deviceId = m.Groups[3].Value;
-
-                    return new DeviceSession {DeviceId = deviceId};
+                    throw new Exception("Authorization required");
                 }
+                var width = m.Groups[1].Value;
+                var height = m.Groups[2].Value;
+                var deviceId = m.Groups[3].Value;
+
+                return new DeviceSession { DeviceId = deviceId };
             }
 
             return null;
         }
-        
+
         public static DeviceSession ParseInnerHeader2(ref ReadOnlySequence<byte> buffer)
         {
             var reader = new SequenceReader<byte>(buffer);
 
-            while (!reader.End)
+            if (reader.IsNext(CommandVideo, true))
             {
-                if (reader.IsNext(CommandVideo, true))
+                if (!reader.TryReadTo(out ReadOnlySpan<byte> widthSpan, (byte)'x') ||
+                    !Utf8Parser.TryParse(widthSpan, out int width, out var widthConsumed) ||
+                    !reader.TryReadTo(out ReadOnlySpan<byte> heightSpan, (byte)'&') ||
+                    !Utf8Parser.TryParse(heightSpan, out int height, out var heightConsumed) ||
+                    !reader.TryReadTo(out ReadOnlySpan<byte> _, "id="u8))
                 {
-                    if(!reader.TryReadTo(out ReadOnlySpan<byte> widthSpan, (byte)'x') || 
-                       !Utf8Parser.TryParse(widthSpan, out int width, out var widthConsumed) || 
-                       !reader.TryReadTo(out ReadOnlySpan<byte> heightSpan, (byte)'&') || 
-                       !Utf8Parser.TryParse(heightSpan, out int height, out var heightConsumed) || 
-                       !reader.TryReadTo(out ReadOnlySpan<byte> _, "id="u8))
-                    {
-                        throw new Exception("Authorization required");
-                    }
-
-                    var deviceId = Encoding.UTF8.GetString(reader.UnreadSequence);
-
-                    return new DeviceSession { DeviceId = deviceId };
+                    throw new Exception("Authorization required");
                 }
+
+                var deviceId = Encoding.UTF8.GetString(reader.UnreadSequence);
+
+                return new DeviceSession { DeviceId = deviceId };
             }
 
             return null;
@@ -120,10 +114,14 @@ namespace EmulatorRC.UnitTests
 
             var header = BitConverter.GetBytes(handshake.Length);
 
-            Array.Resize(ref header, 4 + handshake.Length);
-            Array.Copy(handshake, 0, header, 4, handshake.Length);
+            //Array.Resize(ref header, 4 + handshake.Length);
+            //Array.Copy(handshake, 0, header, 4, handshake.Length);
+            //var buffer = new ReadOnlySequence<byte>(header);
 
-            var buffer = new ReadOnlySequence<byte>(header);
+            var firstSegment = new MemorySegment<byte>(header);
+            var lastSegment = firstSegment.Append(handshake);
+            var buffer = new ReadOnlySequence<byte>(firstSegment, 0, lastSegment, lastSegment.Memory.Length);
+
             var status = ParseOuterHeader(ref buffer, out var session);
 
             Assert.Equal(HandshakeStatus.Successful, status);
@@ -153,6 +151,26 @@ namespace EmulatorRC.UnitTests
             Pending,
             Successful,
             Failed
+        }
+
+        public class MemorySegment<T> : ReadOnlySequenceSegment<T>
+        {
+            public MemorySegment(ReadOnlyMemory<T> memory)
+            {
+                Memory = memory;
+            }
+
+            public MemorySegment<T> Append(ReadOnlyMemory<T> memory)
+            {
+                var segment = new MemorySegment<T>(memory)
+                {
+                    RunningIndex = RunningIndex + memory.Length
+                };
+
+                Next = segment;
+
+                return segment;
+            }
         }
     }
 }
