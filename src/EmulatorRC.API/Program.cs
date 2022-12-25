@@ -50,8 +50,8 @@ public class Program
                 {
                     options.AddServerHeader = false;
 
-                    var innerPort = configuration.GetValue<int>("Bridge:Inner:TcpPort");
-                    var outerPort = configuration.GetValue<int>("Bridge:Outer:TcpPort");
+                    var innerPort = 5001;//configuration.GetValue<int>("Bridge:Inner:TcpPort");
+                    var outerPort = 5000;//configuration.GetValue<int>("Bridge:Outer:TcpPort");
 
                     options.ListenAnyIP(outerPort, listenOptions =>
                     {
@@ -126,7 +126,7 @@ public class Program
                 });
 
                 // Bridge services
-                //builder.Services.AddHostedService<BridgeLifetimeEventsService>();
+                builder.Services.AddHostedService<BridgeLifetimeEventsService>();
             }
             
             var app = builder.Build();

@@ -35,5 +35,5 @@ else
 
 config = config.AddJob(job);
 
-BenchmarkRunner.Run<LoggerBenchmarks>(config);
+BenchmarkRunner.Run<HandshakeBenchmarks>(config);
 

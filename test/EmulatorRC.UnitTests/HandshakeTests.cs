@@ -1,12 +1,9 @@
 ﻿using System.Buffers;
 using System.Buffers.Text;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using EmulatorRC.Entities;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace EmulatorRC.UnitTests
 {
@@ -17,7 +14,7 @@ namespace EmulatorRC.UnitTests
         {
             const string handshake = "CMD /v2/video.4?640x480&id=default";
             var buffer = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(handshake));
-            var session = ParseInnerHeader2(ref buffer);
+            var session = ParseByReader(ref buffer);
 
             Assert.Equal("default", session.DeviceId);
         }
@@ -28,7 +25,7 @@ namespace EmulatorRC.UnitTests
     
         [GeneratedRegex("(\\d+)x(\\d+)&id=(\\w+)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline)]
         private static partial Regex HandshakeRegex();
-        private static DeviceSession ParseInnerHeader3(ref ReadOnlySequence<byte> buffer)
+        public static DeviceSession ParseByRegexGenerated(ref ReadOnlySequence<byte> buffer)
         {
             var reader = new SequenceReader<byte>(buffer);
 
@@ -50,7 +47,7 @@ namespace EmulatorRC.UnitTests
             return null;
         }
 
-        public static DeviceSession ParseInnerHeader2(ref ReadOnlySequence<byte> buffer)
+        public static DeviceSession ParseByReader(ref ReadOnlySequence<byte> buffer)
         {
             var reader = new SequenceReader<byte>(buffer);
 
@@ -77,7 +74,7 @@ namespace EmulatorRC.UnitTests
                                                   System.Text.RegularExpressions.RegexOptions.IgnoreCase |
                                                   System.Text.RegularExpressions.RegexOptions.Singleline;
 
-        public static DeviceSession ParseInnerHeader(ref ReadOnlySequence<byte> buffer)
+        public static DeviceSession ParseByRegex(ref ReadOnlySequence<byte> buffer)
         {
             var payload = Encoding.UTF8.GetString(buffer.First.Span);
             if (payload.StartsWith("CMD /v2/video.4?"))
