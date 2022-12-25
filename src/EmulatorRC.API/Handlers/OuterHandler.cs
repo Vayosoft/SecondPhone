@@ -49,6 +49,7 @@ namespace EmulatorRC.API.Handlers
                     if (status != HandshakeStatus.Successful)
                     {
                         consumed = ProcessHandshake(ref buffer, out status, out var session);
+                        buffer = buffer.Slice(consumed);
                         switch (status)
                         {
                             case HandshakeStatus.Successful:
@@ -57,7 +58,7 @@ namespace EmulatorRC.API.Handlers
                                 break;
                             }
                             case HandshakeStatus.Failed:
-                                throw new Exception($"Authentication required\r\n" +
+                                throw new Exception("Authentication required\r\n" +
                                                     $"EndPoint: {connection.RemoteEndPoint}\r\n" +
                                                     $"Buffer: {Convert.ToHexString(buffer.ToArray())}");
                         }

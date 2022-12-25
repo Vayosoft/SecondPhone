@@ -145,7 +145,7 @@ namespace EmulatorRC.IntegrationTests
 
             public async Task ConnectAsync(CancellationToken cancellationToken)
             {
-                await _socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5009), cancellationToken);
+                await _socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, 5000), cancellationToken);
                 await Handshake(_socket, cancellationToken);
             }
 
