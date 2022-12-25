@@ -41,15 +41,17 @@ namespace EmulatorRC.API.Handlers
                 {
                     var result = await connection.Transport.Input.ReadAsync(token);
                     var buffer = result.Buffer;
+                    SequencePosition consumed;
 
                     if (session == null)
                     {
-                        session = ProcessHandshake(ref buffer, connection.Transport.Output);
+                        consumed = ProcessHandshake(buffer, out session, out var w, out var h);
+                        _ = await connection.Transport.Output.WriteAsync(CreateMockHeader(w, h), token);
                         _ = ReadFromChannelAsync(session.DeviceId, connection.Transport.Output, token);
                     }
                     else
                     {
-                        ProcessCommand(buffer, connection.Transport.Output);
+                        consumed = ProcessCommand(buffer, connection.Transport.Output);
                     }
 
                     if (result.IsCompleted)
@@ -57,7 +59,7 @@ namespace EmulatorRC.API.Handlers
                         break;
                     }
 
-                    connection.Transport.Input.AdvanceTo(buffer.End);
+                    connection.Transport.Input.AdvanceTo(consumed);
                 }
             }
             catch (ConnectionResetException) { }
@@ -129,7 +131,7 @@ namespace EmulatorRC.API.Handlers
         [GeneratedRegex("(\\d+)x(\\d+)&id=(\\w+)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline)]
         private static partial Regex HandshakeRegex();
 
-        private static DeviceSession ProcessHandshake(ref ReadOnlySequence<byte> buffer, PipeWriter output)
+        private static SequencePosition ProcessHandshake(ReadOnlySequence<byte> buffer, out DeviceSession session, out int width, out int height)
         {
             var reader = new SequenceReader<byte>(buffer);
 
@@ -140,13 +142,11 @@ namespace EmulatorRC.API.Handlers
 
             if (!m.Success || m.Groups.Count < 4) throw new Exception("Authorization required");
 
-            if (!int.TryParse(m.Groups[1].Value, out var w) || !int.TryParse(m.Groups[2].Value, out var h)) throw new Exception("Authorization required");
-        
-            buffer = buffer.Slice(buffer.End);
+            if (!int.TryParse(m.Groups[1].Value, out width) || !int.TryParse(m.Groups[2].Value, out height)) throw new Exception("Authorization required");
+            
+            session = new DeviceSession {DeviceId = m.Groups[3].Value, StreamType = "cam"};
 
-            _ = output.WriteAsync(CreateMockHeader(w, h));
-
-            return new DeviceSession {DeviceId = m.Groups[3].Value, StreamType = "cam"};
+            return reader.Position;
         }
 
         private static byte[] CreateMockHeader(int width, int height)
