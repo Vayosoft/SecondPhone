@@ -1,13 +1,10 @@
 ﻿using EmulatorRC.API.Channels;
 using EmulatorRC.Entities;
 using Microsoft.AspNetCore.Connections;
-using Pipelines.Sockets.Unofficial.Arenas;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
-using static Commons.Core.Exceptions.ExceptionCode;
 
 namespace EmulatorRC.API.Handlers
 {
@@ -51,7 +48,7 @@ namespace EmulatorRC.API.Handlers
 
                     if (status != HandshakeStatus.Successful)
                     {
-                        status = ProcessHandshake(ref buffer, out var session);
+                        consumed = ProcessHandshake(ref buffer, out status, out var session);
                         switch (status)
                         {
                             case HandshakeStatus.Successful:
@@ -60,7 +57,9 @@ namespace EmulatorRC.API.Handlers
                                 break;
                             }
                             case HandshakeStatus.Failed:
-                                throw new Exception("Authentication required");
+                                throw new Exception($"Authentication required\r\n" +
+                                                    $"EndPoint: {connection.RemoteEndPoint}\r\n" +
+                                                    $"Buffer: {Convert.ToHexString(buffer.ToArray())}");
                         }
                     }
 
@@ -99,15 +98,23 @@ namespace EmulatorRC.API.Handlers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private HandshakeStatus ProcessHandshake(ref ReadOnlySequence<byte> buffer, out DeviceSession session)
+        private SequencePosition ProcessHandshake(ref ReadOnlySequence<byte> buffer, out HandshakeStatus status, out DeviceSession session)
         {
             var reader = new SequenceReader<byte>(buffer);
             try
             {
-                if (!reader.TryReadLittleEndian(out int length) || !reader.TryReadExact(length, out var header))
+                if (!reader.TryReadLittleEndian(out int length) || length > 256)
                 {
                     session = null;
-                    return HandshakeStatus.Pending;
+                    status = HandshakeStatus.Failed;
+                    return buffer.End;
+                }
+
+                if (!reader.TryReadExact(length, out var header))
+                {
+                    session = null;
+                    status = HandshakeStatus.Pending;
+                    return buffer.Start;
                 }
 
                 if (length < MaxStackLength)
@@ -131,17 +138,17 @@ namespace EmulatorRC.API.Handlers
                     }
                 }
 
-                buffer = buffer.Slice(reader.Position);
+                status = HandshakeStatus.Successful;
+                return reader.Position;
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Handshake => {error}\r\n", e.Message);
 
                 session = null;
-                return HandshakeStatus.Failed;
+                status = HandshakeStatus.Failed;
+                return reader.Position;
             }
-
-            return HandshakeStatus.Successful;
         }
 
         public enum HandshakeStatus : byte
