@@ -50,16 +50,16 @@ namespace EmulatorRC.API.Handlers
                     if (status != HandshakeStatus.Successful)
                     {
                         consumed = ProcessHandshake(ref buffer, out status, out var session);
-                        buffer = buffer.Slice(consumed);
                         switch (status)
                         {
                             case HandshakeStatus.Successful:
                             {
                                 channel = _channel.GetOrCreateChannel(session.DeviceId);
+                                buffer = buffer.Slice(consumed);
                                 break;
                             }
                             case HandshakeStatus.Failed:
-                                throw new Exception($"Authentication required <= {connection.RemoteEndPoint}\r\n" +
+                                throw new Exception($"{connection.RemoteEndPoint} Authentication failed\r\n" +
                                                     $"Length: {buffer.Length}\r\n" +
                                                     $"Hex: {Convert.ToHexString(buffer.ToArray())}\r\n" +
                                                     $"UTF8: {Encoding.UTF8.GetString(buffer)}"
@@ -111,7 +111,7 @@ namespace EmulatorRC.API.Handlers
                 {
                     session = null;
                     status = HandshakeStatus.Failed;
-                    return buffer.End;
+                    return reader.Position;
                 }
 
                 if (!reader.TryReadExact(length, out var header))
