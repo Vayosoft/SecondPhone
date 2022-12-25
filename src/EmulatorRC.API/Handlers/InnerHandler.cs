@@ -51,7 +51,13 @@ namespace EmulatorRC.API.Handlers
                     }
                     else
                     {
-                        consumed = ProcessCommand(buffer, connection.Transport.Output);
+                        consumed = ProcessCommand(buffer, out var cmd);
+                        switch (cmd)
+                        {
+                            case Commands.GetBattery:
+                            _ = await connection.Transport.Output.WriteAsync("\r\n\r\n100"u8.ToArray(), token);
+                            break;
+                        }
                     }
 
                     if (result.IsCompleted)
@@ -112,17 +118,21 @@ namespace EmulatorRC.API.Handlers
         private static ReadOnlySpan<byte> CommandVideo => "CMD /v2/video.4?"u8;
         private static ReadOnlySpan<byte> GetBattery => "GET /battery"u8;
 
-        private static SequencePosition ProcessCommand(ReadOnlySequence<byte> buffer, PipeWriter output)
+        private static SequencePosition ProcessCommand(ReadOnlySequence<byte> buffer, out Commands cmd)
         {
             var reader = new SequenceReader<byte>(buffer);
 
             if (reader.IsNext(CommandPing, true))
             {
-
+                cmd = Commands.Ping;
             }
             else if (reader.IsNext(GetBattery, true))
             {
-                _ = output.WriteAsync("\r\n\r\n100".ToByteArray());
+                cmd = Commands.GetBattery;
+            }
+            else
+            {
+                cmd = Commands.Undefined;
             }
 
             return reader.Position;
@@ -173,5 +183,12 @@ namespace EmulatorRC.API.Handlers
 
             return byteBuffer.ToArray();
         }
+    }
+
+    internal enum Commands : byte
+    {
+        Undefined,
+        Ping,
+        GetBattery
     }
 }
