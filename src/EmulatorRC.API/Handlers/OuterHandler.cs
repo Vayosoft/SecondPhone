@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Connections;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 
 namespace EmulatorRC.API.Handlers
@@ -58,9 +59,11 @@ namespace EmulatorRC.API.Handlers
                                 break;
                             }
                             case HandshakeStatus.Failed:
-                                throw new Exception("Authentication required\r\n" +
-                                                    $"EndPoint: {connection.RemoteEndPoint}\r\n" +
-                                                    $"Buffer: {Convert.ToHexString(buffer.ToArray())}");
+                                throw new Exception($"Authentication required <= {connection.RemoteEndPoint}\r\n" +
+                                                    $"Length: {buffer.Length}\r\n" +
+                                                    $"Hex: {Convert.ToHexString(buffer.ToArray())}\r\n" +
+                                                    $"UTF8: {Encoding.UTF8.GetString(buffer)}"
+                                                    );
                         }
                     }
 
