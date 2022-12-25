@@ -29,5 +29,10 @@ namespace EmulatorRC.API.Channels
 
             return channel;
         }
+
+        public bool RemoveChannel(string name, out Pipe channel)
+        {
+            return _channels.TryRemove(name, out channel);
+        }
     }
 }

@@ -7,6 +7,7 @@ using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using static Commons.Core.Exceptions.ExceptionCode;
 
 namespace EmulatorRC.API.Handlers
 {
@@ -38,6 +39,7 @@ namespace EmulatorRC.API.Handlers
                     connection.ConnectionClosed, _lifetime.ApplicationStopping);
                 var token = cts.Token;
 
+
                 HandshakeStatus status = default;
                 Pipe channel = default;
 
@@ -47,16 +49,19 @@ namespace EmulatorRC.API.Handlers
                     var buffer = result.Buffer;
                     var consumed = buffer.Start;
 
-                    if (status == HandshakeStatus.Pending)
+                    if (status != HandshakeStatus.Successful)
                     {
                         status = ProcessHandshake(ref buffer, out var session);
-                        channel = status switch
+                        switch (status)
                         {
-                            HandshakeStatus.Successful => _channel.GetOrCreateChannel(session.DeviceId),
-                            HandshakeStatus.Failed => throw new Exception("Authentication required"),
-
-                            _ => channel
-                        };
+                            case HandshakeStatus.Successful:
+                            {
+                                channel = _channel.GetOrCreateChannel(session.DeviceId);
+                                break;
+                            }
+                            case HandshakeStatus.Failed:
+                                throw new Exception("Authentication required");
+                        }
                     }
 
                     if (status == HandshakeStatus.Successful)
@@ -68,7 +73,7 @@ namespace EmulatorRC.API.Handlers
 
                         consumed = buffer.End;
                     }
-               
+
                     if (result.IsCompleted)
                     {
                         break;
@@ -79,8 +84,12 @@ namespace EmulatorRC.API.Handlers
 
                 await connection.Transport.Input.CompleteAsync();
             }
-            catch (ConnectionResetException) { }
-            catch (OperationCanceledException) { }
+            catch (ConnectionResetException)
+            {
+            }
+            catch (OperationCanceledException)
+            {
+            }
             catch (Exception e)
             {
                 _logger.LogError(e, "{connectionId} => {error}", connection.ConnectionId, e.Message);
