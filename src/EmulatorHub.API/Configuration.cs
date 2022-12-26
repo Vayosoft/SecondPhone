@@ -16,6 +16,8 @@ namespace EmulatorHub.API
             return services;
         }
 
+        private const string OptionFilePath = "MetricsOptions:FilePath";
+        private const string DefaultFilePath = "../../metrics/metrics.txt";
         public static IServiceCollection AddDiagnostics(this WebApplicationBuilder builder)
         {
             //channels
@@ -33,13 +35,15 @@ namespace EmulatorHub.API
                         options.AppendMetricsToTextFile = false;
                         options.Filter = filter;
                         options.FlushInterval = TimeSpan.FromSeconds(60);
-                        options.OutputPathAndFileName = configuration.GetValue<string>("MetricsOptions:FilePath");
+                        options.OutputPathAndFileName = configuration.GetValue<string>(OptionFilePath) ?? DefaultFilePath;
                     })
 #endif
                 .Build();
 
             builder.Services
                 .AddMetrics(metrics);
+            builder.Services
+                .AddAppMetricsCollectors();
             
             builder.Host
                 .UseMetrics(metricsWebHostOptions =>
