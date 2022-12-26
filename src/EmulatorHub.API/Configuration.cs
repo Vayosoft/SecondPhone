@@ -3,14 +3,16 @@ using App.Metrics.Filtering;
 using App.Metrics;
 using App.Metrics.Formatters.Ascii;
 using App.Metrics.Formatters.Prometheus;
+using EmulatorHub.API.Services.Diagnostics;
 
 namespace EmulatorHub.API
 {
     public static class Configuration
     {
-        public static IServiceCollection Add(this IServiceCollection services)
+        public static IServiceCollection AddChannelMetrics(this IServiceCollection services)
         {
-           
+            services.AddHostedService<MetricsCollector>();
+
             return services;
         }
 

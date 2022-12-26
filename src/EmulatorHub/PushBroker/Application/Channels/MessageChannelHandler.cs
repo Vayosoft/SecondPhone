@@ -7,7 +7,7 @@ using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace EmulatorHub.PushBroker.Application.Channels
 {
-    internal sealed class MessageChannelHandler : ChannelHandlerBase<PushMessage>
+    public sealed class MessageChannelHandler : ChannelHandlerBase<PushMessage>
     {
         private readonly PushBrokerFactory _pushFactory;
         private readonly ILogger<MessageChannelHandler> _logger;

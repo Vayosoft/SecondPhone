@@ -98,6 +98,7 @@ try
 
         // Metrics
         builder.AddDiagnostics();
+        builder.Services.AddChannelMetrics();
     }
 
     var app = builder.Build();
