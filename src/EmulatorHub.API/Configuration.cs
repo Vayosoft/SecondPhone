@@ -9,7 +9,7 @@ namespace EmulatorHub.API
 {
     public static class Configuration
     {
-        public static IServiceCollection AddChannelMetrics(this IServiceCollection services)
+        private static IServiceCollection AddChannelMetrics(this IServiceCollection services)
         {
             services.AddHostedService<MetricsCollector>();
 
@@ -18,22 +18,29 @@ namespace EmulatorHub.API
 
         public static IServiceCollection AddDiagnostics(this WebApplicationBuilder builder)
         {
+            //channels
+            builder.Services.AddChannelMetrics();
+
+            var configuration = builder.Configuration;
+
             var filter = new MetricsFilter();
             var metrics = AppMetrics.CreateDefaultBuilder()
-                //.Report.ToTextFile(
-                //    options =>
-                //    {
-                //        options.MetricsOutputFormatter = new MetricsTextOutputFormatter();
-                //        options.AppendMetricsToTextFile = false;
-                //        options.Filter = filter;
-                //        options.FlushInterval = TimeSpan.FromSeconds(60);
-                //        options.OutputPathAndFileName = @"../../metrics/metrics.txt";
-                //    })
+#if DEBUG
+                .Report.ToTextFile(
+                    options =>
+                    {
+                        options.MetricsOutputFormatter = new MetricsTextOutputFormatter();
+                        options.AppendMetricsToTextFile = false;
+                        options.Filter = filter;
+                        options.FlushInterval = TimeSpan.FromSeconds(60);
+                        options.OutputPathAndFileName = configuration.GetValue<string>("MetricsOptions:FilePath");
+                    })
+#endif
                 .Build();
 
             builder.Services
                 .AddMetrics(metrics);
-
+            
             builder.Host
                 .UseMetrics(metricsWebHostOptions =>
                 {
