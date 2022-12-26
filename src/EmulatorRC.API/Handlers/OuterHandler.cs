@@ -112,6 +112,7 @@ namespace EmulatorRC.API.Handlers
 
                 if (!reader.TryReadExact(length, out var header))
                 {
+                    //todo security issue
                     session = null;
                     status = HandshakeStatus.Pending;
                     return buffer.Start;
