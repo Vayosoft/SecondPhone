@@ -16,8 +16,6 @@ namespace EmulatorHub.API
             return services;
         }
 
-        private const string OptionFilePath = "MetricsOptions:FilePath";
-        private const string DefaultFilePath = "../../metrics/metrics.txt";
         public static IServiceCollection AddDiagnostics(this WebApplicationBuilder builder)
         {
             //channels
@@ -26,25 +24,29 @@ namespace EmulatorHub.API
             var configuration = builder.Configuration;
 
             var filter = new MetricsFilter();
-            var metrics = AppMetrics.CreateDefaultBuilder()
+            var metricsBuilder = AppMetrics.CreateDefaultBuilder();
 #if DEBUG
-                .Report.ToTextFile(
-                    options =>
-                    {
-                        options.MetricsOutputFormatter = new MetricsTextOutputFormatter();
-                        options.AppendMetricsToTextFile = false;
-                        options.Filter = filter;
-                        options.FlushInterval = TimeSpan.FromSeconds(60);
-                        options.OutputPathAndFileName = configuration.GetValue<string>(OptionFilePath) ?? DefaultFilePath;
-                    })
+            const string metricsFilePathOption = "MetricsOptions:FilePath";
+            const string defaultFilePath = "../../metrics/metrics.txt";
+
+            metricsBuilder.Report.ToTextFile(
+            options =>
+            {
+                options.MetricsOutputFormatter = new MetricsTextOutputFormatter();
+                options.AppendMetricsToTextFile = false;
+                options.Filter = filter;
+                options.FlushInterval = TimeSpan.FromSeconds(60);
+                options.OutputPathAndFileName =
+                    configuration.GetValue<string>(metricsFilePathOption) ?? defaultFilePath;
+            });
 #endif
-                .Build();
+            var metrics = metricsBuilder.Build();
 
             builder.Services
                 .AddMetrics(metrics);
             builder.Services
                 .AddAppMetricsCollectors();
-            
+
             builder.Host
                 .UseMetrics(metricsWebHostOptions =>
                 {
