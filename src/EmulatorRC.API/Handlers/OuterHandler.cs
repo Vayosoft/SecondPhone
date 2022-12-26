@@ -59,7 +59,7 @@ namespace EmulatorRC.API.Handlers
                                 break;
                             }
                             case HandshakeStatus.Failed:
-                                throw new Exception($"{connection.RemoteEndPoint} Authentication failed\r\n" +
+                                throw new ApplicationException($"{connection.RemoteEndPoint} Authentication failed\r\n" +
                                                     $"Length: {buffer.Length}\r\n" +
                                                     $"Hex: {Convert.ToHexString(buffer.ToArray())}\r\n" +
                                                     $"UTF8: {Encoding.UTF8.GetString(buffer)}"
@@ -87,12 +87,8 @@ namespace EmulatorRC.API.Handlers
 
                 await connection.Transport.Input.CompleteAsync();
             }
-            catch (ConnectionResetException)
-            {
-            }
-            catch (OperationCanceledException)
-            {
-            }
+            catch (ConnectionResetException) { }
+            catch (OperationCanceledException) { }
             catch (Exception e)
             {
                 _logger.LogError(e, "{connectionId} => {error}", connection.ConnectionId, e.Message);

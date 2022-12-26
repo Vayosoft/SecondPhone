@@ -5,7 +5,6 @@ using System.Buffers;
 using System.IO.Pipelines;
 using System.Text;
 using System.Text.RegularExpressions;
-using Commons.Core.Extensions;
 
 namespace EmulatorRC.API.Handlers
 {
@@ -145,14 +144,14 @@ namespace EmulatorRC.API.Handlers
         {
             var reader = new SequenceReader<byte>(buffer);
 
-            if (!reader.IsNext(CommandVideo, true)) throw new Exception("Authentication required");
+            if (!reader.IsNext(CommandVideo, true)) throw new ApplicationException("Authentication failed");
 
             var str = Encoding.UTF8.GetString(reader.UnreadSequence);
             var m = HandshakeRegex().Match(str);
 
-            if (!m.Success || m.Groups.Count < 4) throw new Exception("Authorization required");
+            if (!m.Success || m.Groups.Count < 4) throw new ApplicationException("Authorization failed");
 
-            if (!int.TryParse(m.Groups[1].Value, out width) || !int.TryParse(m.Groups[2].Value, out height)) throw new Exception("Authorization required");
+            if (!int.TryParse(m.Groups[1].Value, out width) || !int.TryParse(m.Groups[2].Value, out height)) throw new ApplicationException("Authorization failed");
             
             session = new DeviceSession {DeviceId = m.Groups[3].Value, StreamType = "cam"};
 
