@@ -8,7 +8,7 @@ namespace Benchmarks
     [MemoryDiagnoser]
     public class HttpBenchmarks
     {
-        private static EmulatorService UserService { get; }
+        private static MessageService UserService { get; }
 
         static HttpBenchmarks()
         {
@@ -16,11 +16,11 @@ namespace Benchmarks
                 .ConfigureServices(services =>
                 {
                     services.AddHttpClient();
-                    services.AddTransient<EmulatorService>();
+                    services.AddTransient<MessageService>();
                 })
                 .Build();
 
-            UserService = host.Services.GetRequiredService<EmulatorService>();
+            UserService = host.Services.GetRequiredService<MessageService>();
         }
 
 

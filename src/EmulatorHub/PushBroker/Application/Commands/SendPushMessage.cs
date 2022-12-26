@@ -67,7 +67,7 @@ namespace EmulatorHub.PushBroker.Application.Commands
 
             if (string.IsNullOrEmpty(emulator.Client.PushToken))
             {
-                return new Result<Unit>(new ValidationException("The client has not token."));
+                return new Result<Unit>(new ValidationException("The client has no token."));
             }
 
             _channel.Enqueue(new PushMessage(emulator.Client.PushToken, request.Message));
