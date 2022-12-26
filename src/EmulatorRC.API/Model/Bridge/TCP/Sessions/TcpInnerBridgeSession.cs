@@ -1,10 +1,12 @@
 ﻿using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Channels;
 using Commons.Core.Application;
 using Commons.Core.Exceptions;
 using Commons.Core.Helpers;
+using Commons.Core.Security;
 using EmulatorRC.API.Channels;
 using EmulatorRC.Entities;
 using NetCoreServer;
@@ -23,7 +25,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
 
         private const string PING_COMMAND = "CMD /v1/ping";
 
-        private const RegexOptions REGEX_OPTIONS = RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline;
+        private readonly RegexOptions _regexOptions = RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline;
 
         protected override ILogger Logger()
         {
@@ -57,7 +59,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             {
                 try
                 {
-                    var tcpData = buffer.SubArrayFast((int)offset, (int)size);
+                    var tcpData = buffer.SubArray((int)offset, (int)size);
                     var payload = Encoding.UTF8.GetString(tcpData);
                     if (payload == PING_COMMAND)
                         return;
@@ -75,7 +77,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                     
                     if (payload.StartsWith("GET /battery"))
                     {
-                        SendAsync("\r\n\r\n100");
+                        Send("\r\n\r\n100");
                     }
                     else
                     {
@@ -110,7 +112,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                 if (s.Length == 0)
                     return false;
 
-                var m = Regex.Match(s, "(\\d+)x(\\d+)&id=(\\w+)", REGEX_OPTIONS);
+                var m = Regex.Match(s, "(\\d+)x(\\d+)&id=(\\w+)", _regexOptions);
                 if (!m.Success || m.Groups.Count < 4)
                     return false;
                 
@@ -122,7 +124,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                 if (w == 0 || h == 0 || string.IsNullOrEmpty(deviceId))
                     return false;
 
-                SendAsync(CreateMockHeader(w, h));
+                Send(CreateMockHeader(w, h));
 
                 authData = new DeviceSession { DeviceId = deviceId, StreamType = "cam" };
             }
@@ -141,18 +143,15 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
             return true;
         }
         
-        private async void ReadThatStream()
+        private async void ReadThatStream2()
         {
             try
             {
                 _isQueueStreamRunning = true;
 
-                _logger.LogInformation("INNER.ReadThatStream: ThatStreamId={ThatStreamId}", ThatStreamId);
                 await foreach (var data in StreamChannel.ReadAllAsync(ThatStreamId, AppCancellationToken))
                 {
-                    var res = SendAsync(data.SubArrayFast());
-                    _logger.LogInformation("SendToClientAsync: data size: {size}", data.Length);
-                    // _logger.LogInformation("SendToClientAsync: {side} | {ThatStreamId} -> {ThisStreamId}| {message}, {res}", ThisStreamId, ThatStreamId, ThisStreamId, Encoding.UTF8.GetString(b, 0, b.Length), res);
+                    Send(data.SubArray());
                 }
             }
             catch (OperationCanceledException) { }
@@ -166,10 +165,31 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                 _logger.LogInformation("ReadThatStream.{thisSide} | {thisStream}: Stream from: {thatStream} closed", ThisSideName, ThisStreamId, ThatStreamId);
 
                 _isQueueStreamRunning = false;
-
                 Disconnect();
-                // if (IsConnected)
-                // SwitchFakeFire(true);
+            }
+        }
+
+        private async void ReadThatStream()
+        {
+            try
+            {
+                _isQueueStreamRunning = true;
+
+                await StreamChannel.Consume(ThatStreamId, (data) =>
+                {
+                    Send(data);
+                }, AppCancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("ReadThatStream.{thisSide} | {thisStream} | {type}: {error}", ThisSideName, ThisStreamId, ex.GetType(), ex);
+            }
+            finally
+            {
+                _logger.LogInformation("ReadThatStream.{thisSide} | {thisStream}: Stream from: {thatStream} closed", ThisSideName, ThisStreamId, ThatStreamId);
+
+                _isQueueStreamRunning = false;
+                Disconnect();
             }
         }
 

@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
 using EmulatorRC.Entities;
 using System.Net.Sockets;
+using System.Text;
 using Commons.Core.Cryptography;
 using Commons.Core.Extensions;
 using Commons.Core.Helpers;
+using Commons.Core.Utilities;
 using Xunit.Abstractions;
 
 namespace EmulatorRC.IntegrationTests;
@@ -12,8 +14,8 @@ namespace EmulatorRC.IntegrationTests;
 public class TcpBridgeTests
 {
     // private const string SourceFileName = @"D:\Distr\MySoft\a.txt";
-    private const string SourceFileName = @"D:\Distr\MySoft\VirtualBox-6.1.2-135663-Win.exe";
-    private const string TargetFileName = @"D:\temp\tcp_test\VirtualBox-6.1.2-135663-Win.exe";
+    private const string SOURCE_FILE_NAME = @"D:\Distr\MySoft\VirtualBox-6.1.2-135663-Win.exe";
+    private const string TARGET_FILE_NAME = @"D:\temp\tcp_test\VirtualBox-6.1.2-135663-Win.exe";
     public ITestOutputHelper Helper;
 
     public TcpBridgeTests(ITestOutputHelper helper)
@@ -23,9 +25,68 @@ public class TcpBridgeTests
 
 
     [Fact]
-    public async Task TcpClientTest()
+    public void TcpImageClientTest()
     {
-        File.Delete(TargetFileName);
+        var images = new List<byte[]>();
+        var headers = new List<byte[]>();
+
+        var files = Directory.GetFiles("D:\\temp\\images").ToList().OrderBy(f => f).ToList();
+        foreach (var f in files)
+        {
+            var image = File.ReadAllBytes(f);
+            images.Add(image);
+            headers.Add(BitConverter.GetBytes(image.Length));
+        }
+
+        // var image = File.ReadAllBytes(@"D:\Sources\SecondPhone\resources\images\test\test-img-1.jpg");
+        // var image2 = File.ReadAllBytes(@"D:\Sources\SecondPhone\resources\images\droidcam\640x480.jpg");
+
+        // Helper.WriteLine($"image md5: {image.MD5()}");
+        // Helper.WriteLine($"image2 md5: {image2.MD5()}");
+
+        var tcsProducer = new TaskCompletionSource();
+        var outer = new TcpImageClient("127.0.0.1", 5009, tcsProducer);
+        // var outer = new TcpImageClient("192.168.10.6", 5009, tcsProducer);
+        outer.OptionNoDelay = true;
+        outer.ConnectAsync();
+        while (!outer.IsConnected)
+            Thread.Yield();
+
+        var deviceSession = new DeviceSession
+        {
+            AccessToken = "11",
+            DeviceId = "default",
+            StreamType = "cam"
+        }.ToJSON();
+        
+        var jsonHeader = Encoding.UTF8.GetBytes(deviceSession);
+        var jsonHeaderLength = BitConverter.GetBytes(jsonHeader.Length);
+        outer.Send(jsonHeaderLength);
+        outer.Send(jsonHeader);
+
+        foreach (var j in Enumerable.Range(0, 10000))
+        {
+            for (var i = 0; i < images.Count; i++)
+            {
+                outer.Send(headers[i]);
+                outer.Send(images[i]);
+                Thread.Sleep(40);
+            }
+        }
+
+        /*// incomplete image buffer
+        outer.Send(BitConverter.GetBytes(image.Length + 1));
+        outer.Send(image.SubArray(0, 20));*/
+
+        outer.DisconnectAsync();
+        while (outer.IsConnected)
+            Thread.Yield();
+    }
+
+    [Fact]
+    public void TcpClientTest()
+    {
+        File.Delete(TARGET_FILE_NAME);
 
         var sw = new Stopwatch();
         var tcsProducer = new TaskCompletionSource();
@@ -57,12 +118,12 @@ public class TcpBridgeTests
         while (emulatorClient.IsConnected || producerTcpClient.IsConnected)
             Thread.Yield();
         
-        var mb = Math.Round(new FileInfo(SourceFileName).Length / 1024.0 / 1024.0 / sw.Elapsed.TotalSeconds, 2);
+        var mb = Math.Round(new FileInfo(SOURCE_FILE_NAME).Length / 1024.0 / 1024.0 / sw.Elapsed.TotalSeconds, 2);
         
         Helper.WriteLine($"time={sw.ElapsedMilliseconds}(ms), ~{mb} (MB/sec)");
 
-        var shash = new FileInfo(SourceFileName).MD5();
-        var thash = new FileInfo(TargetFileName).MD5();
+        var shash = new FileInfo(SOURCE_FILE_NAME).MD5();
+        var thash = new FileInfo(TARGET_FILE_NAME).MD5();
 
         Helper.WriteLine($"sourceHash={shash}");
         Helper.WriteLine($"targetHash={thash}, equal: {shash == thash}");
@@ -81,7 +142,7 @@ public class TcpBridgeTests
         {
             _isSourceClient = isSourceClient;
             _taskCompletion = taskCompletion;
-            _sourceSize = new FileInfo(SourceFileName).Length;
+            _sourceSize = new FileInfo(SOURCE_FILE_NAME).Length;
         }
 
         protected override void OnConnected()
@@ -103,14 +164,14 @@ public class TcpBridgeTests
 
                 Send(handshake);
 
-                _sourceFileStream = new FileStream(SourceFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize: 1024, true);
+                _sourceFileStream = new FileStream(SOURCE_FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize: 1024, true);
                 ThreadPool.QueueUserWorkItem(_ => StartSourceWrite());
             }
             else
             {
                 Send("CMD /v2/video.4?640x480&id=default1");
 
-                _targetFileStream = new FileStream(TargetFileName, FileMode.Create, FileAccess.Write, FileShare.ReadWrite, bufferSize: 1024, true);
+                _targetFileStream = new FileStream(TARGET_FILE_NAME, FileMode.Create, FileAccess.Write, FileShare.ReadWrite, bufferSize: 1024, true);
                 _writtenBytes = 0;
             }
         }
@@ -170,5 +231,31 @@ public class TcpBridgeTests
             }
             
         }
+    }
+
+    class TcpImageClient : NetCoreServer.TcpClient
+    {
+        private readonly TaskCompletionSource _taskCompletion;
+        
+        public TcpImageClient(string address, int port, TaskCompletionSource taskCompletion) : base(address, port)
+        {
+            _taskCompletion = taskCompletion;
+        }
+
+        protected override void OnReceived(byte[] buffer, long offset, long size)
+        {
+            
+        }
+
+        protected override void OnError(SocketError error)
+        {
+            Console.WriteLine($"Client caught an error with code {error}");
+        }
+
+        protected override void OnDisconnected()
+        {
+            Console.WriteLine($"Client disconnected");
+        }
+        
     }
 }

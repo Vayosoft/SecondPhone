@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net.Sockets;
+using System.Text;
 using System.Threading.Channels;
 using Commons.Core.Application;
 using Commons.Core.Exceptions;
@@ -18,7 +19,7 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
         
         private HandshakeStatus _handshakeStatus;
         private List<byte> _handshakeBuffer;
-        private int _handshakeBufferLength;
+        private uint _handshakeBufferLength;
         
 
         protected override ILogger Logger()
@@ -59,10 +60,11 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                     if (size > 10485760) // 10MB
                     {
                         _logger.LogError("OnReceived.{thisSide} | {thisStream}: too big buffer size: {size}", ThisSideName, ThisStreamId, size);
+                        Disconnect();
                         return;
                     }
                     
-                    var tcpData = buffer.SubArrayFast((int)offset, (int)size);
+                    var tcpData = buffer.SubArray((int)offset, (int)size);
                     if (_handshakeStatus == HandshakeStatus.Successful)
                     {
                         StreamChannel.Write(ThisStreamId, tcpData);
@@ -108,14 +110,14 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                         throw new ArgumentException("handshake header required 4 bytes");
 
                     _handshakeBuffer = new List<byte>();
-                    _handshakeBufferLength = BitConverter.ToUInt16(data.Take(requiredHeaderLength).ToArray(), 0);
+                    _handshakeBufferLength = BitConverter.ToUInt32(data.Take(requiredHeaderLength).ToArray(), 0);
                     data = data.Skip(requiredHeaderLength).ToList();
                 }
 
                 var restBuffer = new List<byte>();
                 if (_handshakeBuffer.Count < _handshakeBufferLength)
                 {
-                    var required = Math.Min(_handshakeBufferLength - _handshakeBuffer.Count, data.Count);
+                    var required = (int)Math.Min(_handshakeBufferLength - _handshakeBuffer.Count, data.Count);
                     _handshakeBuffer.AddRange(data.Take(required));
                     restBuffer.AddRange(data.Skip(required));
                 }
@@ -162,11 +164,10 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
         {
             try
             {
-                _logger.LogInformation("INNER.ReadThatStream: ThatStreamId={ThatStreamId}", ThatStreamId);
+                // _logger.LogInformation("OUTER.ReadThatStream: ThatStreamId={ThatStreamId}", ThatStreamId);
                 await foreach (var data in StreamChannel.ReadAllAsync(ThatStreamId, AppCancellationToken))
                 {
-                    var res = SendAsync(data.SubArrayFast());
-                    // _logger.LogInformation("SendToClientAsync: {side} | {ThatStreamId} -> {ThisStreamId}| {message}, {res}", ThisStreamId, ThatStreamId, ThisStreamId, Encoding.UTF8.GetString(b, 0, b.Length), res);
+                    Send(data.SubArray());
                 }
             }
             catch (OperationCanceledException) { }
@@ -180,6 +181,11 @@ namespace EmulatorRC.API.Model.Bridge.TCP.Sessions
                 _logger.LogInformation("ReadThatStream.{thisSide} | {thisStream}: Stream from: {thatStream} closed", ThisSideName, ThisStreamId, ThatStreamId);
                 Disconnect();
             }
+        }
+
+        protected override void OnError(SocketError error)
+        {
+            _logger.LogInformation("Side: {side} | {clientId} Socket error: {error}", ThatStreamId, ClientId, error);
         }
 
         protected override void OnDisconnected()
