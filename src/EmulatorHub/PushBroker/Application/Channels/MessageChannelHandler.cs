@@ -25,9 +25,9 @@ namespace EmulatorHub.PushBroker.Application.Channels
                 _logger.LogDebug("Sending push message...\r\n{payload}", message.Payload);
             }
 
-            //_pushFactory
-            //    .GetFor("Android")
-            //    .Send(message.PushToken, JObject.Parse(message.Payload));
+            _pushFactory
+                .GetFor("Android")
+                .Send(message.PushToken, JObject.Parse(message.Payload));
 
             return ValueTask.CompletedTask;
         }
