@@ -9,11 +9,11 @@ namespace EmulatorRC.API.Channels
         private readonly ConcurrentDictionary<string, object> _locks = new();
         private readonly object _deletingLock = new();
 
-        private readonly BoundedChannelOptions _options = new(10000)
+        private readonly BoundedChannelOptions _options = new(5000)
         {
             SingleWriter = true,
             SingleReader = true,
-            AllowSynchronousContinuations = true,
+            AllowSynchronousContinuations = false,
             FullMode = BoundedChannelFullMode.DropOldest
         };
 
@@ -47,6 +47,49 @@ namespace EmulatorRC.API.Channels
                 }
 
                 return channel;
+            }
+        }
+
+        public async Task Consume(string streamId, Action<byte[]> onDataReceived,  CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var channelReader = this[streamId].Reader;
+
+                while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    try
+                    {
+                        if (channelReader.TryRead(out var item))
+                        {
+                            // var item = await _channelReader.ReadAsync(_globalCancellationToken).ConfigureAwait(false);
+
+                            onDataReceived(item);
+                            //ThreadPool.QueueUserWorkItem(o => { _consumeAction.Invoke(item, _cts.Token); });
+                        }
+                    }
+                    catch (ChannelClosedException)
+                    {
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Logger?.Trace($"[{WorkerName}]: task cancel");
+                    }
+                    catch (Exception exception)
+                    {
+                        // Logger?.Warning($"[{WorkerName}]: Exception occurred: {exception}");
+                    }
+                }
+
+                // Logger?.Trace($"[{WorkerName}]: Shutdown gracefully");
+            }
+            catch (OperationCanceledException)
+            {
+                // Logger?.Trace($"[{WorkerName}]: Shutdown due to cancel");
+            }
+            catch (Exception e)
+            {
+                // Logger?.Warning($"[{WorkerName}]: Shutdown error: {e.Message}");
             }
         }
 
