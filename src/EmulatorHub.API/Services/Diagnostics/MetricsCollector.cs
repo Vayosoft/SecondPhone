@@ -33,7 +33,8 @@ namespace EmulatorHub.API.Services.Diagnostics
                             From = time.AddMinutes(-1),
                             To = time
                         },
-                        Channels = new Dictionary<string, ChannelHandlerTelemetrySnapshot>(1) {{"PushBroker", (ChannelHandlerTelemetrySnapshot)snapshot} }
+                        Channels = new Dictionary<string, ChannelHandlerTelemetrySnapshot>(1)
+                            {{"PushBroker", (ChannelHandlerTelemetrySnapshot)snapshot} }
                     };
 
                     _logger.LogInformation("[snapshot]\r\n{measurements}", measurements.ToJson());
