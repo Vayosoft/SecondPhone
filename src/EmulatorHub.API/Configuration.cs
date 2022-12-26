@@ -1,6 +1,6 @@
-﻿using App.Metrics.AspNetCore;
-using App.Metrics.Filtering;
+﻿using App.Metrics.Filtering;
 using App.Metrics;
+using App.Metrics.AspNetCore;
 using App.Metrics.Formatters.Ascii;
 using App.Metrics.Formatters.Prometheus;
 using EmulatorHub.API.Services.Diagnostics;
@@ -44,8 +44,6 @@ namespace EmulatorHub.API
 
             builder.Services
                 .AddMetrics(metrics);
-            builder.Services
-                .AddAppMetricsCollectors();
 
             builder.Host
                 .UseMetrics(metricsWebHostOptions =>
