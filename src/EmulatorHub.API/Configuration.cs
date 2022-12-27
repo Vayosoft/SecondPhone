@@ -9,9 +9,9 @@ namespace EmulatorHub.API
 {
     public static class Configuration
     {
-        private static IServiceCollection AddChannelMetrics(this IServiceCollection services)
+        private static IServiceCollection AddApplicationMetrics(this IServiceCollection services)
         {
-            services.AddHostedService<MetricsCollector>();
+            services.AddHostedService<AppMetricsCollector>();
 
             return services;
         }
@@ -19,7 +19,7 @@ namespace EmulatorHub.API
         public static IServiceCollection AddDiagnostics(this WebApplicationBuilder builder)
         {
             //channels
-            builder.Services.AddChannelMetrics();
+            builder.Services.AddApplicationMetrics();
 
             var configuration = builder.Configuration;
 
