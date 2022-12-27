@@ -24,21 +24,23 @@ namespace EmulatorHub.API
             var configuration = builder.Configuration;
 
             var filter = new MetricsFilter();
-            var metricsBuilder = AppMetrics.CreateDefaultBuilder();
+            var metricsBuilder = AppMetrics.CreateDefaultBuilder(); ;
 #if DEBUG
             const string metricsFilePathOption = "MetricsOptions:FilePath";
-            const string defaultFilePath = "../../metrics/metrics.txt";
+            var filePath = configuration.GetValue<string>(metricsFilePathOption);
 
-            metricsBuilder.Report.ToTextFile(
-            options =>
+            if (!string.IsNullOrEmpty(filePath))
             {
-                options.MetricsOutputFormatter = new MetricsTextOutputFormatter();
-                options.AppendMetricsToTextFile = false;
-                options.Filter = filter;
-                options.FlushInterval = TimeSpan.FromSeconds(60);
-                options.OutputPathAndFileName =
-                    configuration.GetValue<string>(metricsFilePathOption) ?? defaultFilePath;
-            });
+                metricsBuilder.Report.ToTextFile(
+                    options =>
+                    {
+                        options.MetricsOutputFormatter = new MetricsTextOutputFormatter();
+                        options.AppendMetricsToTextFile = false;
+                        options.Filter = filter;
+                        options.FlushInterval = TimeSpan.FromSeconds(60);
+                        options.OutputPathAndFileName = filePath;
+                    });
+            }
 #endif
             var metrics = metricsBuilder.Build();
 
@@ -50,7 +52,7 @@ namespace EmulatorHub.API
                 {
                     metricsWebHostOptions.EndpointOptions = metricEndpointsOptions =>
                     {
-                        metricEndpointsOptions.MetricsEndpointOutputFormatter = new MetricsPrometheusProtobufOutputFormatter();
+                        metricEndpointsOptions.MetricsEndpointOutputFormatter = new MetricsTextOutputFormatter();
                         metricEndpointsOptions.MetricsTextEndpointOutputFormatter = new MetricsPrometheusTextOutputFormatter();
 
                         metricEndpointsOptions.EnvironmentInfoEndpointEnabled = false;
