@@ -46,6 +46,8 @@ public class Program
 
                 var configuration = builder.Configuration;
 
+                builder.AddDiagnostics();
+
                 builder.WebHost.ConfigureKestrel(options =>
                 {
                     options.AddServerHeader = false;
