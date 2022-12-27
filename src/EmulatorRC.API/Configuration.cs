@@ -4,6 +4,7 @@ using App.Metrics.Extensions.Configuration;
 using App.Metrics.Filtering;
 using App.Metrics.Formatters.Ascii;
 using App.Metrics.Formatters.Prometheus;
+using EmulatorRC.API.Services.Diagnostics;
 
 namespace EmulatorRC.API
 {
@@ -22,7 +23,9 @@ namespace EmulatorRC.API
             var metrics = metricsBuilder.Build();
 
             builder.Services
-                .AddMetrics(metrics);
+                .AddMetrics(metrics)
+                .AddAppMetricsSystemMetricsCollector()
+                .AddAppMetricsGcEventsMetricsCollector();
 
             builder.Host
                 .UseMetrics(metricsWebHostOptions =>
@@ -36,6 +39,8 @@ namespace EmulatorRC.API
                         metricEndpointsOptions.EnvironmentInfoEndpointEnabled = false;
                     };
                 });
+
+            builder.Services.AddHostedService<AppMetricsCollector>();
 
             return builder.Services;
         }

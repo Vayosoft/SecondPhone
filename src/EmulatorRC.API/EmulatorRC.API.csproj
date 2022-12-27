@@ -10,6 +10,7 @@
     
   <ItemGroup>
 	<PackageReference Include="App.Metrics.AspNetCore" Version="4.3.0" />
+	<PackageReference Include="App.Metrics.Extensions.Collectors" Version="4.3.0" />
 	<PackageReference Include="App.Metrics.Extensions.Configuration" Version="4.3.0" />
     <PackageReference Include="App.Metrics.Formatters.Prometheus" Version="4.3.0" />
 	<PackageReference Include="Grpc.AspNetCore" Version="2.50.0" />

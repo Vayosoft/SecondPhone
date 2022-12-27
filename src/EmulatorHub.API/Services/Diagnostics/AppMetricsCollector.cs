@@ -1,49 +1,46 @@
-﻿using EmulatorHub.PushBroker.Application.Channels;
+﻿using App.Metrics;
+using EmulatorHub.API.Model.Diagnostics;
+using EmulatorHub.PushBroker.Application.Channels;
 using EmulatorHub.PushBroker.Application.Models;
+using Microsoft.Extensions.Options;
 using Vayosoft.Threading.Channels;
 using Vayosoft.Threading.Channels.Models;
 using Vayosoft.Utilities;
 
 namespace EmulatorHub.API.Services.Diagnostics
 {
-    public class AppMetricsCollector : BackgroundService
+    public sealed class AppMetricsCollector : BackgroundService
     {
         private readonly HandlerChannel<PushMessage, MessageChannelHandler> _channel;
+        private readonly PeriodicTimer _timer;
+        private readonly IMetrics _metrics;
         private readonly ILogger<AppMetricsCollector> _logger;
 
-        public AppMetricsCollector(HandlerChannel<PushMessage, MessageChannelHandler> channel, ILogger<AppMetricsCollector> logger)
+        public AppMetricsCollector(IMetrics metrics,
+            IOptions<CollectorOptions> options,
+            HandlerChannel<PushMessage, MessageChannelHandler> channel,
+            ILogger<AppMetricsCollector> logger)
         {
+            _metrics = metrics;
             _channel = channel;
             _logger = logger;
+
+            _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(options.Value.CollectIntervalMilliseconds));
         }
 
-        protected override async Task ExecuteAsync(CancellationToken token)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             try
             {
-                while (!token.IsCancellationRequested)
+                while (await _timer.WaitForNextTickAsync(stoppingToken))
                 {
-                    var time = DateTime.Now;
-                    var snapshot = _channel.GetSnapshot();
-                    var measurements = new Measurements
-                    {
-                        SnapshotTime = new SnapshotTime
-                        {
-                            From = time.AddMinutes(-1),
-                            To = time
-                        },
-                        Channels = new Dictionary<string, ChannelHandlerTelemetrySnapshot>(1)
-                            {{"PushBroker", (ChannelHandlerTelemetrySnapshot)snapshot} }
-                    };
-
-                    _logger.LogInformation("[snapshot]\r\n{measurements}", measurements.ToJson());
-
-                    await Task.Delay(TimeSpan.FromMinutes(1), token);
+                    CollectData();
                 }
             }
-            catch (Exception ex)
+            catch (OperationCanceledException) { }
+            catch (Exception e)
             {
-                _logger.LogError(ex, "{Message}", ex.Message);
+                _logger.LogError("An error occurred. {message}", e.Message);
 
                 // Terminates this process and returns an exit code to the operating system.
                 // This is required to avoid the 'BackgroundServiceExceptionBehavior', which
@@ -55,6 +52,28 @@ namespace EmulatorHub.API.Services.Diagnostics
                 // recovery options, we need to terminate the process with a non-zero exit code.
                 Environment.Exit(1);
             }
+        }
+        private void CollectData()
+        {
+            var time = DateTime.Now;
+            var snapshot = _channel.GetSnapshot();
+            var measurements = new Measurements
+            {
+                SnapshotTime = new SnapshotTime
+                {
+                    From = time.AddMinutes(-1),
+                    To = time
+                },
+                Channels = new Dictionary<string, ChannelHandlerTelemetrySnapshot>(1)
+                    {{"PushBroker", (ChannelHandlerTelemetrySnapshot)snapshot} }
+            };
+
+            _logger.LogInformation("[snapshot]\r\n{measurements}", measurements.ToJson());
+        }
+
+        public override void Dispose()
+        {
+            _timer.Dispose();
         }
     }
 }
