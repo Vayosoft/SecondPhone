@@ -56,9 +56,9 @@ namespace EmulatorHub.API
                 {
                     metricsWebHostOptions.EndpointOptions = metricEndpointsOptions =>
                     {
-                        metricEndpointsOptions.MetricsEndpointOutputFormatter = new MetricsTextOutputFormatter();
+                        metricEndpointsOptions.MetricsEndpointOutputFormatter = new MetricsPrometheusTextOutputFormatter();
                         metricEndpointsOptions.MetricsTextEndpointOutputFormatter =
-                            new MetricsPrometheusTextOutputFormatter();
+                            new MetricsTextOutputFormatter();
 
                         metricEndpointsOptions.EnvironmentInfoEndpointEnabled = false;
                     };
