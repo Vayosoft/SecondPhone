@@ -2,6 +2,7 @@
 using App.Metrics;
 using App.Metrics.AspNetCore;
 using App.Metrics.Formatters.Ascii;
+using App.Metrics.Formatters.Json;
 using App.Metrics.Formatters.Prometheus;
 using EmulatorHub.API.Services.Diagnostics;
 
@@ -23,8 +24,10 @@ namespace EmulatorHub.API
 
             var configuration = builder.Configuration;
 
-            var filter = new MetricsFilter();
-            var metricsBuilder = AppMetrics.CreateDefaultBuilder(); ;
+            var filter = new MetricsFilter()
+                .WhereContext(name => name != "appmetrics.internal");
+
+            var metricsBuilder = AppMetrics.CreateDefaultBuilder();
 #if DEBUG
             const string metricsFilePathOption = "MetricsOptions:FilePath";
             var filePath = configuration.GetValue<string>(metricsFilePathOption);
@@ -53,7 +56,8 @@ namespace EmulatorHub.API
                     metricsWebHostOptions.EndpointOptions = metricEndpointsOptions =>
                     {
                         metricEndpointsOptions.MetricsEndpointOutputFormatter = new MetricsTextOutputFormatter();
-                        metricEndpointsOptions.MetricsTextEndpointOutputFormatter = new MetricsPrometheusTextOutputFormatter();
+                        metricEndpointsOptions.MetricsTextEndpointOutputFormatter =
+                            new MetricsPrometheusTextOutputFormatter();
 
                         metricEndpointsOptions.EnvironmentInfoEndpointEnabled = false;
                     };
