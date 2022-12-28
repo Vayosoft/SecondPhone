@@ -1,0 +1,36 @@
+version: '3.3'
+services:
+ 
+  prom:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometeus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+      
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    environment:
+      #GF_SECURITY_ADMIN_USER: ${ADMIN_USER}
+      #GF_SECURITY_ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      #GF_USERS_ALLOW_SIGN_UP: "false"
+      
+      GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_SIGNOUT_MENU: "true"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    ports:
+      - 3001:3001
+    volumes:
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+      - grafana_data:/var/lib/grafana
+      
+      #http://host.docker.internal:9090
+    
+volumes:
+  prometheus_data: null
+  grafana_data: null
