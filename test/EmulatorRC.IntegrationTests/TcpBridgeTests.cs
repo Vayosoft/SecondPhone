@@ -29,7 +29,7 @@ public class TcpBridgeTests
         var images = new List<byte[]>();
         var headers = new List<byte[]>();
 
-        var files = Directory.GetFiles("../../data/images").ToList().OrderBy(f => f).ToList();
+        var files = Directory.EnumerateFiles("../../../data/images/");
         foreach (var f in files)
         {
             var image = File.ReadAllBytes(f);
@@ -44,8 +44,8 @@ public class TcpBridgeTests
         // Helper.WriteLine($"image2 md5: {image2.MD5()}");
 
         var tcsProducer = new TaskCompletionSource();
-        var outer = new TcpImageClient("127.0.0.1", 5009, tcsProducer);
-        // var outer = new TcpImageClient("192.168.10.6", 5009, tcsProducer);
+        //var outer = new TcpImageClient("127.0.0.1", 5009, tcsProducer);
+         var outer = new TcpImageClient("192.168.10.6", 5009, tcsProducer);
         outer.OptionNoDelay = true;
         outer.ConnectAsync();
         while (!outer.IsConnected)
