@@ -49,7 +49,9 @@ namespace EmulatorHub.API
             var metrics = metricsBuilder.Build();
 
             builder.Services
-                .AddMetrics(metrics);
+                .AddMetrics(metrics)
+                .AddAppMetricsSystemMetricsCollector()
+                .AddAppMetricsGcEventsMetricsCollector();
 
             builder.Host
                 .UseMetrics(metricsWebHostOptions =>

@@ -5,7 +5,7 @@ using EmulatorHub.PushBroker.Application.Models;
 using Microsoft.Extensions.Options;
 using Vayosoft.Threading.Channels;
 using Vayosoft.Threading.Channels.Models;
-using Vayosoft.Utilities;
+using static EmulatorHub.API.Services.Diagnostics.AppMetricsRegistry.Channels;
 
 namespace EmulatorHub.API.Services.Diagnostics
 {
@@ -15,6 +15,8 @@ namespace EmulatorHub.API.Services.Diagnostics
         private readonly PeriodicTimer _timer;
         private readonly IMetrics _metrics;
         private readonly ILogger<AppMetricsCollector> _logger;
+
+        public const string PushBroker = "push_broker";
 
         public AppMetricsCollector(IMetrics metrics,
             IOptions<CollectorOptions> options,
@@ -42,33 +44,16 @@ namespace EmulatorHub.API.Services.Diagnostics
             {
                 _logger.LogError("An error occurred. {message}", e.Message);
 
-                // Terminates this process and returns an exit code to the operating system.
-                // This is required to avoid the 'BackgroundServiceExceptionBehavior', which
-                // performs one of two scenarios:
-                // 1. When set to "Ignore": will do nothing at all, errors cause zombie services.
-                // 2. When set to "StopHost": will cleanly stop the host, and log errors.
-                //
-                // In order for the Windows Service Management system to leverage configured
-                // recovery options, we need to terminate the process with a non-zero exit code.
                 Environment.Exit(1);
             }
         }
         private void CollectData()
         {
-            var time = DateTime.Now;
-            var snapshot = _channel.GetSnapshot();
-            var measurements = new Measurements
-            {
-                SnapshotTime = new SnapshotTime
-                {
-                    From = time.AddMinutes(-1),
-                    To = time
-                },
-                Channels = new Dictionary<string, ChannelHandlerTelemetrySnapshot>(1)
-                    {{"PushBroker", (ChannelHandlerTelemetrySnapshot)snapshot} }
-            };
-
-            _logger.LogInformation("[snapshot]\r\n{measurements}", measurements.ToJson());
+            var snapshot = (ChannelHandlerTelemetrySnapshot)_channel.GetSnapshot();
+            
+            _metrics.Measure.Gauge.SetValue(Length(PushBroker), snapshot.HandlerTelemetrySnapshot.Length);
+            _metrics.Measure.Gauge.SetValue(OperationCount(PushBroker), snapshot.HandlerTelemetrySnapshot.OperationCount);
+            _metrics.Measure.Gauge.SetValue(OperationTime(PushBroker), snapshot.HandlerTelemetrySnapshot.MeasurementTimeMs);
         }
 
         public override void Dispose()
