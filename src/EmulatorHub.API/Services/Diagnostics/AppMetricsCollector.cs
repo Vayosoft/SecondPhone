@@ -54,6 +54,7 @@ namespace EmulatorHub.API.Services.Diagnostics
             _metrics.Measure.Gauge.SetValue(Length(PushBroker), snapshot.HandlerTelemetrySnapshot.Length);
             _metrics.Measure.Gauge.SetValue(OperationCount(PushBroker), snapshot.HandlerTelemetrySnapshot.OperationCount);
             _metrics.Measure.Gauge.SetValue(OperationTime(PushBroker), snapshot.HandlerTelemetrySnapshot.MeasurementTimeMs);
+            _metrics.Measure.Gauge.SetValue(DroppedItems(PushBroker), snapshot.DroppedItems);
         }
 
         public override void Dispose()

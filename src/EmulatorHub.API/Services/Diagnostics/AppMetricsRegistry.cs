@@ -39,6 +39,15 @@ namespace EmulatorHub.API.Services.Diagnostics
                 };
             }
 
+            public static GaugeOptions DroppedItems(string context)
+            {
+                return new GaugeOptions
+                {
+                    Context = Context + context,
+                    Name = "dropped_items",
+                    MeasurementUnit = Unit.Items
+                };
+            }
         }
     }
 }
