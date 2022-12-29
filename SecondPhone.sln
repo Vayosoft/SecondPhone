@@ -30,6 +30,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{9CACD2D9-EB03-4BC4-937B-8AB13FDAB265}"
 	ProjectSection(SolutionItems) = preProject
 		docker\.env = docker\.env
+		docker\docker-compose.metrics.yml = docker\docker-compose.metrics.yml
 		docker\docker-compose.yml = docker\docker-compose.yml
 	EndProjectSection
 EndProject
