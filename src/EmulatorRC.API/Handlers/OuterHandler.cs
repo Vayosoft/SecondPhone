@@ -141,6 +141,8 @@ namespace EmulatorRC.API.Handlers
                     }
                 }
 
+                //todo authentication
+
                 status = HandshakeStatus.Successful;
                 return reader.Position;
             }
