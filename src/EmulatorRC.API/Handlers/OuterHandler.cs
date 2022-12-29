@@ -122,7 +122,8 @@ namespace EmulatorRC.API.Handlers
                 {
                     Span<byte> payload = stackalloc byte[length];
                     header.CopyTo(payload);
-                    session = JsonSerializer.Deserialize<DeviceSession>(payload);
+                    session = JsonSerializer.Deserialize(payload,
+                        DeviceSessionJsonContext.Default.DeviceSession);
                 }
                 else
                 {
@@ -131,7 +132,8 @@ namespace EmulatorRC.API.Handlers
                     try
                     {
                         header.CopyTo(payload);
-                        session = JsonSerializer.Deserialize<DeviceSession>(payload.AsSpan()[..length]);
+                        session = JsonSerializer.Deserialize(payload.AsSpan()[..length],
+                            DeviceSessionJsonContext.Default.DeviceSession);
                     }
                     finally
                     {
