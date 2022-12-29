@@ -7,47 +7,34 @@ namespace EmulatorHub.API.Services.Diagnostics
     {
         public static class Channels
         {
-            private const string Context = "channel.";
-
-            public static GaugeOptions Length(string context)
+            private const string Context = "application_channels";
+            public static GaugeOptions Length => new()
             {
-                return new GaugeOptions
-                {
-                    Context = Context + context,
-                    Name = "length",
-                    MeasurementUnit = Unit.Items
-                };
-            }
+                Context = Context,
+                Name = "length",
+                MeasurementUnit = Unit.Items
+            };
 
-            public static GaugeOptions OperationCount(string context)
+            public static GaugeOptions OperationCount => new()
             {
-                return new GaugeOptions
-                {
-                    Context = Context + context,
-                    Name = "operation_count",
-                    MeasurementUnit = Unit.Calls
-                };
-            }
+                Context = Context,
+                Name = "operation_count", 
+                MeasurementUnit = Unit.Calls
+            };
 
-            public static GaugeOptions OperationTime(string context)
+            public static GaugeOptions OperationTime => new()
             {
-                return new GaugeOptions
-                {
-                    Context = Context + context,
-                    Name = "operation_time_ms",
-                    MeasurementUnit = Unit.None
-                };
-            }
+                Context = Context,
+                Name = "operation_time_ms",
+                MeasurementUnit = Unit.None
+            };
 
-            public static GaugeOptions DroppedItems(string context)
+            public static GaugeOptions DroppedItems => new()
             {
-                return new GaugeOptions
-                {
-                    Context = Context + context,
-                    Name = "dropped_items",
-                    MeasurementUnit = Unit.Items
-                };
-            }
+                Context = Context,
+                Name = "dropped_items",
+                MeasurementUnit = Unit.Items
+            };
         }
     }
 }

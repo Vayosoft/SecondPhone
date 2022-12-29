@@ -16,7 +16,7 @@ namespace EmulatorHub.API.Services.Diagnostics
         private readonly IMetrics _metrics;
         private readonly ILogger<AppMetricsCollector> _logger;
 
-        public const string PushBroker = "push_broker";
+        private static readonly MetricTags PushBroker = new("channel", "push_broker");
 
         public AppMetricsCollector(IMetrics metrics,
             IOptions<CollectorOptions> options,
@@ -51,10 +51,10 @@ namespace EmulatorHub.API.Services.Diagnostics
         {
             var snapshot = (ChannelHandlerTelemetrySnapshot)_channel.GetSnapshot();
             
-            _metrics.Measure.Gauge.SetValue(Length(PushBroker), snapshot.HandlerTelemetrySnapshot.Length);
-            _metrics.Measure.Gauge.SetValue(OperationCount(PushBroker), snapshot.HandlerTelemetrySnapshot.OperationCount);
-            _metrics.Measure.Gauge.SetValue(OperationTime(PushBroker), snapshot.HandlerTelemetrySnapshot.MeasurementTimeMs);
-            _metrics.Measure.Gauge.SetValue(DroppedItems(PushBroker), snapshot.DroppedItems);
+            _metrics.Measure.Gauge.SetValue(Length, PushBroker, snapshot.HandlerTelemetrySnapshot.Length);
+            _metrics.Measure.Gauge.SetValue(OperationCount, PushBroker, snapshot.HandlerTelemetrySnapshot.OperationCount);
+            _metrics.Measure.Gauge.SetValue(OperationTime, PushBroker, snapshot.HandlerTelemetrySnapshot.MeasurementTimeMs);
+            _metrics.Measure.Gauge.SetValue(DroppedItems, PushBroker, snapshot.DroppedItems);
         }
 
         public override void Dispose()

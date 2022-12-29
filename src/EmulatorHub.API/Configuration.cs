@@ -5,24 +5,19 @@ using App.Metrics.Formatters.Ascii;
 using App.Metrics.Formatters.Prometheus;
 using EmulatorHub.API.Services.Diagnostics;
 using App.Metrics.Extensions.Configuration;
+using EmulatorHub.API.Model.Diagnostics;
 
 namespace EmulatorHub.API
 {
     public static class Configuration
     {
-        private static IServiceCollection AddApplicationMetrics(this IServiceCollection services)
-        {
-            services.AddHostedService<AppMetricsCollector>();
-
-            return services;
-        }
-
         public static IServiceCollection AddDiagnostics(this WebApplicationBuilder builder)
         {
-            //channels
-            builder.Services.AddApplicationMetrics();
-
             var configuration = builder.Configuration;
+
+            //channels
+            builder.Services.Configure<CollectorOptions>(configuration.GetSection("MetricsCollector"));
+            builder.Services.AddHostedService<AppMetricsCollector>();
 
             var filter = new MetricsFilter()
                 .WhereContext(name => name != "appmetrics.internal");
