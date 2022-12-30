@@ -53,7 +53,7 @@ namespace EmulatorRC.IntegrationTests
 
             Assert.Equal(new FileInfo(SourceFilePath).MD5(), new FileInfo(DestinationFilePath).MD5());
 
-            var bps = Math.Round((double)sourceFileLength / 1024 / 1024 / stopwatch.Elapsed.TotalSeconds, 2);
+            var bps = Math.Round((double)sourceFileLength / (1024 * 1024) / stopwatch.Elapsed.TotalSeconds, 2);
             _logger.WriteLine("Elapsed: {0} ~{1} (MB/sec)", stopwatch.Elapsed, bps);
 
             File.Delete(DestinationFilePath);

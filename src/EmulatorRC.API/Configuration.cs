@@ -4,6 +4,7 @@ using App.Metrics.Extensions.Configuration;
 using App.Metrics.Filtering;
 using App.Metrics.Formatters.Ascii;
 using App.Metrics.Formatters.Prometheus;
+using EmulatorRC.API.Model.Diagnostics;
 using EmulatorRC.API.Services.Diagnostics;
 
 namespace EmulatorRC.API
@@ -13,6 +14,9 @@ namespace EmulatorRC.API
         public static IServiceCollection AddDiagnostics(this WebApplicationBuilder builder)
         {
             var configuration = builder.Configuration;
+
+            builder.Services.Configure<CollectorOptions>(configuration.GetSection("MetricsCollector"));
+            builder.Services.AddHostedService<AppMetricsCollector>();
 
             var filter = new MetricsFilter()
                 .WhereContext(name => name != "Application.HttpRequests");

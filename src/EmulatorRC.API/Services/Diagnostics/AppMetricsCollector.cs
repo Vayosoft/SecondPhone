@@ -1,6 +1,7 @@
 ﻿using App.Metrics;
 using EmulatorRC.API.Model.Diagnostics;
 using Microsoft.Extensions.Options;
+using static EmulatorRC.API.Services.Diagnostics.AppMetricsRegistry.Gauges;
 
 namespace EmulatorRC.API.Services.Diagnostics
 {
@@ -37,7 +38,13 @@ namespace EmulatorRC.API.Services.Diagnostics
 
         private void CollectData()
         {
+            ThreadPool.GetMaxThreads(out var maxWt, out _);
+            ThreadPool.GetMinThreads(out var minWt, out _);
+            ThreadPool.GetAvailableThreads(out var workerThreads, out _);
 
+            _metrics.Measure.Gauge.SetValue(MaxThreads, maxWt);
+            _metrics.Measure.Gauge.SetValue(MinThreads, minWt);
+            _metrics.Measure.Gauge.SetValue(AvailableThreads, workerThreads);
         }
 
         public override void Dispose()

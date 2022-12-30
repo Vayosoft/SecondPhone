@@ -5,9 +5,8 @@ namespace EmulatorRC.API.Channels
 {
     public abstract class ChannelBase<T> : IDisposable
     {
-        private readonly ConcurrentDictionary<string, Channel<T>> _channels = new();
-        private readonly ConcurrentDictionary<string, object> _locks = new();
-
+        private readonly ConcurrentDictionary<string, Lazy<Channel<T>>> _channels = new();
+    
         private readonly BoundedChannelOptions _options = new(1)
         {
             SingleWriter = true,
@@ -20,24 +19,16 @@ namespace EmulatorRC.API.Channels
 
         protected bool TryGetChannel(string name, out Channel<T> channel)
         {
-            return _channels.TryGetValue(name, out channel);
+            var result = _channels.TryGetValue(name, out var lazy);
+            channel = result ? lazy.Value : null;
+            return result;
         }
 
         protected Channel<T> GetOrCreateChannel(string name)
         {
-            if (!_channels.TryGetValue(name, out var channel))
-            {
-                lock (_locks.GetOrAdd(name, s => new object()))
-                {
-                    if (!_channels.TryGetValue(name, out channel))
-                    {
-                        channel = Channel.CreateBounded<T>(_options);
-                        _channels.TryAdd(name, channel);
-                    }
-                }
-            }
-
-            return channel;
+            return _channels.GetOrAdd(name, _ => 
+                new Lazy<Channel<T>>(() => 
+                    Channel.CreateBounded<T>(_options))).Value;
         }
 
         public void Dispose()
@@ -48,17 +39,16 @@ namespace EmulatorRC.API.Channels
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    foreach (var channel in _channels)
-                        channel.Value.Writer.Complete();
+            if (_disposed) return;
 
-                    _channels.Clear();
-                }
-                _disposed = true;
+            if (disposing)
+            {
+                foreach (var channel in _channels.Values)
+                    channel.Value.Writer.Complete();
+
+                _channels.Clear();
             }
+            _disposed = true;
         }
     }
 }
