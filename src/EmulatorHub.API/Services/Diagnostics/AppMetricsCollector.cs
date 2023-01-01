@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Vayosoft.Threading.Channels;
 using Vayosoft.Threading.Channels.Models;
 using static EmulatorHub.API.Services.Diagnostics.AppMetricsRegistry.Channels;
+using static EmulatorHub.API.Services.Diagnostics.AppMetricsRegistry.Gauges;
 
 namespace EmulatorHub.API.Services.Diagnostics
 {
@@ -55,6 +56,14 @@ namespace EmulatorHub.API.Services.Diagnostics
             _metrics.Measure.Gauge.SetValue(OperationCount, PushBroker, snapshot.HandlerTelemetrySnapshot.OperationCount);
             _metrics.Measure.Gauge.SetValue(OperationTime, PushBroker, snapshot.HandlerTelemetrySnapshot.MeasurementTimeMs);
             _metrics.Measure.Gauge.SetValue(DroppedItems, PushBroker, snapshot.DroppedItems);
+
+            ThreadPool.GetMaxThreads(out var maxWt, out _);
+            ThreadPool.GetMinThreads(out var minWt, out _);
+            ThreadPool.GetAvailableThreads(out var workerThreads, out _);
+
+            _metrics.Measure.Gauge.SetValue(MaxThreads, maxWt);
+            _metrics.Measure.Gauge.SetValue(MinThreads, minWt);
+            _metrics.Measure.Gauge.SetValue(AvailableThreads, workerThreads);
         }
 
         public override void Dispose()
