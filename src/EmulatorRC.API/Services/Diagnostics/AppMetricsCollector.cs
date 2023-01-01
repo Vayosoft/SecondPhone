@@ -1,6 +1,7 @@
 ﻿using App.Metrics;
 using EmulatorRC.API.Model.Diagnostics;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
 using static EmulatorRC.API.Services.Diagnostics.AppMetricsRegistry.Gauges;
 
 namespace EmulatorRC.API.Services.Diagnostics
@@ -10,6 +11,7 @@ namespace EmulatorRC.API.Services.Diagnostics
         private readonly PeriodicTimer _timer;
         private readonly IMetrics _metrics;
         private readonly ILogger<AppMetricsCollector> _logger;
+        private readonly Process _process = Process.GetCurrentProcess();
 
         public AppMetricsCollector(IMetrics metrics, IOptions<CollectorOptions> options, ILogger<AppMetricsCollector> logger)
         {
@@ -40,11 +42,12 @@ namespace EmulatorRC.API.Services.Diagnostics
         {
             ThreadPool.GetMaxThreads(out var maxWt, out _);
             ThreadPool.GetMinThreads(out var minWt, out _);
-            ThreadPool.GetAvailableThreads(out var workerThreads, out _);
+            ThreadPool.GetAvailableThreads(out var availableThreads, out _);
 
             _metrics.Measure.Gauge.SetValue(MaxThreads, maxWt);
             _metrics.Measure.Gauge.SetValue(MinThreads, minWt);
-            _metrics.Measure.Gauge.SetValue(AvailableThreads, workerThreads);
+            _metrics.Measure.Gauge.SetValue(AvailableThreads, availableThreads);
+            _metrics.Measure.Gauge.SetValue(WorkingThreads, _process.Threads.Count);
         }
 
         public override void Dispose()

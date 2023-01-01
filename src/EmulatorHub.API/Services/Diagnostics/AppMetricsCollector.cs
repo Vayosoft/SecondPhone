@@ -3,6 +3,7 @@ using EmulatorHub.API.Model.Diagnostics;
 using EmulatorHub.PushBroker.Application.Channels;
 using EmulatorHub.PushBroker.Application.Models;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
 using Vayosoft.Threading.Channels;
 using Vayosoft.Threading.Channels.Models;
 using static EmulatorHub.API.Services.Diagnostics.AppMetricsRegistry.Channels;
@@ -16,6 +17,7 @@ namespace EmulatorHub.API.Services.Diagnostics
         private readonly PeriodicTimer _timer;
         private readonly IMetrics _metrics;
         private readonly ILogger<AppMetricsCollector> _logger;
+        private readonly Process _process = Process.GetCurrentProcess();
 
         private static readonly MetricTags PushBroker = new("channel", "push_broker");
 
@@ -59,11 +61,12 @@ namespace EmulatorHub.API.Services.Diagnostics
 
             ThreadPool.GetMaxThreads(out var maxWt, out _);
             ThreadPool.GetMinThreads(out var minWt, out _);
-            ThreadPool.GetAvailableThreads(out var workerThreads, out _);
+            ThreadPool.GetAvailableThreads(out var availableThreads, out _);
 
             _metrics.Measure.Gauge.SetValue(MaxThreads, maxWt);
             _metrics.Measure.Gauge.SetValue(MinThreads, minWt);
-            _metrics.Measure.Gauge.SetValue(AvailableThreads, workerThreads);
+            _metrics.Measure.Gauge.SetValue(AvailableThreads, availableThreads);
+            _metrics.Measure.Gauge.SetValue(WorkingThreads, _process.Threads.Count);
         }
 
         public override void Dispose()

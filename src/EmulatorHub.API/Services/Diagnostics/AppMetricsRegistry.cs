@@ -41,6 +41,13 @@ namespace EmulatorHub.API.Services.Diagnostics
         {
             public static readonly string ContextName = "system_threads";
 
+            public static GaugeOptions WorkingThreads => new()
+            {
+                Context = ContextName,
+                Name = "working",
+                MeasurementUnit = Unit.Items
+            };
+
             public static GaugeOptions AvailableThreads => new()
             {
                 Context = ContextName,
