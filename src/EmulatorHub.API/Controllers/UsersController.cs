@@ -6,6 +6,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Vayosoft.Caching;
 using Vayosoft.Identity;
 using Vayosoft.Persistence;
+using Vayosoft.Persistence.Criterias;
 using Vayosoft.Web.Identity.Authorization;
 
 namespace EmulatorHub.API.Controllers
@@ -35,22 +36,35 @@ namespace EmulatorHub.API.Controllers
             var user = await db.FindAsync<UserEntity>(1, cancellationToken);
             if (user is { } item)
             {
-                var client = new MobileClient
+                var client = await db.FindAsync<MobileClient>(clientId, cancellationToken);
+                if (client is null)
                 {
-                    Id = clientId,
-                    User = user,
-                    ProviderId = user.ProviderId
-                };
-                db.Add(client);
+                    client = new MobileClient
+                    {
+                        Id = clientId,
+                        User = user,
+                        ProviderId = user.ProviderId
+                    };
+                    db.Add(client);
+                }
 
-                var device = new Emulator
+                var device = await db.FindAsync<Emulator>(deviceId, cancellationToken);
+                if (device is null)
                 {
-                    Id = deviceId,
-                    Client = client,
-                    ProviderId = user.ProviderId,
-                };
-                db.Add(device);
-
+                    device = new Emulator
+                    {
+                        Id = deviceId,
+                        Client = client,
+                        ProviderId = user.ProviderId,
+                    };
+                    db.Add(device);
+                }
+                else if(device.Client.Id != clientId)
+                {
+                    device.Client = client;
+                    db.Update(device);
+                }
+                
                 await db.CommitAsync(cancellationToken);
                 return Ok(device);
             }
