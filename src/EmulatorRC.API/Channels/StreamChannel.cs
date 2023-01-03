@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Pipelines;
+using static Commons.Core.Exceptions.ExceptionCode;
 
 namespace EmulatorRC.API.Channels
 {
@@ -37,9 +38,13 @@ namespace EmulatorRC.API.Channels
             return channel.Writer;
         }
 
-        public bool RemoveChannel(string name, out Pipe channel)
+        public async Task RemoveChannelWriterAsync(string name)
         {
-            return _channels.TryRemove(name, out channel);
+            if (_channels.TryRemove(name, out var channel))
+            {
+                await channel.Writer.CompleteAsync();
+                await channel.Reader.CompleteAsync();
+            }
         }
     }
 }

@@ -6,7 +6,6 @@ using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using static Commons.Core.Exceptions.ExceptionCode;
 
 namespace EmulatorRC.API.Handlers
 {
@@ -97,10 +96,7 @@ namespace EmulatorRC.API.Handlers
             {
                 if (session != null)
                 {
-                    if(_channel.RemoveChannel(session.DeviceId, out var channel))
-                    {
-                        await channel.Writer.CompleteAsync();
-                    }
+                    await _channel.RemoveChannelWriterAsync(session.DeviceId);
                 }
 
                 await connection.Transport.Input.CompleteAsync();
