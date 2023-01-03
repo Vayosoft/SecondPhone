@@ -11,8 +11,8 @@ using System;
 
 
 var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
-//var url = "http://192.168.10.6:5006";
-var url = "http://localhost:5004";
+var url = "http://192.168.10.6:5006";
+//var url = "http://localhost:5004";
 
 var cts = new CancellationTokenSource();
 
@@ -67,6 +67,7 @@ try
     Console.WriteLine("Type a message to echo then press enter.");
     while (true)
     {
+        Console.WriteLine(url);
         var result = Console.ReadLine();
 
         if (result is "1")

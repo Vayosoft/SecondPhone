@@ -48,22 +48,22 @@ public class Program
 
                 builder.AddDiagnostics();
 
-                //builder.WebHost.ConfigureKestrel(options =>
-                //{
-                //    options.AddServerHeader = false;
+                builder.WebHost.ConfigureKestrel(options =>
+                {
+                    options.AddServerHeader = false;
 
-                //    var innerPort = configuration.GetValue<int>("Bridge:Inner:TcpPort");
-                //    var outerPort = configuration.GetValue<int>("Bridge:Outer:TcpPort");
+                    var innerPort = configuration.GetValue<int>("Bridge:Inner:TcpPort");
+                    var outerPort = configuration.GetValue<int>("Bridge:Outer:TcpPort");
 
-                //    options.ListenAnyIP(outerPort, listenOptions =>
-                //    {
-                //        listenOptions.UseConnectionHandler<OuterHandler>();
-                //    });
-                //    options.ListenAnyIP(innerPort, listenOptions =>
-                //    {
-                //        listenOptions.UseConnectionHandler<InnerHandler>();
-                //    });
-                //});
+                    options.ListenAnyIP(outerPort, listenOptions =>
+                    {
+                        listenOptions.UseConnectionHandler<OuterHandler>();
+                    });
+                    options.ListenAnyIP(innerPort, listenOptions =>
+                    {
+                        listenOptions.UseConnectionHandler<InnerHandler>();
+                    });
+                });
 
                 builder.Services.AddMemoryCache();
                 builder.Services.AddSignalR();
@@ -128,7 +128,7 @@ public class Program
                 });
 
                 // Bridge services
-                builder.Services.AddHostedService<BridgeLifetimeEventsService>();
+                //builder.Services.AddHostedService<BridgeLifetimeEventsService>();
             }
             
             var app = builder.Build();

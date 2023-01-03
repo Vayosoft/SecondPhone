@@ -73,6 +73,11 @@ namespace EmulatorRC.API.Handlers
             {
                 _logger.LogError(e, "{connectionId} => {error}", connection.ConnectionId, e.Message);
             }
+            finally
+            {
+                await connection.Transport.Input.CompleteAsync();
+                await connection.Transport.Output.CompleteAsync();
+            }
 
             _logger.LogInformation("{connectionId} disconnected", connection.ConnectionId);
         }
@@ -83,9 +88,9 @@ namespace EmulatorRC.API.Handlers
             {
                 while (true)
                 {
-                    if (_channel.TryGetChannel(deviceId, out var channel))
+                    if (_channel.TryGetChannelReader(deviceId, out var reader))
                     {
-                        var result = await channel.Reader.ReadAsync(token);
+                        var result = await reader.ReadAsync(token);
                         var buffer = result.Buffer;
 
                         foreach (var segment in buffer)
@@ -93,12 +98,10 @@ namespace EmulatorRC.API.Handlers
                             await output.WriteAsync(segment, token);
                         }
 
-                        if (result.IsCompleted)
+                        if (!result.IsCompleted)
                         {
-                            break;
+                            reader.AdvanceTo(buffer.End);
                         }
-
-                        channel.Reader.AdvanceTo(buffer.End);
                     }
                     else
                     {

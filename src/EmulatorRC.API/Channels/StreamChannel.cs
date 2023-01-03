@@ -5,17 +5,25 @@ namespace EmulatorRC.API.Channels
 {
     public sealed class StreamChannel
     {
+        private readonly ILogger<StreamChannel> _logger;
+
+        public StreamChannel(ILogger<StreamChannel> logger)
+        {
+            _logger = logger;
+        }
+
         private readonly ConcurrentDictionary<string, Pipe> _channels = new();
         private readonly ConcurrentDictionary<string, object> _locks = new();
 
-        public bool TryGetChannel(string name, out Pipe channel)
+        public bool TryGetChannelReader(string name, out PipeReader reader)
         {
-            return _channels.TryGetValue(name, out channel);
+            reader = _channels.TryGetValue(name, out var channel) ? channel.Reader : null;
+            return reader != null;
         }
 
-        public Pipe GetOrCreateChannel(string name)
+        public PipeWriter GetOrCreateChannelWriter(string name)
         {
-            if (_channels.TryGetValue(name, out var channel)) return channel;
+            if (_channels.TryGetValue(name, out var channel)) return channel.Writer;
 
             lock (_locks.GetOrAdd(name, _ => new object()))
             {
@@ -26,7 +34,7 @@ namespace EmulatorRC.API.Channels
                 }
             }
 
-            return channel;
+            return channel.Writer;
         }
 
         public bool RemoveChannel(string name, out Pipe channel)

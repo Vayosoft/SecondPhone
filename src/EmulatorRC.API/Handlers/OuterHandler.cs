@@ -6,6 +6,7 @@ using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using static Commons.Core.Exceptions.ExceptionCode;
 
 namespace EmulatorRC.API.Handlers
 {
@@ -31,15 +32,15 @@ namespace EmulatorRC.API.Handlers
         {
             _logger.LogInformation("{connectionId} connected", connection.ConnectionId);
 
+            DeviceSession session = null;
             try
             {
                 var cts = CancellationTokenSource.CreateLinkedTokenSource(
                     connection.ConnectionClosed, _lifetime.ApplicationStopping);
                 var token = cts.Token;
 
-
                 HandshakeStatus status = default;
-                Pipe channel = default;
+                PipeWriter writer = default;
 
                 while (true)
                 {
@@ -49,21 +50,22 @@ namespace EmulatorRC.API.Handlers
 
                     if (status != HandshakeStatus.Successful)
                     {
-                        consumed = ProcessHandshake(ref buffer, out status, out var session);
+                        consumed = ProcessHandshake(ref buffer, out status, out session);
                         switch (status)
                         {
                             case HandshakeStatus.Successful:
                             {
-                                channel = _channel.GetOrCreateChannel(session.DeviceId);
+                                writer = _channel.GetOrCreateChannelWriter(session.DeviceId);
                                 buffer = buffer.Slice(consumed);
                                 break;
                             }
                             case HandshakeStatus.Failed:
-                                throw new ApplicationException($"{connection.RemoteEndPoint} Authentication failed\r\n" +
-                                                    $"Length: {buffer.Length}\r\n" +
-                                                    $"Hex: {Convert.ToHexString(buffer.ToArray())}\r\n" +
-                                                    $"UTF8: {Encoding.UTF8.GetString(buffer)}"
-                                                    );
+                                throw new ApplicationException(
+                                    $"{connection.RemoteEndPoint} Authentication failed\r\n" +
+                                    $"Length: {buffer.Length}\r\n" +
+                                    $"Hex: {Convert.ToHexString(buffer.ToArray())}\r\n" +
+                                    $"UTF8: {Encoding.UTF8.GetString(buffer)}"
+                                );
                         }
                     }
 
@@ -71,7 +73,7 @@ namespace EmulatorRC.API.Handlers
                     {
                         foreach (var segment in buffer)
                         {
-                            await channel!.Writer.WriteAsync(segment, token);
+                            await writer!.WriteAsync(segment, token);
                         }
 
                         consumed = buffer.End;
@@ -84,14 +86,25 @@ namespace EmulatorRC.API.Handlers
 
                     connection.Transport.Input.AdvanceTo(consumed);
                 }
-
-                await connection.Transport.Input.CompleteAsync();
             }
             catch (ConnectionResetException) { }
             catch (OperationCanceledException) { }
             catch (Exception e)
             {
                 _logger.LogError(e, "{connectionId} => {error}", connection.ConnectionId, e.Message);
+            }
+            finally
+            {
+                if (session != null)
+                {
+                    if(_channel.RemoveChannel(session.DeviceId, out var channel))
+                    {
+                        await channel.Writer.CompleteAsync();
+                    }
+                }
+
+                await connection.Transport.Input.CompleteAsync();
+                await connection.Transport.Output.CompleteAsync();
             }
 
             _logger.LogInformation("{connectionId} disconnected", connection.ConnectionId);

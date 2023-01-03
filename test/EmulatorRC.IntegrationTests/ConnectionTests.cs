@@ -51,6 +51,9 @@ namespace EmulatorRC.IntegrationTests
             await Task.WhenAll(emulator.StartAsync(cancellationToken), client.StartWithFileAsync(cancellationToken));
             stopwatch.Stop();
 
+            client.Dispose();
+            emulator.Dispose();
+
             Assert.Equal(new FileInfo(SourceFilePath).MD5(), new FileInfo(DestinationFilePath).MD5());
 
             var bps = Math.Round((double)sourceFileLength / (1024 * 1024) / stopwatch.Elapsed.TotalSeconds, 2);
@@ -62,12 +65,16 @@ namespace EmulatorRC.IntegrationTests
         [Fact]
         public async Task SingleClient()
         {
-            using var cts = new CancellationTokenSource(30000);
+            using var cts = new CancellationTokenSource(10000);
             var cancellationToken = cts.Token;
 
             var client = new Client();
             await client.ConnectAsync(cancellationToken);
             await client.StartWithImagesAsync(cancellationToken);
+
+            client.Dispose();
+
+            _logger.WriteLine("Done!");
         }
 
         public class Emulator
@@ -169,7 +176,6 @@ namespace EmulatorRC.IntegrationTests
                             await Task.Delay(60, cancellationToken);
                         }
                     }
-                    
                 }
                 catch (OperationCanceledException) { }
             }
