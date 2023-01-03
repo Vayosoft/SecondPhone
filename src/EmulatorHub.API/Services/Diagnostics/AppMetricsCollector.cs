@@ -52,12 +52,13 @@ namespace EmulatorHub.API.Services.Diagnostics
         }
         private void CollectData()
         {
-            var snapshot = (ChannelHandlerTelemetrySnapshot)_channel.GetSnapshot();
-            
-            _metrics.Measure.Gauge.SetValue(Length, PushBroker, snapshot.HandlerTelemetrySnapshot.Length);
-            _metrics.Measure.Gauge.SetValue(OperationCount, PushBroker, snapshot.HandlerTelemetrySnapshot.OperationCount);
-            _metrics.Measure.Gauge.SetValue(OperationTime, PushBroker, snapshot.HandlerTelemetrySnapshot.MeasurementTimeMs);
-            _metrics.Measure.Gauge.SetValue(DroppedItems, PushBroker, snapshot.DroppedItems);
+            if (_channel.GetSnapshot() is ChannelHandlerTelemetrySnapshot snapshot)
+            {
+                _metrics.Measure.Gauge.SetValue(Length, PushBroker, snapshot.HandlerTelemetrySnapshot.Length);
+                _metrics.Measure.Gauge.SetValue(OperationCount, PushBroker, snapshot.HandlerTelemetrySnapshot.OperationCount);
+                _metrics.Measure.Gauge.SetValue(OperationTime, PushBroker, snapshot.HandlerTelemetrySnapshot.MeasurementTimeMs);
+                _metrics.Measure.Gauge.SetValue(DroppedItems, PushBroker, snapshot.DroppedItems);
+            }
 
             ThreadPool.GetMaxThreads(out var maxWt, out _);
             ThreadPool.GetMinThreads(out var minWt, out _);
