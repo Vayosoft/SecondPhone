@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Pipelines;
-using static Commons.Core.Exceptions.ExceptionCode;
 
 namespace EmulatorRC.API.Channels
 {

@@ -173,7 +173,7 @@ namespace EmulatorRC.IntegrationTests
                             var length = data.Length.ToByteArray();
                             await _socket.SendAsync(length, cancellationToken);
                             await _socket.SendAsync(data, cancellationToken);
-                            await Task.Delay(60, cancellationToken);
+                            await Task.Delay(30, cancellationToken);
                         }
                     }
                 }
