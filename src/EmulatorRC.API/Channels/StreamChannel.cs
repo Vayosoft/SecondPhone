@@ -43,7 +43,6 @@ namespace EmulatorRC.API.Channels
             if (_channels.TryRemove(name, out var channel))
             {
                 await channel.Writer.CompleteAsync();
-                await channel.Reader.CompleteAsync();
             }
         }
     }

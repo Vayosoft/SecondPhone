@@ -54,13 +54,19 @@ namespace EmulatorRC.API.Handlers
                         {
                             case HandshakeStatus.Successful:
                             {
+                                //todo authentication
+                                if (string.IsNullOrEmpty(session.DeviceId))
+                                {
+                                    throw new ApplicationException("Authentication failed");
+                                }
+
                                 writer = _channel.GetOrCreateChannelWriter(session.DeviceId);
                                 buffer = buffer.Slice(consumed);
                                 break;
                             }
                             case HandshakeStatus.Failed:
                                 throw new ApplicationException(
-                                    $"{connection.RemoteEndPoint} Authentication failed\r\n" +
+                                    $"{connection.RemoteEndPoint} Handshake failed\r\n" +
                                     $"Length: {buffer.Length}\r\n" +
                                     $"Hex: {Convert.ToHexString(buffer.ToArray())}\r\n" +
                                     $"UTF8: {Encoding.UTF8.GetString(buffer)}"
@@ -149,8 +155,6 @@ namespace EmulatorRC.API.Handlers
                         ArrayPool<byte>.Shared.Return(payload);
                     }
                 }
-
-                //todo authentication
 
                 status = HandshakeStatus.Successful;
                 return reader.Position;
