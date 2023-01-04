@@ -40,7 +40,7 @@ namespace EmulatorRC.API.Channels
             return new ChannelWriter(name, channel.Writer);
         }
 
-        public sealed class ChannelReader : ValueObject, IAsyncDisposable
+        public sealed record ChannelReader : IAsyncDisposable
         {
             private readonly string _key;
             private readonly PipeReader _reader;
@@ -76,15 +76,9 @@ namespace EmulatorRC.API.Channels
             {
                 await _reader.CompleteAsync();
             }
-
-            protected override IEnumerable<object> GetEqualityComponents()
-            {
-                yield return _key;
-                yield return _reader;
-            }
         }
 
-        public sealed class ChannelWriter : ValueObject, IAsyncDisposable
+        public sealed record ChannelWriter : IAsyncDisposable
         {
             private readonly string _key;
             private readonly PipeWriter _writer;
@@ -106,12 +100,6 @@ namespace EmulatorRC.API.Channels
                 {
                     await channel.Writer.CompleteAsync();
                 }
-            }
-
-            protected override IEnumerable<object> GetEqualityComponents()
-            {
-                yield return _key;
-                yield return _writer;
             }
         }
     }
