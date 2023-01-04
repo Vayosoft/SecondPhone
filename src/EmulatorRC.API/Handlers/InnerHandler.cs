@@ -84,18 +84,29 @@ namespace EmulatorRC.API.Handlers
 
         public async Task ReadFromChannelAsync(string deviceId, PipeWriter output, CancellationToken token)
         {
+            PipeReader reader = null;
             try
             {
                 while (!token.IsCancellationRequested)
                 {
-                    if (_channel.TryGetChannelReader(deviceId, out var reader))
+                    if (_channel.TryGetChannelReader(deviceId, out reader))
                     {
-                        await using (reader)
+                        while (true)
                         {
-                            await foreach (var segment in reader.ReadAsync(token))
+                            var result = await reader.ReadAsync(token);
+                            var buffer = result.Buffer;
+
+                            foreach (var segment in buffer)
                             {
                                 await output.WriteAsync(segment, token);
                             }
+
+                            if (result.IsCompleted)
+                            {
+                                break;
+                            }
+
+                            reader.AdvanceTo(buffer.End);
                         }
                     }
                     else
@@ -108,6 +119,13 @@ namespace EmulatorRC.API.Handlers
             catch (Exception e)
             {
                 _logger.LogError(e, "ReadFromChannel => {error}\r\n", e.Message);
+            }
+            finally
+            {
+                if (reader != null)
+                {
+                    await reader.CompleteAsync();
+                }
             }
         }
 
