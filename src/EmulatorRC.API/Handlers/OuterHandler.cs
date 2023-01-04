@@ -11,18 +11,18 @@ namespace EmulatorRC.API.Handlers
 {
     public sealed class OuterHandler : ConnectionHandler
     {
-        private readonly StreamChannel _channel;
+        private readonly StreamChannelFactory _channelFactory;
         private readonly ILogger<OuterHandler> _logger;
         private readonly IHostApplicationLifetime _lifetime;
 
         private const int MaxStackLength = 128;
 
         public OuterHandler(
-            StreamChannel channel,
+            StreamChannelFactory channelFactory,
             ILogger<OuterHandler> logger,
             IHostApplicationLifetime lifetime)
         {
-            _channel = channel;
+            _channelFactory = channelFactory;
             _logger = logger;
             _lifetime = lifetime;
         }
@@ -60,7 +60,7 @@ namespace EmulatorRC.API.Handlers
                                     throw new ApplicationException("Authentication failed");
                                 }
 
-                                writer = _channel.GetOrCreateChannelWriter(session.DeviceId);
+                                writer = _channelFactory.GetOrCreateChannelWriter(session.DeviceId);
 
                                 buffer = buffer.Slice(consumed);
                                 break;
@@ -103,7 +103,7 @@ namespace EmulatorRC.API.Handlers
             {
                 if (session != default)
                 {
-                    await _channel.CloseWriterAsync(session.DeviceId);
+                    await _channelFactory.CloseWriterAsync(session.DeviceId);
                 }
 
                 await connection.Transport.Input.CompleteAsync();

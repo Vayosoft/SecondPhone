@@ -10,16 +10,16 @@ namespace EmulatorRC.API.Handlers
 {
     public sealed partial class InnerHandler : ConnectionHandler
     {
-        private readonly StreamChannel _channel;
+        private readonly StreamChannelFactory _channelFactory;
         private readonly ILogger<InnerHandler> _logger;
         private readonly IHostApplicationLifetime _lifetime;
 
         public InnerHandler(
-            StreamChannel channel,
+            StreamChannelFactory channelFactory,
             ILogger<InnerHandler> logger,
             IHostApplicationLifetime lifetime)
         {
-            _channel = channel;
+            _channelFactory = channelFactory;
             _logger = logger;
             _lifetime = lifetime;
         }
@@ -89,7 +89,7 @@ namespace EmulatorRC.API.Handlers
             {
                 while (!token.IsCancellationRequested)
                 {
-                    if (_channel.TryGetChannelReader(deviceId, out reader))
+                    if (_channelFactory.TryGetChannelReader(deviceId, out reader))
                     {
                         while (true)
                         {

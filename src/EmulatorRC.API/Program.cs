@@ -72,7 +72,7 @@ public class Program
                 builder.Services.AddSingleton<DeviceScreenChannel>();
                 builder.Services.AddSingleton<TouchChannel>();
 				builder.Services.AddSingleton<DeviceInfoChannel>();	
-                builder.Services.AddSingleton<StreamChannel>();
+                builder.Services.AddSingleton<StreamChannelFactory>();
 
 
                 builder.Services.AddSingleton<TcpStreamChannel>();
