@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
-using EmulatorRC.ValueObjects;
 
 namespace EmulatorRC.API.Channels
 {
