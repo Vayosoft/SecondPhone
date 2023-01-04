@@ -45,6 +45,13 @@ namespace EmulatorRC.API.Handlers
                     if (session == null)
                     {
                         consumed = ProcessHandshake(buffer, out session, out var w, out var h);
+
+                        //todo authentication
+                        if (string.IsNullOrEmpty(session.DeviceId))
+                        {
+                            throw new ApplicationException("Authentication failed");
+                        }
+
                         _ = await connection.Transport.Output.WriteAsync(CreateMockHeader(w, h), token);
                         _ = ReadFromChannelAsync(session.DeviceId, connection.Transport.Output, token);
                     }
@@ -134,14 +141,14 @@ namespace EmulatorRC.API.Handlers
         {
             var reader = new SequenceReader<byte>(buffer);
 
-            if (!reader.IsNext(CommandVideo, true)) throw new ApplicationException("Authentication failed");
+            if (!reader.IsNext(CommandVideo, true)) throw new ApplicationException("Handshake failed");
 
             var str = Encoding.UTF8.GetString(reader.UnreadSequence);
             var m = HandshakeRegex().Match(str);
 
-            if (!m.Success || m.Groups.Count < 4) throw new ApplicationException("Authorization failed");
+            if (!m.Success || m.Groups.Count < 4) throw new ApplicationException("Handshake failed");
 
-            if (!int.TryParse(m.Groups[1].Value, out width) || !int.TryParse(m.Groups[2].Value, out height)) throw new ApplicationException("Authorization failed");
+            if (!int.TryParse(m.Groups[1].Value, out width) || !int.TryParse(m.Groups[2].Value, out height)) throw new ApplicationException("Handshake failed");
             
             session = new DeviceSession {DeviceId = m.Groups[3].Value, StreamType = "cam"};
 

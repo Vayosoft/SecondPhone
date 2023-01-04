@@ -37,7 +37,7 @@ public class Program
                 builder.Host.UseSerilog((context, services, config) => config
                         .ReadFrom.Configuration(context.Configuration)
                         .ReadFrom.Services(services)
-                        .Enrich.WithProperty("ApplicationName", typeof(Program).Assembly.GetName().Name)
+                        .Enrich.WithProperty("ApplicationName", typeof(Program).Assembly.GetName().Name!)
                         .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
 #if DEBUG
                         .Enrich.WithProperty("DebuggerAttached", Debugger.IsAttached)
