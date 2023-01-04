@@ -4,6 +4,8 @@ namespace EmulatorRC.API.Channels
 {
     public sealed class TouchChannel : ChannelBase<TouchEvents>
     {
+        public TouchChannel() : base(32) { }
+
         public async ValueTask WriteAsync(string deviceId, TouchEvents request, CancellationToken cancellationToken = default)
         {
             if (TryGetChannel(deviceId, out var channel))

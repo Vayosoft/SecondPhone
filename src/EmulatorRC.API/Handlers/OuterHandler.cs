@@ -2,7 +2,6 @@
 using EmulatorRC.Entities;
 using Microsoft.AspNetCore.Connections;
 using System.Buffers;
-using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -31,7 +30,7 @@ namespace EmulatorRC.API.Handlers
         {
             _logger.LogInformation("{connectionId} connected", connection.ConnectionId);
 
-            DeviceSession session = null;
+            StreamChannel.ChannelWriter writer = default;
             try
             {
                 var cts = CancellationTokenSource.CreateLinkedTokenSource(
@@ -39,7 +38,6 @@ namespace EmulatorRC.API.Handlers
                 var token = cts.Token;
 
                 HandshakeStatus status = default;
-                PipeWriter writer = default;
 
                 while (true)
                 {
@@ -49,7 +47,7 @@ namespace EmulatorRC.API.Handlers
 
                     if (status != HandshakeStatus.Successful)
                     {
-                        consumed = ProcessHandshake(ref buffer, out status, out session);
+                        consumed = ProcessHandshake(ref buffer, out status, out var session);
                         switch (status)
                         {
                             case HandshakeStatus.Successful:
@@ -61,6 +59,7 @@ namespace EmulatorRC.API.Handlers
                                 }
 
                                 writer = _channel.GetOrCreateChannelWriter(session.DeviceId);
+
                                 buffer = buffer.Slice(consumed);
                                 break;
                             }
@@ -100,9 +99,9 @@ namespace EmulatorRC.API.Handlers
             }
             finally
             {
-                if (session != null)
+                if (writer != default)
                 {
-                    await _channel.RemoveChannelWriterAsync(session.DeviceId);
+                    await writer.DisposeAsync();
                 }
 
                 await connection.Transport.Input.CompleteAsync();

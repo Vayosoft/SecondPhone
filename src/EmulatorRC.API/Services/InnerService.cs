@@ -12,6 +12,7 @@ namespace EmulatorRC.API.Services
         private readonly TouchChannel _touchEvents;
         private readonly DeviceInfoChannel _deviceInfo;
         private readonly IHostApplicationLifetime _lifeTime;
+        private static readonly Ack Ack = new();
 
         public InnerService(
             DeviceScreenChannel screens,
@@ -27,7 +28,7 @@ namespace EmulatorRC.API.Services
 
         public override Task<Ack> Ping(Syn request, ServerCallContext context)
         {
-            return Task.FromResult(new Ack());
+            return Task.FromResult(Ack);
         }
 
         public override async Task GetTouchEvents(Syn request, IServerStreamWriter<TouchEvents> responseStream, ServerCallContext context)
@@ -59,19 +60,32 @@ namespace EmulatorRC.API.Services
             return new Ack();
         }
 
-        public override async Task<Ack> UploadScreens(
-            IAsyncStreamReader<DeviceScreen> requestStream,
+        public override async Task UploadScreens(
+            IAsyncStreamReader<DeviceScreen> requestStream, 
+            IServerStreamWriter<Ack> responseStream,
             ServerCallContext context)
         {
             Handshake(context, out var deviceId, out var cancellationSource);
-            
+
             var cancellationToken = cancellationSource.Token;
             await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
             {
                 await _screens.WriteAsync(deviceId, request, cancellationToken);
+                await responseStream.WriteAsync(Ack, cancellationToken);
             }
-            
-            return new Ack();
         }
+
+        //public override async Task<Ack> UploadScreens(IAsyncStreamReader<DeviceScreen> requestStream, ServerCallContext context)
+        //{
+        //    Handshake(context, out var deviceId, out var cancellationSource);
+
+        //    var cancellationToken = cancellationSource.Token;
+        //    await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
+        //    {
+        //        await _screens.WriteAsync(deviceId, request, cancellationToken);
+        //    }
+
+        //    return new Ack();
+        //}
     }
 }

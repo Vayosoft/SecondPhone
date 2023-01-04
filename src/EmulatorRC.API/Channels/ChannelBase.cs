@@ -8,15 +8,20 @@ namespace EmulatorRC.API.Channels
         private readonly ConcurrentDictionary<string, Channel<T>> _channels = new();
         private readonly ConcurrentDictionary<string, object> _locks = new();
 
-        private readonly BoundedChannelOptions _options = new(2)
-        {
-            SingleWriter = true,
-            SingleReader = true,
-            AllowSynchronousContinuations = true,
-            FullMode = BoundedChannelFullMode.DropOldest
-        };
+        private readonly BoundedChannelOptions _options;
 
         private bool _disposed;
+
+        protected ChannelBase(int bufferLength = 1)
+        {
+            _options = new BoundedChannelOptions(bufferLength > 0 ? bufferLength : 1)
+            {
+                SingleWriter = true,
+                SingleReader = true,
+                AllowSynchronousContinuations = true,
+                FullMode = BoundedChannelFullMode.DropOldest
+            };
+        }
 
         protected bool TryGetChannel(string name, out Channel<T> channel)
         {
@@ -38,7 +43,7 @@ namespace EmulatorRC.API.Channels
 
             return channel;
         }
-
+        
         public void Dispose()
         {
             Dispose(true);

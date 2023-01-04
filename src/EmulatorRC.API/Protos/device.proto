@@ -5,7 +5,7 @@ option csharp_namespace = "EmulatorRC.API.Protos";
 service DeviceService {
 	rpc Ping(Syn) returns(Ack);
 	rpc SendDeviceInfo(DeviceInfo) returns(Ack);
-	rpc UploadScreens(stream DeviceScreen) returns (Ack);
+	rpc UploadScreens(stream DeviceScreen) returns (stream Ack);
 	rpc GetTouchEvents (Syn) returns (stream TouchEvents);
 }
 

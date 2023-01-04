@@ -7,6 +7,8 @@ namespace EmulatorRC.API.Channels
     {
         private readonly ConcurrentDictionary<string, DeviceScreen> _lastScreens = new();
 
+        public DeviceScreenChannel() : base(1) { }
+
         public async ValueTask WriteAsync(string deviceId, DeviceScreen request, CancellationToken cancellationToken = default)
         {
             request.Id = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString();
