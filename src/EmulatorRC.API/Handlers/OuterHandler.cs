@@ -11,18 +11,18 @@ namespace EmulatorRC.API.Handlers
 {
     public sealed class OuterHandler : ConnectionHandler
     {
-        private readonly StreamChannelFactory _channelFactory;
+        private readonly StreamChannel _channel;
         private readonly ILogger<OuterHandler> _logger;
         private readonly IHostApplicationLifetime _lifetime;
 
         private const int MaxStackLength = 128;
 
         public OuterHandler(
-            StreamChannelFactory channelFactory,
+            StreamChannel channel,
             ILogger<OuterHandler> logger,
             IHostApplicationLifetime lifetime)
         {
-            _channelFactory = channelFactory;
+            _channel = channel;
             _logger = logger;
             _lifetime = lifetime;
         }
@@ -31,7 +31,6 @@ namespace EmulatorRC.API.Handlers
         {
             _logger.LogInformation("{connectionId} connected", connection.ConnectionId);
 
-            PipeWriter writer = default;
             DeviceSession session = default;
             try
             {
@@ -40,7 +39,7 @@ namespace EmulatorRC.API.Handlers
                 var token = cts.Token;
 
                 HandshakeStatus status = default;
-
+                PipeWriter writer = default;
                 while (true)
                 {
                     var result = await connection.Transport.Input.ReadAsync(token);
@@ -60,7 +59,7 @@ namespace EmulatorRC.API.Handlers
                                     throw new ApplicationException("Authentication failed");
                                 }
 
-                                writer = _channelFactory.GetOrCreateChannelWriter(session.DeviceId);
+                                writer = _channel.GetOrCreateWriter(session.DeviceId);
 
                                 buffer = buffer.Slice(consumed);
                                 break;
@@ -103,7 +102,7 @@ namespace EmulatorRC.API.Handlers
             {
                 if (session != default)
                 {
-                    await _channelFactory.CloseWriterAsync(session.DeviceId);
+                    await _channel.RemoveWriterAsync(session.DeviceId);
                 }
 
                 await connection.Transport.Input.CompleteAsync();

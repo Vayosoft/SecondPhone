@@ -10,16 +10,16 @@ namespace EmulatorRC.API.Handlers
 {
     public sealed partial class InnerHandler : ConnectionHandler
     {
-        private readonly StreamChannelFactory _channelFactory;
+        private readonly StreamChannel _channel;
         private readonly ILogger<InnerHandler> _logger;
         private readonly IHostApplicationLifetime _lifetime;
 
         public InnerHandler(
-            StreamChannelFactory channelFactory,
+            StreamChannel channel,
             ILogger<InnerHandler> logger,
             IHostApplicationLifetime lifetime)
         {
-            _channelFactory = channelFactory;
+            _channel = channel;
             _logger = logger;
             _lifetime = lifetime;
         }
@@ -84,48 +84,22 @@ namespace EmulatorRC.API.Handlers
 
         public async Task ReadFromChannelAsync(string deviceId, PipeWriter output, CancellationToken token)
         {
-            PipeReader reader = null;
             try
             {
                 while (!token.IsCancellationRequested)
                 {
-                    if (_channelFactory.TryGetChannelReader(deviceId, out reader))
+                    await foreach (var segment in _channel.ReadAllAsync(deviceId, token))
                     {
-                        while (true)
-                        {
-                            var result = await reader.ReadAsync(token);
-                            var buffer = result.Buffer;
-
-                            foreach (var segment in buffer)
-                            {
-                                await output.WriteAsync(segment, token);
-                            }
-
-                            if (result.IsCompleted)
-                            {
-                                break;
-                            }
-
-                            reader.AdvanceTo(buffer.End);
-                        }
+                        await output.WriteAsync(segment, token);
                     }
-                    else
-                    {
-                        await Task.Delay(1000, token);
-                    }
+
+                    await Task.Delay(1000, token);
                 }
             }
             catch (OperationCanceledException) { }
             catch (Exception e)
             {
                 _logger.LogError(e, "ReadFromChannel => {error}\r\n", e.Message);
-            }
-            finally
-            {
-                if (reader != null)
-                {
-                    await reader.CompleteAsync();
-                }
             }
         }
 
