@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using EmulatorRC.ValueObjects;
 
 namespace EmulatorRC.API.Channels
 {
@@ -39,7 +40,7 @@ namespace EmulatorRC.API.Channels
             return new ChannelWriter(name, channel.Writer);
         }
 
-        public readonly struct ChannelReader : IAsyncDisposable, IEquatable<ChannelReader>
+        public sealed class ChannelReader : ValueObject, IAsyncDisposable
         {
             private readonly string _key;
             private readonly PipeReader _reader;
@@ -76,32 +77,14 @@ namespace EmulatorRC.API.Channels
                 await _reader.CompleteAsync();
             }
 
-            public bool Equals(ChannelReader other)
+            protected override IEnumerable<object> GetEqualityComponents()
             {
-                return _key == other._key && Equals(_reader, other._reader);
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is ChannelReader other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                return HashCode.Combine(_key, _reader);
-            }
-
-            public static bool operator ==(ChannelReader lch, ChannelReader rch)
-            {
-                return lch.Equals(rch);
-            }
-            public static bool operator !=(ChannelReader lch, ChannelReader rch)
-            {
-                return !lch.Equals(rch);
+                yield return _key;
+                yield return _reader;
             }
         }
 
-        public readonly struct ChannelWriter : IAsyncDisposable, IEquatable<ChannelWriter>
+        public sealed class ChannelWriter : ValueObject, IAsyncDisposable
         {
             private readonly string _key;
             private readonly PipeWriter _writer;
@@ -125,28 +108,10 @@ namespace EmulatorRC.API.Channels
                 }
             }
 
-            public bool Equals(ChannelWriter other)
+            protected override IEnumerable<object> GetEqualityComponents()
             {
-                return _key == other._key && Equals(_writer, other._writer);
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is ChannelWriter other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                return HashCode.Combine(_key, _writer);
-            }
-
-            public static bool operator ==(ChannelWriter lch, ChannelWriter rch)
-            {
-                return lch.Equals(rch);
-            }
-            public static bool operator !=(ChannelWriter lch, ChannelWriter rch)
-            {
-                return !lch.Equals(rch);
+                yield return _key;
+                yield return _writer;
             }
         }
     }
