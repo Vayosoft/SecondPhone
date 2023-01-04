@@ -2,6 +2,7 @@
 using EmulatorRC.Entities;
 using Microsoft.AspNetCore.Connections;
 using System.Buffers;
+using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -10,18 +11,18 @@ namespace EmulatorRC.API.Handlers
 {
     public sealed class OuterHandler : ConnectionHandler
     {
-        private readonly StreamChannel _channel;
+        private readonly StreamChannelFactory _channelFactory;
         private readonly ILogger<OuterHandler> _logger;
         private readonly IHostApplicationLifetime _lifetime;
 
         private const int MaxStackLength = 128;
 
         public OuterHandler(
-            StreamChannel channel,
+            StreamChannelFactory channelFactory,
             ILogger<OuterHandler> logger,
             IHostApplicationLifetime lifetime)
         {
-            _channel = channel;
+            _channelFactory = channelFactory;
             _logger = logger;
             _lifetime = lifetime;
         }
@@ -30,7 +31,8 @@ namespace EmulatorRC.API.Handlers
         {
             _logger.LogInformation("{connectionId} connected", connection.ConnectionId);
 
-            StreamChannel.ChannelWriter writer = default;
+            PipeWriter writer = default;
+            DeviceSession session = default;
             try
             {
                 var cts = CancellationTokenSource.CreateLinkedTokenSource(
@@ -47,7 +49,7 @@ namespace EmulatorRC.API.Handlers
 
                     if (status != HandshakeStatus.Successful)
                     {
-                        consumed = ProcessHandshake(ref buffer, out status, out var session);
+                        consumed = ProcessHandshake(ref buffer, out status, out session);
                         switch (status)
                         {
                             case HandshakeStatus.Successful:
@@ -58,7 +60,7 @@ namespace EmulatorRC.API.Handlers
                                     throw new ApplicationException("Authentication failed");
                                 }
 
-                                writer = _channel.GetOrCreateChannelWriter(session.DeviceId);
+                                writer = _channelFactory.GetOrCreateChannelWriter(session.DeviceId);
 
                                 buffer = buffer.Slice(consumed);
                                 break;
@@ -99,9 +101,9 @@ namespace EmulatorRC.API.Handlers
             }
             finally
             {
-                if (writer != default)
+                if (session != default)
                 {
-                    await writer.DisposeAsync();
+                    await _channelFactory.CloseWriterAsync(session.DeviceId);
                 }
 
                 await connection.Transport.Input.CompleteAsync();
