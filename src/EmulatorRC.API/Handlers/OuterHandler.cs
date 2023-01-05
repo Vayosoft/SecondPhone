@@ -3,7 +3,6 @@ using EmulatorRC.Entities;
 using Microsoft.AspNetCore.Connections;
 using System.Buffers;
 using System.IO.Pipelines;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 
@@ -16,6 +15,7 @@ namespace EmulatorRC.API.Handlers
         private readonly IHostApplicationLifetime _lifetime;
 
         private const int MaxStackLength = 128;
+        private const int MaxHeaderLength = 1024;
 
         public OuterHandler(
             StreamChannel channel,
@@ -29,7 +29,7 @@ namespace EmulatorRC.API.Handlers
 
         public override async Task OnConnectedAsync(ConnectionContext connection)
         {
-            _logger.LogInformation("{connectionId} connected", connection.ConnectionId);
+            _logger.LogInformation("{ConnectionId} connected", connection.ConnectionId);
 
             DeviceSession session = default;
             try
@@ -96,7 +96,7 @@ namespace EmulatorRC.API.Handlers
             catch (OperationCanceledException) { }
             catch (Exception e)
             {
-                _logger.LogError(e, "{connectionId} => {error}", connection.ConnectionId, e.Message);
+                _logger.LogError(e, "{ConnectionId} => {Error}", connection.ConnectionId, e.Message);
             }
             finally
             {
@@ -109,16 +109,15 @@ namespace EmulatorRC.API.Handlers
                 await connection.Transport.Output.CompleteAsync();
             }
 
-            _logger.LogInformation("{connectionId} disconnected", connection.ConnectionId);
+            _logger.LogInformation("{ConnectionId} disconnected", connection.ConnectionId);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private SequencePosition ProcessHandshake(ref ReadOnlySequence<byte> buffer, out HandshakeStatus status, out DeviceSession session)
         {
             var reader = new SequenceReader<byte>(buffer);
             try
             {
-                if (!reader.TryReadLittleEndian(out int length) || length > 256)
+                if (!reader.TryReadLittleEndian(out int length) || length > MaxHeaderLength)
                 {
                     session = null;
                     status = HandshakeStatus.Failed;
@@ -161,7 +160,7 @@ namespace EmulatorRC.API.Handlers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Handshake => {error}\r\n", e.Message);
+                _logger.LogError(e, "Handshake => {Error}\r\n", e.Message);
 
                 session = null;
                 status = HandshakeStatus.Failed;

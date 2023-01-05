@@ -26,7 +26,7 @@ namespace EmulatorRC.API.Handlers
 
         public override async Task OnConnectedAsync(ConnectionContext connection)
         {
-            _logger.LogInformation("{connectionId} connected", connection.ConnectionId);
+            _logger.LogInformation("{ConnectionId} connected", connection.ConnectionId);
 
             try
             {
@@ -78,7 +78,7 @@ namespace EmulatorRC.API.Handlers
             catch (OperationCanceledException) { }
             catch (Exception e)
             {
-                _logger.LogError(e, "{connectionId} => {error}", connection.ConnectionId, e.Message);
+                _logger.LogError(e, "{ConnectionId} => {Error}", connection.ConnectionId, e.Message);
             }
             finally
             {
@@ -86,7 +86,7 @@ namespace EmulatorRC.API.Handlers
                 await connection.Transport.Output.CompleteAsync();
             }
 
-            _logger.LogInformation("{connectionId} disconnected", connection.ConnectionId);
+            _logger.LogInformation("{ConnectionId} disconnected", connection.ConnectionId);
         }
 
         public async Task ReadFromChannelAsync(string deviceId, PipeWriter output, CancellationToken token)
@@ -106,7 +106,7 @@ namespace EmulatorRC.API.Handlers
             catch (OperationCanceledException) { }
             catch (Exception e)
             {
-                _logger.LogError(e, "ReadFromChannel => {error}\r\n", e.Message);
+                _logger.LogError(e, "ReadFromChannel => {Error}\r\n", e.Message);
             }
         }
 
