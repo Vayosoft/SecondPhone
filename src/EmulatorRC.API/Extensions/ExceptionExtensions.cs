@@ -17,19 +17,19 @@ namespace EmulatorRC.API.Extensions
 
         private static RpcException HandleIOException(IOException exception, ServerCallContext context, ILogger logger, Guid correlationId)
         {
-            logger.LogWarning("[{method}] CorrelationId: {correlationId} - The request stream was aborted.", context.Method, correlationId);
+            logger.LogWarning("[{Method}] CorrelationId: {CorrelationId} - The request stream was aborted.", context.Method, correlationId);
             return new RpcException(new Status(StatusCode.Aborted, exception.Message), CreateTrailers(correlationId));
         }
 
         private static RpcException HandleCancelledException(OperationCanceledException exception, ServerCallContext context, ILogger logger, Guid correlationId)
         {
-            logger.LogWarning( "[{method}] CorrelationId: {correlationId} - The operation was canceled.", context.Method, correlationId);
+            logger.LogWarning( "[{Method}] CorrelationId: {CorrelationId} - The operation was canceled.", context.Method, correlationId);
             return new RpcException(new Status(StatusCode.Cancelled, exception.Message), CreateTrailers(correlationId));
         }
 
         private static RpcException HandleTimeoutException(TimeoutException exception, ServerCallContext context, ILogger logger, Guid correlationId)
         {
-            logger.LogError(exception, "[{method}] CorrelationId: {correlationId} - A timeout occurred.", context.Method, correlationId);
+            logger.LogError(exception, "[{Method}] CorrelationId: {CorrelationId} - A timeout occurred.", context.Method, correlationId);
             var status = new Status(StatusCode.Internal, "An external resource did not answer within the time limit");
 
             return new RpcException(status, CreateTrailers(correlationId));
@@ -37,7 +37,7 @@ namespace EmulatorRC.API.Extensions
 
         private static RpcException HandleRpcException(RpcException exception, ILogger logger, Guid correlationId)
         {
-            logger.LogError(exception, "CorrelationId: {correlationId} - An error occurred.", correlationId);
+            logger.LogError(exception, "CorrelationId: {CorrelationId} - An error occurred.", correlationId);
             var trailers = exception.Trailers;
             trailers.Add(CreateTrailers(correlationId)[0]);
             return new RpcException(new Status(exception.StatusCode, exception.Message), trailers);
@@ -45,7 +45,7 @@ namespace EmulatorRC.API.Extensions
 
         private static RpcException HandleDefault(Exception exception, ServerCallContext context, ILogger logger, Guid correlationId)
         {
-            logger.LogError(exception, "[{method}] CorrelationId: {correlationId} - An error occurred.", context.Method, correlationId);
+            logger.LogError(exception, "[{Method}] CorrelationId: {CorrelationId} - An error occurred.", context.Method, correlationId);
             return new RpcException(new Status(StatusCode.Internal, exception.Message), CreateTrailers(correlationId));
         }
 

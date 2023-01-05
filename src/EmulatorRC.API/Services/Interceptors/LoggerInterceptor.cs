@@ -34,7 +34,7 @@ namespace EmulatorRC.API.Services.Interceptors
             catch (Exception ex)
             {
                 // Note: The gRPC framework also logs exceptions thrown by handlers to .NET Core logging.
-                _logger.LogError(ex, $"Error thrown by {context.Method}.");
+                _logger.LogError(ex, "Error thrown by {Method}.", context.Method);
 
                 throw;
             }
@@ -73,23 +73,15 @@ namespace EmulatorRC.API.Services.Interceptors
             where TRequest : class
             where TResponse : class
         {
-            _logger.LogWarning("Starting call. Type: {methodType}. Request: {request}. Response: {response}",
-                methodType, typeof(TRequest), typeof(TResponse));
+            _logger.LogInformation("Starting call. Type: {MethodType}. Request: {Request}. Response: {Response}. Device: {Device}",
+                methodType, typeof(TRequest), typeof(TResponse), context.RequestHeaders.GetValue("x-device-id"));
+
+            if (!_logger.IsEnabled(LogLevel.Debug)) return;
 
             foreach (var header in context.RequestHeaders)
             {
-                _logger.LogWarning("{headerKey}: {headerValue}", header.Key, header.Value);
+                _logger.LogDebug("{HeaderKey}: {HeaderValue}", header.Key, header.Value);
             }
-
-            //WriteMetadata(context.RequestHeaders, "caller-user");
-            //WriteMetadata(context.RequestHeaders, "caller-machine");
-            //WriteMetadata(context.RequestHeaders, "caller-os");
-
-            //void WriteMetadata(Metadata headers, string key)
-            //{
-            //    var headerValue = headers.GetValue(key) ?? "(unknown)";
-            //    _logger.LogWarning($"{key}: {headerValue}");
-            //}
         }
     }
 }
