@@ -56,21 +56,28 @@ namespace EmulatorRC.API.Handlers
                                 //todo authentication
                                 if (string.IsNullOrEmpty(session.DeviceId))
                                 {
-                                    throw new ApplicationException("Authentication failed");
+                                    _logger.LogError("{ConnectionId} => Authentication failed", connection.ConnectionId);
+                                    return;
                                 }
 
-                                writer = _channel.GetOrCreateWriter(session.DeviceId);
+                                var channelWriter = _channel.GetOrCreateWriter(session.DeviceId);
+                                if (channelWriter.IsError)
+                                {
+                                    _logger.LogError("{ConnectionId} => {Error}", connection.ConnectionId, channelWriter.FirstError.Description);
+                                    return;
+                                }
+
+                                writer = channelWriter.Value;
 
                                 buffer = buffer.Slice(consumed);
                                 break;
                             }
                             case HandshakeStatus.Failed:
-                                throw new ApplicationException(
-                                    $"{connection.RemoteEndPoint} Handshake failed\r\n" +
-                                    $"Length: {buffer.Length}\r\n" +
-                                    $"Hex: {Convert.ToHexString(buffer.ToArray())}\r\n" +
-                                    $"UTF8: {Encoding.UTF8.GetString(buffer)}"
-                                );
+
+                                _logger.LogError("{ConnectionId} => Handshake failed. {EndPoint}\r\nLength: {BufferLength}\r\nHex: {Hex}\r\nUTF8: {UTF8}",
+                                    connection.ConnectionId, connection.RemoteEndPoint, buffer.Length,
+                                    Convert.ToHexString(buffer.ToArray()), Encoding.UTF8.GetString(buffer));
+                                return;
                         }
                     }
 
