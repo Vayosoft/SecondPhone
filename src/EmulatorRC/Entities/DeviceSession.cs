@@ -4,11 +4,11 @@ namespace EmulatorRC.Entities;
 
 public class DeviceSession
 {
-    public string DeviceId { get; set; } = string.Empty;
+    public string DeviceId { get; set; } = null!;
 
-    public string AccessToken { get; set; } = string.Empty;
+    public string? AccessToken { get; set; }
 
-    public string StreamType { get; set; } = string.Empty;
+    public string? StreamType { get; set; }
 }
 
 [JsonSerializable(typeof(DeviceSession))]

@@ -1,6 +1,6 @@
 ﻿using ErrorOr;
 
-namespace EmulatorRC
+namespace EmulatorRC.Commons
 {
     public static partial class Errors
     {

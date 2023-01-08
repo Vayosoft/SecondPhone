@@ -1,4 +1,4 @@
-﻿namespace EmulatorRC
+﻿namespace EmulatorRC.Commons
 {
     public sealed class Locker
     {
@@ -16,37 +16,35 @@
             return new Locker(name);
         }
 
-        private static object GetOrCreate(string name)
-        {
-            RefCounted<object> item;
-            lock (Locks)
-            {
-                if (Locks.TryGetValue(name, out item!))
-                {
-                    ++item.RefCount;
-                }
-                else
-                {
-                    item = new RefCounted<object>(new object());
-                    Locks[name] = item;
-                }
-            }
-            return item.Value;
-        }
-
         public IDisposable Lock()
         {
-            Monitor.Enter(GetOrCreate(_name));
-            return new LockExit(_name);
+            return new DisposableLock(_name);
         }
 
-        private readonly struct LockExit : IDisposable
+        private readonly struct DisposableLock : IDisposable
         {
+            private readonly bool _taken = false;
             private readonly string _name;
 
-            public LockExit(string name)
+            public DisposableLock(string name)
             {
                 _name = name;
+
+                RefCounted<object> item;
+                lock (Locks)
+                {
+                    if (Locks.TryGetValue(name, out item!))
+                    {
+                        ++item.RefCount;
+                    }
+                    else
+                    {
+                        item = new RefCounted<object>(new object());
+                        Locks[name] = item;
+                    }
+                }
+
+                Monitor.Enter(item.Value, ref _taken);
             }
 
             public void Dispose()
@@ -62,7 +60,7 @@
                     }
                 }
 
-                if (Monitor.IsEntered(item.Value))
+                if (_taken)
                 {
                     Monitor.Exit(item.Value);
                 }

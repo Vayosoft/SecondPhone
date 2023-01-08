@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using EmulatorRC.Commons;
 using ErrorOr;
 
 namespace EmulatorRC.API.Channels
@@ -8,22 +9,19 @@ namespace EmulatorRC.API.Channels
     public sealed class StreamChannel
     {
         private readonly ConcurrentDictionary<string, Pipe> _channels = new();
-        private readonly ConcurrentDictionary<string, object> _locks = new();
 
         public ErrorOr<PipeWriter> GetOrCreateWriter(string name)
         {
             if (_channels.TryGetValue(name, out var channel))
                 return Error.Conflict("Channel is busy");
 
-            lock (_locks.GetOrAdd(name, new object()))
+            using (Locker.GetLockerByName(name).Lock())
             {
                 if (_channels.TryGetValue(name, out channel))
                     return Error.Conflict("Channel is busy");
 
                 channel = new Pipe();
                 _channels[name] = channel;
-
-                _locks.TryRemove(name, out _);
             }
 
             return channel.Writer;
