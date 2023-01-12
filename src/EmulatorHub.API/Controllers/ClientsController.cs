@@ -19,7 +19,7 @@ namespace EmulatorHub.API.Controllers
     {
         [ProducesResponseType(typeof(List<MobileClient>), StatusCodes.Status200OK)]
         [HttpGet]
-        public async Task<IActionResult> GetClient(HubDbContext db, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetClients(HubDbContext db, CancellationToken cancellationToken)
         {
             var userId = HttpContext.User.Identity.GetUserId();
 
@@ -45,10 +45,10 @@ namespace EmulatorHub.API.Controllers
             {
                 return UnprocessableEntity(ModelState);
             }
-            
+            var userId = HttpContext.User.Identity.GetUserId();
             var client = await db.Clients
                 .AsTracking()
-                .Where(c => c.Id == clientId)
+                .Where(c => c.User.Id == userId && c.Id == clientId)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
             if (client == null)
