@@ -3,12 +3,9 @@ using EmulatorHub.Commons.Domain.Entities;
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Vayosoft.Caching;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Extensions;
 using Vayosoft.Persistence;
-using Vayosoft.Persistence.Criterias;
 using Vayosoft.Web.Identity.Authorization;
 
 namespace EmulatorHub.API.Controllers
@@ -37,7 +34,7 @@ namespace EmulatorHub.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest();
+                return BadRequest(ModelState);
             }
 
             var userId = HttpContext.User.Identity.GetUserId();
@@ -55,6 +52,12 @@ namespace EmulatorHub.API.Controllers
                         ProviderId = user.ProviderId
                     };
                     db.Add(client);
+                }
+                else if (client.User.Id != userId)
+                {
+                    ModelState.AddModelError(nameof(model.ClientId), "Invalid ClientId");
+
+                    return UnprocessableEntity(ModelState);
                 }
 
                 var device = await db.FindAsync<Emulator>(model.DeviceId, cancellationToken);
@@ -79,7 +82,6 @@ namespace EmulatorHub.API.Controllers
             }
 
             return NotFound();
-
         }
     }
 

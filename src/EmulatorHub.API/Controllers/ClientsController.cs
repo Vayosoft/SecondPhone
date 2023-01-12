@@ -4,6 +4,8 @@ using EmulatorHub.Commons.Domain.Entities;
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Vayosoft.Identity.Extensions;
+using Vayosoft.Web.Identity.Authorization;
 
 namespace EmulatorHub.API.Controllers
 {
@@ -12,12 +14,19 @@ namespace EmulatorHub.API.Controllers
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/clients")]
+    [PermissionAuthorization]
     public class ClientsController : ControllerBase
     {
         [ProducesResponseType(typeof(List<MobileClient>), StatusCodes.Status200OK)]
         [HttpGet]
-        public async Task<IActionResult> GetClients(HubDbContext db, CancellationToken cancellationToken) {
-            return Ok(await db.Clients.ToListAsync(cancellationToken: cancellationToken));
+        public async Task<IActionResult> GetClient(HubDbContext db, CancellationToken cancellationToken)
+        {
+            var userId = HttpContext.User.Identity.GetUserId();
+
+            var clients = await db.Clients.Where(c => c.User.Id == userId)
+                .ToListAsync(cancellationToken: cancellationToken);
+
+            return Ok(clients);
         }
 
         [HttpPost("set-token")]

@@ -12,12 +12,14 @@ using Vayosoft.Identity.Extensions;
 using Vayosoft.Identity.Persistence;
 using Vayosoft.SmsBrokers;
 using Vayosoft.Utilities;
+using Vayosoft.Web.Identity.Authorization;
 using Vayosoft.Web.Model.Authentication;
 
 namespace EmulatorHub.API.Controllers
 {
     [Route("api/account")]
     [ApiController]
+    [PermissionAuthorization]
     public class AccountController : ControllerBase
     {
         private readonly IAuthenticationService _authService;
@@ -133,7 +135,7 @@ namespace EmulatorHub.API.Controllers
                 return HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString();
         }
 
-        public static int GetFixedHash(string s, int length)
+        private static int GetFixedHash(string s, int length)
         {
             var mustBeLessThan = Math.Pow(10, length); // 6 decimal digits
 
