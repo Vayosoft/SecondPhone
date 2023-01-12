@@ -1,10 +1,11 @@
 ﻿using EmulatorHub.Commons.Application.Services;
 using EmulatorHub.Infrastructure.Persistence;
-using EmulatorHub.PushBroker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using EmulatorHub.Commons;
+using EmulatorHub.PushService;
+using EmulatorHub.PushService.Application.Commands;
 using FluentValidation;
 using Vayosoft;
 using Vayosoft.Caching;
@@ -12,7 +13,6 @@ using Vayosoft.EntityFramework.MySQL;
 using Vayosoft.Identity;
 using Vayosoft.Identity.EntityFramework;
 using Vayosoft.Persistence;
-using EmulatorHub.PushBroker.Application.Commands;
 using Vayosoft.Redis;
 
 namespace EmulatorHub.Infrastructure
