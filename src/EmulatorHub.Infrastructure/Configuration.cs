@@ -4,6 +4,7 @@ using EmulatorHub.PushBroker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using EmulatorHub.Commons;
 using FluentValidation;
 using Vayosoft;
 using Vayosoft.Caching;
@@ -31,7 +32,8 @@ namespace EmulatorHub.Infrastructure
                 .AddCaching(configuration);
 
             services.AddHubDataContext(configuration);
-            services.AddPushBrokerServices();
+            services.AddPushService();
+            services.AddSmsService();
 
             return services;
         }

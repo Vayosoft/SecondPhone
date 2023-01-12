@@ -12,7 +12,7 @@ namespace EmulatorHub.PushBroker
 {
     public static class Configurations
     {
-        public static IServiceCollection AddPushBrokerServices(this IServiceCollection services)
+        public static IServiceCollection AddPushService(this IServiceCollection services)
         {
             services.AddPushBrokers();
             services.AddSingleton<MessageChannelHandler>();

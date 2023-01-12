@@ -20,7 +20,7 @@ namespace EmulatorHub.API.Controllers
             return Ok(await db.Clients.ToListAsync(cancellationToken: cancellationToken));
         }
 
-        [HttpPost("token/set")]
+        [HttpPost("set-token")]
         public async Task<IActionResult> SetPushToken(
             [Required][FromHeader(Name = "x-client-id")] string clientId, 
             [FromBody]SetTokenViewModel request,
