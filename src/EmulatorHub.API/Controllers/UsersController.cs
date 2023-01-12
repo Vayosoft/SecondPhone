@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Vayosoft.Caching;
 using Vayosoft.Identity;
+using Vayosoft.Identity.Extensions;
 using Vayosoft.Persistence;
 using Vayosoft.Persistence.Criterias;
 using Vayosoft.Web.Identity.Authorization;
@@ -39,7 +40,9 @@ namespace EmulatorHub.API.Controllers
                 return BadRequest();
             }
 
-            var user = await db.FindAsync<UserEntity>(1, cancellationToken);
+            var userId = HttpContext.User.Identity.GetUserId();
+
+            var user = await db.FindAsync<UserEntity>(userId, cancellationToken);
             if (user is { } item)
             {
                 var client = await db.FindAsync<MobileClient>(model.ClientId, cancellationToken);

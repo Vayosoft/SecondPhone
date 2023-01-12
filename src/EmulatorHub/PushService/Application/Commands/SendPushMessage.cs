@@ -1,18 +1,18 @@
 ﻿using EmulatorHub.Commons.Domain.Entities;
-using EmulatorHub.PushBroker.Application.Channels;
-using EmulatorHub.PushBroker.Application.Models;
+using EmulatorHub.PushService.Application.Channels;
+using EmulatorHub.PushService.Application.Models;
 using FluentValidation;
 using LanguageExt.Common;
 using MediatR;
 using Vayosoft.Commands;
 using Vayosoft.Commons.Exceptions;
-using Vayosoft.Persistence.Criterias;
 using Vayosoft.Persistence;
+using Vayosoft.Persistence.Criterias;
 using Vayosoft.Threading.Channels;
 using ValidationException = FluentValidation.ValidationException;
 
 
-namespace EmulatorHub.PushBroker.Application.Commands
+namespace EmulatorHub.PushService.Application.Commands
 {
     public sealed record SendPushMessage(string DeviceId, string Message) : ICommand<Result<Unit>>
     {

@@ -1,11 +1,11 @@
-﻿using EmulatorHub.PushBroker.Application.Models;
+﻿using EmulatorHub.PushService.Application.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Vayosoft.PushBrokers;
 using Vayosoft.Threading.Channels.Handlers;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
-namespace EmulatorHub.PushBroker.Application.Channels
+namespace EmulatorHub.PushService.Application.Channels
 {
     public sealed class MessageChannelHandler : ChannelHandlerBase<PushMessage>
     {

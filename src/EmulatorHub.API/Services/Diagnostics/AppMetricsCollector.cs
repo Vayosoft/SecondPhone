@@ -1,9 +1,9 @@
 ﻿using App.Metrics;
 using EmulatorHub.API.Model.Diagnostics;
-using EmulatorHub.PushBroker.Application.Channels;
-using EmulatorHub.PushBroker.Application.Models;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
+using EmulatorHub.PushService.Application.Channels;
+using EmulatorHub.PushService.Application.Models;
 using Vayosoft.Threading.Channels;
 using Vayosoft.Threading.Channels.Models;
 using static EmulatorHub.API.Services.Diagnostics.AppMetricsRegistry.Channels;

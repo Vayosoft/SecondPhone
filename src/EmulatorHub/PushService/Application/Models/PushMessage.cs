@@ -1,4 +1,4 @@
-﻿namespace EmulatorHub.PushBroker.Application.Models
+﻿namespace EmulatorHub.PushService.Application.Models
 {
     public record PushMessage(string PushToken, string Payload);
 }
