@@ -1,6 +1,6 @@
 ﻿using EmulatorHub.Application.PushGateway.Channels;
 using EmulatorHub.Application.PushGateway.Models;
-using EmulatorHub.Domain.Entities;
+using EmulatorHub.Domain.Commons.Entities;
 using FluentValidation;
 using LanguageExt.Common;
 using MediatR;

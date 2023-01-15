@@ -26,7 +26,7 @@
 
   <ItemGroup>
     <Folder Include="Application\Commons\Specifications\" />
-    <Folder Include="Domain\Enums\" />
+    <Folder Include="Domain\Commons\Enums\" />
   </ItemGroup>
 
 </Project>

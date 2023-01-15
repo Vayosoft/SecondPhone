@@ -1,6 +1,7 @@
 ﻿using App.Metrics;
 using App.Metrics.Counter;
 using EmulatorHub.Application.Commons.Services.IdentityProvider;
+using EmulatorHub.Domain.Commons.Entities;
 using EmulatorHub.Domain.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;

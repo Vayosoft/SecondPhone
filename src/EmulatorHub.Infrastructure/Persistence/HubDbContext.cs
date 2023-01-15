@@ -1,4 +1,4 @@
-﻿using EmulatorHub.Domain.Entities;
+﻿using EmulatorHub.Domain.Commons.Entities;
 using Microsoft.EntityFrameworkCore;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Extensions;
