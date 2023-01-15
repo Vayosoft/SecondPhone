@@ -86,19 +86,21 @@ namespace EmulatorHub.API.Controllers
                         {
                             Id = deviceId,
                             User = user,
+                            Name = "default",
                             ProviderId = user.ProviderId
                         };
                         store.Add(client);
 
-                    }else if (client.User.Id != user.Id)
+                    }
+                    else if (client.User.Id != user.Id)
                     {
                         client.User = user;
-                        store.Update(new EmulatorDto { Id = device.Id, Name = device.Name });
+                        store.Update(client);
                     }
                 }
 
                 await store.CommitAsync(cancellationToken);
-                return Ok(device.Id);
+                return Ok(new EmulatorDto { Id = device.Id, Name = device.Name });
             }
 
             return NotFound(command.PhoneNumber);
