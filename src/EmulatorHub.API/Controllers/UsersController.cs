@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using EmulatorHub.Domain.Entities;
+using EmulatorHub.Domain.Commons.Entities;
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
