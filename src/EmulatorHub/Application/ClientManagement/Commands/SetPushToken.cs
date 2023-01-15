@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EmulatorHub.API.Model
+namespace EmulatorHub.Application.ClientManagement.Commands
 {
-    public class SetTokenViewModel
+    public class SetPushToken
     {
         [Required]
         [MaxLength(500)]

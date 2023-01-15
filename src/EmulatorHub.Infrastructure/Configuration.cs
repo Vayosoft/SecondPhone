@@ -14,6 +14,14 @@ using EmulatorHub.Application.Commons.Services;
 using EmulatorHub.Application.Commons;
 using EmulatorHub.Application.PushGateway;
 using EmulatorHub.Application.PushGateway.Commands;
+using MediatR;
+using System.Data.Common;
+using System;
+using AutoMapper;
+using EmulatorHub.Infrastructure.Mapping;
+using Vayosoft.AutoMapper;
+using Vayosoft.Commons;
+using IMapper = Vayosoft.Commons.IMapper;
 
 namespace EmulatorHub.Infrastructure
 {
@@ -34,6 +42,30 @@ namespace EmulatorHub.Infrastructure
             services.AddHubDataContext(configuration);
             services.AddPushService();
             services.AddSmsService();
+
+            services.AddInfrastructure(configuration);
+
+            return services;
+        }
+
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            var domainAssembly = AppDomain.CurrentDomain.GetAssemblies();
+            services.AddSingleton(provider =>
+            {
+                var mapperConfiguration = new MapperConfiguration(cfg =>
+                {
+                    ConventionalProfile.Scan(domainAssembly);
+                    cfg.AddProfile<ConventionalProfile>();
+                    cfg.AddProfile<MappingProfile>();
+                });
+                return new AutoMapperWrapper(mapperConfiguration);
+            });
+
+            services.AddSingleton(typeof(IProjector), provider => provider.GetRequiredService<AutoMapperWrapper>());
+            services.AddSingleton(typeof(IMapper),
+                provider => provider.GetRequiredService<AutoMapperWrapper>());
 
             return services;
         }

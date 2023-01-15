@@ -2,7 +2,7 @@
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Vayosoft.Identity.Extensions;
+using Vayosoft.Identity;
 using Vayosoft.Web.Identity.Authorization;
 
 namespace EmulatorHub.API.Controllers
@@ -12,18 +12,14 @@ namespace EmulatorHub.API.Controllers
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/emulators")]
-    [PermissionAuthorization]
+    [PermissionAuthorization(UserType.Administrator)]
     public class EmulatorsController : ControllerBase
     {
         [ProducesResponseType(typeof(List<Emulator>), StatusCodes.Status200OK)]
         [HttpGet]
         public async Task<IActionResult> GetEmulators(HubDbContext db, CancellationToken cancellationToken)
         {
-            var userId = HttpContext.User.Identity.GetUserId();
-
             return Ok(await db.Devices
-                //.Include(d => d.Client)
-                .Where(e => e.Client.User.Id == userId)
                 .ToListAsync(cancellationToken: cancellationToken));
         }
     }
