@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EmulatorHub.Application.ClientManagement.Commands
+namespace EmulatorHub.Application.ClientContext.Commands
 {
     public class SetPushToken
     {

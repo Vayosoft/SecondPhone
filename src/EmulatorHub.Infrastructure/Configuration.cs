@@ -14,10 +14,8 @@ using EmulatorHub.Application.Commons.Services;
 using EmulatorHub.Application.Commons;
 using EmulatorHub.Application.PushGateway;
 using EmulatorHub.Application.PushGateway.Commands;
-using MediatR;
-using System.Data.Common;
-using System;
 using AutoMapper;
+using EmulatorHub.Application.Administration;
 using EmulatorHub.Infrastructure.Mapping;
 using Vayosoft.AutoMapper;
 using Vayosoft.Commons;
@@ -40,8 +38,10 @@ namespace EmulatorHub.Infrastructure
                 .AddCaching(configuration);
 
             services.AddHubDataContext(configuration);
+
             services.AddPushService();
             services.AddSmsService();
+            services.AddAdministrationService();
 
             services.AddInfrastructure(configuration);
 

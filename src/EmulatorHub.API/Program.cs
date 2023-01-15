@@ -32,7 +32,6 @@ try
 #endif
         );
 
-        //builder.Services.AddMemoryCache();
         builder.Services.AddSignalR();
         builder.Services.AddControllers().AddJsonOptions(options =>
         {
@@ -41,7 +40,6 @@ try
                 = JsonIgnoreCondition.WhenWritingNull;
         });
         builder.Services.AddEndpointsApiExplorer();
-        //builder.Services.AddSwaggerGen();
         builder.Services.AddSwaggerService();
 
         builder.Services.AddHubApplication(builder.Configuration);
@@ -60,36 +58,6 @@ try
         });
 
         builder.Services.AddIdentityService(configuration);
-
-        //Authentication
-        //var symmetricKey = "qwertyuiopasdfghjklzxcvbnm123456"; //configuration["Jwt:Symmetric:Key"];
-        //var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(symmetricKey));
-        //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        //    .AddJwtBearer(options =>
-        //    {
-        //        //options.IncludeErrorDetails = true; // <- for debugging
-
-        //        options.TokenValidationParameters =
-        //            new TokenValidationParameters
-        //            {
-        //                ValidateActor = false,
-        //                ValidateAudience = false,
-        //                ValidateIssuer = false,
-        //                RequireExpirationTime = true, // <- JWTs are required to have "exp" property set
-        //                ValidateLifetime = true, // <- the "exp" will be validated
-        //                RequireSignedTokens = true,
-        //                IssuerSigningKey = signingKey,
-        //            };
-        //    });
-        ////Authorization
-        //builder.Services.AddAuthorization(options =>
-        //{
-        //    options.AddPolicy(JwtBearerDefaults.AuthenticationScheme, policy =>
-        //    {
-        //        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
-        //        policy.RequireClaim(ClaimTypes.NameIdentifier);
-        //    });
-        //});
 
         // HealthCheck
         builder.Services
@@ -120,11 +88,8 @@ try
             ResponseWriter = HealthCheckResponse.Write
         });
 
-        //app.UseSwagger();
-        //app.UseSwaggerUI();
         app.UseSwaggerService();
 
-        //app.UseAuthentication();
         app.UseMiddleware<TokenAuthenticationMiddleware>();
         app.UseAuthorization();
         app.UseSession();

@@ -2,10 +2,10 @@
 using Vayosoft.Commons.Entities;
 using Vayosoft.Mapping;
 
-namespace EmulatorHub.Application.ClientManagement.Models
+namespace EmulatorHub.Application.Administration.Models
 {
-    [ConventionalMap(typeof(MobileClient), direction: MapDirection.EntityToDto)]
-    public record MobileClientDto : IEntity<string>
+    [ConventionalMap(typeof(Emulator), direction: MapDirection.EntityToDto)]
+    public record EmulatorDto : IEntity<string>
     {
         object IEntity.Id => Id;
         public string Id { get; set; }

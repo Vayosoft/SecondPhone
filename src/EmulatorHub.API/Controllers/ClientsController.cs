@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using EmulatorHub.Application.ClientManagement.Commands;
-using EmulatorHub.Application.ClientManagement.Models;
+using EmulatorHub.Application.ClientContext.Commands;
+using EmulatorHub.Application.ClientContext.Models;
 using EmulatorHub.Domain.Commons.Entities;
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
