@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using EmulatorHub.Application.PushService.Commands;
+using EmulatorHub.Application.PushGateway.Commands;
 using Vayosoft.Commands;
 using Vayosoft.Web.Controllers;
 

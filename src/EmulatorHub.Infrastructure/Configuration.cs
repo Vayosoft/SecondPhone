@@ -11,9 +11,9 @@ using Vayosoft.Identity.EntityFramework;
 using Vayosoft.Persistence;
 using Vayosoft.Redis;
 using EmulatorHub.Application.Commons.Services;
-using EmulatorHub.Application.PushService.Commands;
-using EmulatorHub.Application.PushService;
 using EmulatorHub.Application.Commons;
+using EmulatorHub.Application.PushGateway;
+using EmulatorHub.Application.PushGateway.Commands;
 
 namespace EmulatorHub.Infrastructure
 {
