@@ -1,11 +1,7 @@
-﻿using EmulatorHub.Commons.Application.Services;
-using EmulatorHub.Infrastructure.Persistence;
+﻿using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using EmulatorHub.Commons;
-using EmulatorHub.PushService;
-using EmulatorHub.PushService.Application.Commands;
 using FluentValidation;
 using Vayosoft;
 using Vayosoft.Caching;
@@ -14,6 +10,10 @@ using Vayosoft.Identity;
 using Vayosoft.Identity.EntityFramework;
 using Vayosoft.Persistence;
 using Vayosoft.Redis;
+using EmulatorHub.Application.Commons.Services;
+using EmulatorHub.Application.PushService.Commands;
+using EmulatorHub.Application.PushService;
+using EmulatorHub.Application.Commons;
 
 namespace EmulatorHub.Infrastructure
 {
@@ -21,8 +21,8 @@ namespace EmulatorHub.Infrastructure
     {
         public static IServiceCollection AddHubApplication(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddHttpContextAccessor();
-            services.AddScoped<IUserContext, UserContext>();
+            services.AddHttpContextAccessor()
+                .AddScoped<IUserContext, UserContext>();
 
             services.AddCoreServices();
             services.AddValidation();

@@ -6,7 +6,7 @@ using Vayosoft.Identity.Extensions;
 using Vayosoft.Identity.Persistence;
 using Vayosoft.Identity.Security;
 
-namespace EmulatorHub.Commons.Application.Services
+namespace EmulatorHub.Application.Commons.Services
 {
     public class UserContext : IUserContext
     {

@@ -1,5 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
-using EmulatorHub.Commons.Application.Services;
+using EmulatorHub.Application.Commons.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 

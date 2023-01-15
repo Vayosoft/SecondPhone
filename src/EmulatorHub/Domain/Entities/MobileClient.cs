@@ -1,7 +1,7 @@
 ﻿using Vayosoft.Commons.Entities;
 using Vayosoft.Identity;
 
-namespace EmulatorHub.Commons.Domain.Entities
+namespace EmulatorHub.Domain.Entities
 {
     public class MobileClient : EntityBase<string>, IProviderId<long>, ISoftDelete
     {

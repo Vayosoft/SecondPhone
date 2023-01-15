@@ -1,7 +1,7 @@
 ﻿using App.Metrics;
 using App.Metrics.Counter;
-using EmulatorHub.Commons.Application.Services.IdentityProvider;
-using EmulatorHub.Commons.Domain.Entities;
+using EmulatorHub.Application.Commons.Services.IdentityProvider;
+using EmulatorHub.Domain.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Vayosoft.Identity;

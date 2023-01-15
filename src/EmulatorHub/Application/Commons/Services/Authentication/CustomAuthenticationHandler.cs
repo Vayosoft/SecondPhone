@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace EmulatorHub.Commons.Application.Services.Authentication
+namespace EmulatorHub.Application.Commons.Services.Authentication
 {
     /// <summary>
     /// https://referbruv.com/blog/implementing-custom-authentication-scheme-and-handler-in-aspnet-core-3x/

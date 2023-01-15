@@ -2,12 +2,12 @@
 using EmulatorHub.API.Model.Diagnostics;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
-using EmulatorHub.PushService.Application.Channels;
-using EmulatorHub.PushService.Application.Models;
 using Vayosoft.Threading.Channels;
 using Vayosoft.Threading.Channels.Models;
 using static EmulatorHub.API.Services.Diagnostics.AppMetricsRegistry.Channels;
 using static EmulatorHub.API.Services.Diagnostics.AppMetricsRegistry.Gauges;
+using EmulatorHub.Application.PushService.Channels;
+using EmulatorHub.Application.PushService.Models;
 
 namespace EmulatorHub.API.Services.Diagnostics
 {

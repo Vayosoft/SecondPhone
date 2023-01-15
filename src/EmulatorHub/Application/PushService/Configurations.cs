@@ -1,6 +1,6 @@
-﻿using EmulatorHub.PushService.Application.Channels;
-using EmulatorHub.PushService.Application.Commands;
-using EmulatorHub.PushService.Application.Models;
+﻿using EmulatorHub.Application.PushService.Channels;
+using EmulatorHub.Application.PushService.Commands;
+using EmulatorHub.Application.PushService.Models;
 using LanguageExt.Common;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +8,7 @@ using Vayosoft.Commands;
 using Vayosoft.PushBrokers;
 using Vayosoft.Threading.Channels;
 
-namespace EmulatorHub.PushService
+namespace EmulatorHub.Application.PushService
 {
     public static class Configurations
     {

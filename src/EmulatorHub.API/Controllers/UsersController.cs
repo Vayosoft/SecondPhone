@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using EmulatorHub.Commons.Domain.Entities;
+using EmulatorHub.Domain.Entities;
 using EmulatorHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +12,7 @@ namespace EmulatorHub.API.Controllers
 {
     [ApiController]
     [Route("api/users")]
-    [PermissionAuthorization]
+    [PermissionAuthorization(UserType.Administrator)]
     public class UsersController : ControllerBase
     {
         private ILogger<Emulator> _logger;

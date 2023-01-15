@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace EmulatorHub.Commons.Application.Services.IdentityProvider
+namespace EmulatorHub.Application.Commons.Services.IdentityProvider
 {
     public static class TokenUtils
     {

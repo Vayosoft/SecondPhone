@@ -1,4 +1,4 @@
-﻿using EmulatorHub.Commons.Domain.Entities;
+﻿using EmulatorHub.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Vayosoft.Persistence.EntityFramework;
 

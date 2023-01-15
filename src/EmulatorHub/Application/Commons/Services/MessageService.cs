@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
-namespace EmulatorHub.Commons.Application.Services
+namespace EmulatorHub.Application.Commons.Services
 {
     public class MessageService
     {
@@ -20,7 +20,7 @@ namespace EmulatorHub.Commons.Application.Services
             {
                 RequestUri = new Uri("http://localhost:5005/api/messages/push/send"),
                 Method = HttpMethod.Post,
-                
+
             };
             request.Headers.Add("x-device-id", deviceId);
 

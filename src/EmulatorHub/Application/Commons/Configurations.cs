@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Vayosoft.SmsBrokers;
 
-namespace EmulatorHub.Commons
+namespace EmulatorHub.Application.Commons
 {
     public static class Configurations
     {

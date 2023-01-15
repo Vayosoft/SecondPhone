@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace EmulatorHub.Commons.Application.Services.Commons
+namespace EmulatorHub.Application.Commons.Services.Commons
 {
     public static class Server
     {

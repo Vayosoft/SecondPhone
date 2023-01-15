@@ -1,6 +1,6 @@
-﻿using EmulatorHub.Commons.Domain.Entities;
-using EmulatorHub.PushService.Application.Channels;
-using EmulatorHub.PushService.Application.Models;
+﻿using EmulatorHub.Application.PushService.Channels;
+using EmulatorHub.Application.PushService.Models;
+using EmulatorHub.Domain.Entities;
 using FluentValidation;
 using LanguageExt.Common;
 using MediatR;
@@ -12,7 +12,7 @@ using Vayosoft.Threading.Channels;
 using ValidationException = FluentValidation.ValidationException;
 
 
-namespace EmulatorHub.PushService.Application.Commands
+namespace EmulatorHub.Application.PushService.Commands
 {
     public sealed record SendPushMessage(string DeviceId, string Message) : ICommand<Result<Unit>>
     {
@@ -37,7 +37,7 @@ namespace EmulatorHub.PushService.Application.Commands
 
         public HandleSendPushMessage(
             IUnitOfWork unitOfWork,
-            IValidator<SendPushMessage> validator, 
+            IValidator<SendPushMessage> validator,
             HandlerChannel<PushMessage, MessageChannelHandler> channel
             )
         {
