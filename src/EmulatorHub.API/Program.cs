@@ -68,6 +68,11 @@ try
 
         // Metrics
         builder.AddDiagnostics();
+
+        //Web.Identity
+        builder.Services.AddUserService();
+        builder.Services.AddSecurityService();
+        builder.Services.AddProviderService();
     }
 
     var app = builder.Build();
