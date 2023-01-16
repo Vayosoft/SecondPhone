@@ -63,7 +63,7 @@ namespace EmulatorHub.API.Controllers
                     {
                         Id = deviceId,
                         User = user,
-                        Name = "default",
+                        Name = command.Name ?? deviceId,
                         ProviderId = user.ProviderId
                     };
                     store.Add(client);
@@ -72,7 +72,7 @@ namespace EmulatorHub.API.Controllers
                     {
                         Id = deviceId,
                         Client = client,
-                        Name = "default",
+                        Name = command.Name ?? deviceId,
                         ProviderId = user.ProviderId,
                     };
                     store.Add(device);
@@ -86,7 +86,7 @@ namespace EmulatorHub.API.Controllers
                         {
                             Id = deviceId,
                             User = user,
-                            Name = "default",
+                            Name = command.Name ?? deviceId,
                             ProviderId = user.ProviderId
                         };
                         store.Add(client);

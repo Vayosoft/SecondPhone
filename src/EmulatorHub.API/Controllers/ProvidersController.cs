@@ -33,7 +33,7 @@ namespace EmulatorHub.API.Controllers
         {
             await userContext.LoadContextAsync();
             long? providerId = !userContext.IsSupervisor
-                ? userContext.User.Identity?.GetProviderId() ?? 0
+                ? userContext.User.Identity.GetProviderId()
                 : null;
             return Ok(await linqProvider
                 .WhereIf<ProviderEntity>(providerId != null, p => p.Parent == providerId || p.Id == providerId)
@@ -44,7 +44,7 @@ namespace EmulatorHub.API.Controllers
         [PermissionAuthorization("PROVIDER", SecurityPermissions.Add | SecurityPermissions.Edit)]
         public async Task<IActionResult> PostSet([FromBody] ProviderEntity entity, CancellationToken token) {
             entity.Parent = !userContext.IsSupervisor
-                ? userContext.User.Identity?.GetProviderId() ?? 0
+                ? userContext.User.Identity.GetProviderId()
                 : default;
             var command = new CreateOrUpdateCommand<ProviderEntity>(entity);
             await commandBus.Send(command, token);

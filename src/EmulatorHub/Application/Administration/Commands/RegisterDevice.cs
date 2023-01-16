@@ -8,5 +8,6 @@ namespace EmulatorHub.Application.Administration.Commands
         [RegularExpression(pattern:"^[\\d]{5,21}$", ErrorMessage = "invalid phone number")]
         public string PhoneNumber { get; set; }
         public string DeviceId { get; set; }
+        public string Name { get; set; }
     }
 }

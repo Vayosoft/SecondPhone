@@ -7,7 +7,6 @@ using Vayosoft.Web.Controllers;
 namespace EmulatorHub.API.Controllers
 {
     [Route("api/messages")]
-    //[ApiController]
     public class MessagesController : ApiControllerBase
     {
         [HttpPost("push/send")]
