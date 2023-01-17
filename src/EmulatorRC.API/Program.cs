@@ -74,7 +74,6 @@ public class Program
 				builder.Services.AddSingleton<DeviceInfoChannel>();	
                 builder.Services.AddSingleton<StreamChannel>();
 
-
                 builder.Services.AddSingleton<TcpStreamChannel>();
                 builder.Services.AddSingleton<IMemoryCacheProvider, MemoryCacheProvider>();
                 builder.Services.AddSingleton<IPubSubCacheProvider, RedisProvider>();

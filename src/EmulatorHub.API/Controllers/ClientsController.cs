@@ -67,7 +67,7 @@ namespace EmulatorHub.API.Controllers
         {
             if (string.IsNullOrEmpty(clientId))
             {
-                ModelState.AddModelError(nameof(clientId), "ClientId has not provided.");
+                ModelState.AddModelError(nameof(clientId), "ClientId was not provided.");
             }
 
             if (!ModelState.IsValid)
@@ -100,7 +100,7 @@ namespace EmulatorHub.API.Controllers
         {
             if (string.IsNullOrEmpty(clientId))
             {
-                ModelState.AddModelError(nameof(clientId), "ClientId has not provided.");
+                ModelState.AddModelError(nameof(clientId), "ClientId was not provided.");
             }
 
             if (!ModelState.IsValid)

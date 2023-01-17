@@ -2,7 +2,6 @@
 using EmulatorRC.Entities;
 using Microsoft.AspNetCore.Connections;
 using System.Buffers;
-using System.IO.Pipelines;
 using System.Text;
 using System.Text.Json;
 
@@ -31,7 +30,7 @@ namespace EmulatorRC.API.Handlers
         {
             _logger.LogInformation("{ConnectionId} connected", connection.ConnectionId);
 
-            DeviceSession session = default;
+            Handshake handshake = null;
             try
             {
                 var cts = CancellationTokenSource.CreateLinkedTokenSource(
@@ -39,56 +38,30 @@ namespace EmulatorRC.API.Handlers
                 var token = cts.Token;
 
                 HandshakeStatus status = default;
-                PipeWriter writer = default;
-                while (true)
+                while (status != HandshakeStatus.Successful)
                 {
                     var result = await connection.Transport.Input.ReadAsync(token);
                     var buffer = result.Buffer;
-                    var consumed = buffer.Start;
 
-                    if (status != HandshakeStatus.Successful)
+                    var consumed = ProcessHandshake(ref buffer, out status, out handshake);
+                    switch (status)
                     {
-                        consumed = ProcessHandshake(ref buffer, out status, out session);
-                        switch (status)
+                        case HandshakeStatus.Successful:
                         {
-                            case HandshakeStatus.Successful:
+                            //todo authentication
+                            if (string.IsNullOrEmpty(handshake.DeviceId))
                             {
-                                //todo authentication
-                                if (string.IsNullOrEmpty(session.DeviceId))
-                                {
-                                    _logger.LogError("{ConnectionId} => Authentication failed", connection.ConnectionId);
-                                    return;
-                                }
-
-                                var channelWriter = _channel.GetOrCreateWriter(session.DeviceId);
-                                if (channelWriter.IsError)
-                                {
-                                    _logger.LogError("{ConnectionId} => {Error}", connection.ConnectionId, channelWriter.FirstError.Description);
-                                    return;
-                                }
-
-                                writer = channelWriter.Value;
-
-                                buffer = buffer.Slice(consumed);
-                                break;
-                            }
-                            case HandshakeStatus.Failed:
-
-                                _logger.LogError("{ConnectionId} => Handshake failed. {EndPoint}\r\nLength: {BufferLength}\r\nHex: {Hex}\r\nUTF8: {UTF8}",
-                                    connection.ConnectionId, connection.RemoteEndPoint, buffer.Length,
-                                    Convert.ToHexString(buffer.ToArray()), Encoding.UTF8.GetString(buffer));
+                                _logger.LogError("{ConnectionId} => Authentication failed", connection.ConnectionId);
                                 return;
+                            }
+                            break;
                         }
-                    }
+                        case HandshakeStatus.Failed:
 
-                    if (status == HandshakeStatus.Successful)
-                    {
-                        foreach (var segment in buffer)
-                        {
-                            await writer!.WriteAsync(segment, token);
-                        }
-
-                        consumed = buffer.End;
+                            _logger.LogError("{ConnectionId} => Handshake failed. {EndPoint}\r\nLength: {BufferLength}\r\nHex: {Hex}\r\nUTF8: {UTF8}",
+                                connection.ConnectionId, connection.RemoteEndPoint, buffer.Length,
+                                Convert.ToHexString(buffer.ToArray()), Encoding.UTF8.GetString(buffer));
+                            return;
                     }
 
                     if (result.IsCompleted)
@@ -97,6 +70,20 @@ namespace EmulatorRC.API.Handlers
                     }
 
                     connection.Transport.Input.AdvanceTo(consumed);
+
+                    if(status == HandshakeStatus.Successful) break;
+                }
+
+                switch (handshake)
+                {
+                    case VideoHandshake videoHandshake:
+                        var cameraStreamHandler = new CameraStreamHandler(_channel, _logger);
+                        await cameraStreamHandler.HandleOuterAsync(connection, videoHandshake, token);
+                        break;
+                    case SpeakerHandshake speakerHandshake:
+                        var speakerStreamHandler = new SpeakerStreamHandler(_channel, _logger);
+                        await speakerStreamHandler.HandleOuterAsync(connection, speakerHandshake, token);
+                        break;
                 }
             }
             catch (ConnectionResetException) { }
@@ -107,9 +94,15 @@ namespace EmulatorRC.API.Handlers
             }
             finally
             {
-                if (session != default)
+                if (handshake != default)
                 {
-                    await _channel.RemoveWriterAsync(session.DeviceId);
+                    switch (handshake)
+                    {
+                        case VideoHandshake videoHandshake:
+                            await _channel.RemoveCameraWriterAsync(videoHandshake.DeviceId);
+                            break;
+                    }
+                   
                 }
 
                 await connection.Transport.Input.CompleteAsync();
@@ -119,14 +112,14 @@ namespace EmulatorRC.API.Handlers
             _logger.LogInformation("{ConnectionId} disconnected", connection.ConnectionId);
         }
 
-        private SequencePosition ProcessHandshake(ref ReadOnlySequence<byte> buffer, out HandshakeStatus status, out DeviceSession session)
+        private SequencePosition ProcessHandshake(ref ReadOnlySequence<byte> buffer, out HandshakeStatus status, out Handshake command)
         {
             var reader = new SequenceReader<byte>(buffer);
             try
             {
                 if (!reader.TryReadLittleEndian(out int length) || length > MaxHeaderLength)
                 {
-                    session = null;
+                    command = null;
                     status = HandshakeStatus.Failed;
                     return reader.Position;
                 }
@@ -134,11 +127,12 @@ namespace EmulatorRC.API.Handlers
                 if (!reader.TryReadExact(length, out var header))
                 {
                     //todo security issue
-                    session = null;
+                    command = null;
                     status = HandshakeStatus.Pending;
                     return buffer.Start;
                 }
 
+                DeviceSession session;
                 if (length < MaxStackLength)
                 {
                     Span<byte> payload = stackalloc byte[length];
@@ -162,6 +156,12 @@ namespace EmulatorRC.API.Handlers
                     }
                 }
 
+                command = session.StreamType switch
+                {
+                    "cam" => new VideoHandshake(0, 0) {DeviceId = session.DeviceId},
+                    "sound" => new SpeakerHandshake {DeviceId = session.DeviceId},
+                    _ => throw new ArgumentOutOfRangeException()
+                };
                 status = HandshakeStatus.Successful;
                 return reader.Position;
             }
@@ -169,7 +169,7 @@ namespace EmulatorRC.API.Handlers
             {
                 _logger.LogError(e, "Handshake => {Error}\r\n", e.Message);
 
-                session = null;
+                command = null;
                 status = HandshakeStatus.Failed;
                 return reader.Position;
             }

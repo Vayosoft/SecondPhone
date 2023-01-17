@@ -8,28 +8,38 @@ namespace EmulatorRC.API.Channels
 {
     public sealed class StreamChannel
     {
-        private readonly ConcurrentDictionary<string, Pipe> _channels = new();
+        private readonly ConcurrentDictionary<string, Pipe> _camera = new();
+        private readonly ConcurrentDictionary<string, Pipe> _speaker = new();
 
-        public ErrorOr<PipeWriter> GetOrCreateWriter(string name)
+        public ErrorOr<PipeWriter> GetOrCreateCameraWriter(string name) => GetOrCreateWriter(_camera, name);
+        public ErrorOr<PipeWriter> GetOrCreateSpeakerWriter(string name) => GetOrCreateWriter(_speaker, name);
+
+        private static ErrorOr<PipeWriter> GetOrCreateWriter(ConcurrentDictionary<string, Pipe> channels, string name)
         {
-            if (_channels.TryGetValue(name, out var channel))
+            if (channels.TryGetValue(name, out var channel))
                 return Error.Conflict("Channel is busy");
 
             using (Locker.GetLockerByName(name).Lock())
             {
-                if (_channels.TryGetValue(name, out channel))
+                if (channels.TryGetValue(name, out channel))
                     return Error.Conflict("Channel is busy");
 
                 channel = new Pipe();
-                _channels[name] = channel;
+                channels[name] = channel;
             }
 
             return channel.Writer;
         }
 
-        public async IAsyncEnumerable<ReadOnlyMemory<byte>> ReadAllAsync(string name, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public IAsyncEnumerable<ReadOnlyMemory<byte>> ReadAllCameraAsync(string name, CancellationToken cancellationToken) =>
+            ReadAllAsync(_camera, name, cancellationToken);
+        public IAsyncEnumerable<ReadOnlyMemory<byte>> ReadAllSpeakerAsync(string name, CancellationToken cancellationToken) =>
+            ReadAllAsync(_camera, name, cancellationToken);
+
+        private static async IAsyncEnumerable<ReadOnlyMemory<byte>> ReadAllAsync(ConcurrentDictionary<string, Pipe> channels, string name,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            if (!_channels.TryGetValue(name, out var channel)) yield break;
+            if (!channels.TryGetValue(name, out var channel)) yield break;
 
             var reader = channel.Reader;
             try
@@ -58,9 +68,13 @@ namespace EmulatorRC.API.Channels
             }
         }
 
-        public async Task RemoveWriterAsync(string name)
+        public Task RemoveCameraWriterAsync(string name) =>
+            RemoveWriterAsync(_camera, name);
+        public Task RemoveSpeakerWriterAsync(string name) =>
+            RemoveWriterAsync(_camera, name);
+        private static async Task RemoveWriterAsync(ConcurrentDictionary<string, Pipe> channels, string name)
         {
-            if (_channels.TryRemove(name, out var channel))
+            if (channels.TryRemove(name, out var channel))
             {
                 await channel.Writer.CompleteAsync();
             }
