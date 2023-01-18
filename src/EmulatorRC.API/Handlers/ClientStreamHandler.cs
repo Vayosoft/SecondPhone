@@ -8,18 +8,18 @@ using EmulatorRC.API.Handlers.StreamReaders;
 
 namespace EmulatorRC.API.Handlers
 {
-    public sealed class ClientHandler : ConnectionHandler
+    public sealed class ClientStreamHandler : ConnectionHandler
     {
         private readonly StreamChannel _channel;
-        private readonly ILogger<ClientHandler> _logger;
+        private readonly ILogger<ClientStreamHandler> _logger;
         private readonly IHostApplicationLifetime _lifetime;
 
         private const int MaxStackLength = 128;
         private const int MaxHeaderLength = 1024;
 
-        public ClientHandler(
+        public ClientStreamHandler(
             StreamChannel channel,
-            ILogger<ClientHandler> logger,
+            ILogger<ClientStreamHandler> logger,
             IHostApplicationLifetime lifetime)
         {
             _channel = channel;
