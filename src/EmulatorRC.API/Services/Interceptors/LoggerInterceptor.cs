@@ -73,8 +73,8 @@ namespace EmulatorRC.API.Services.Interceptors
             where TRequest : class
             where TResponse : class
         {
-            _logger.LogInformation("gRPC {Request} => {Response}. DeviceId: {Device}. Type: {Type}",
-                typeof(TRequest).Name, typeof(TResponse).Name, context.RequestHeaders.GetValue("x-device-id"), methodType);
+            _logger.LogInformation("gRPC {Method} DeviceId: {Device}. Type: {Type}. Request: {Request}. Response: {Response}",
+                context.Method, context.RequestHeaders.GetValue("x-device-id"), methodType, typeof(TRequest).Name, typeof(TResponse).Name);
 
             if (!_logger.IsEnabled(LogLevel.Trace)) return;
 

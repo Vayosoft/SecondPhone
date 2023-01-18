@@ -29,7 +29,7 @@ namespace EmulatorRC.API.Handlers
 
         public override async Task OnConnectedAsync(ConnectionContext connection)
         {
-            _logger.LogInformation("Stream {ConnectionId} connected", connection.ConnectionId);
+            _logger.LogInformation("TCP (Client) {ConnectionId} connected", connection.ConnectionId);
 
             try
             {
@@ -52,14 +52,14 @@ namespace EmulatorRC.API.Handlers
                             //todo authentication
                             if (string.IsNullOrEmpty(handshake.DeviceId))
                             {
-                                _logger.LogError("Stream {ConnectionId} => Authentication failed", connection.ConnectionId);
+                                _logger.LogError("TCP (Client) {ConnectionId} => Authentication failed", connection.ConnectionId);
                                 return;
                             }
                             break;
                         }
                         case HandshakeStatus.Failed:
 
-                            _logger.LogError("Stream {ConnectionId} => Handshake failed. {EndPoint}. Length: {BufferLength}. Hex: {Hex}. UTF8: {UTF8}",
+                            _logger.LogError("TCP (Client) {ConnectionId} => Handshake failed. {EndPoint}. Length: {BufferLength}. Hex: {Hex}. UTF8: {UTF8}",
                                 connection.ConnectionId, connection.RemoteEndPoint, buffer.Length,
                                 Convert.ToHexString(buffer.ToArray()), Encoding.UTF8.GetString(buffer));
                             return;
@@ -78,15 +78,15 @@ namespace EmulatorRC.API.Handlers
                 switch (handshake)
                 {
                     case VideoHandshake videoHandshake:
-                        _logger.LogInformation("Stream {ConnectionId} => Camera (Write)", connection.ConnectionId);
+                        _logger.LogInformation("TCP (Client) {ConnectionId} => Camera [Write]", connection.ConnectionId);
                         await _channel.WriterCameraAsync(videoHandshake.DeviceId, connection, cancellationToken);
                         break;
                     case AudioHandshake audioHandshake:
-                        _logger.LogInformation("Stream {ConnectionId} => Mic (Write)", connection.ConnectionId);
+                        _logger.LogInformation("TCP (Client) {ConnectionId} => Mic [Write]", connection.ConnectionId);
                         await _channel.WriterMicAsync(audioHandshake.DeviceId, connection, cancellationToken);
                         break;
                     case SpeakerHandshake speakerHandshake:
-                        _logger.LogInformation("Stream {ConnectionId} => Mic (Read)", connection.ConnectionId);
+                        _logger.LogInformation("TCP (Client) {ConnectionId} => Speaker [Read]", connection.ConnectionId);
                         var speakerStreamHandler = new SpeakerStreamReader(_channel);
                         await speakerStreamHandler.ReadAsync(connection, speakerHandshake, cancellationToken);
                         break;
@@ -96,14 +96,14 @@ namespace EmulatorRC.API.Handlers
             catch (OperationCanceledException) { }
             catch (Exception e)
             {
-                _logger.LogError(e, "Stream {ConnectionId} => {Error}", connection.ConnectionId, e.Message);
+                _logger.LogError(e, "TCP (Client) {ConnectionId} => {Error}", connection.ConnectionId, e.Message);
             }
             finally
             {
                 await connection.Transport.Input.CompleteAsync();
                 await connection.Transport.Output.CompleteAsync();
 
-                _logger.LogInformation("Stream {ConnectionId} disconnected", connection.ConnectionId);
+                _logger.LogInformation("TCP (Client) {ConnectionId} disconnected", connection.ConnectionId);
             }
         }
 

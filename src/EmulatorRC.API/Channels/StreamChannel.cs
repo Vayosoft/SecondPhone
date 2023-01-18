@@ -97,9 +97,17 @@ namespace EmulatorRC.API.Channels
             {
                 while (!token.IsCancellationRequested)
                 {
-                    await foreach (var segment in ReadAllAsync(channels, name, token))
+                    try
                     {
-                        await output.WriteAsync(segment, token);
+                        await foreach (var segment in ReadAllAsync(channels, name, token))
+                        {
+                            await output.WriteAsync(segment, token);
+                        }
+                    }
+                    catch (OperationCanceledException) { }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "{Channel} ReadAllAsync => {Error}", channels.GetType().Name, e.Message);
                     }
 
                     await Task.Delay(1000, token);
@@ -125,8 +133,8 @@ namespace EmulatorRC.API.Channels
             if (!channels.TryGetValue(name, out var channel)) yield break;
 
             var reader = channel.Reader;
-            try
-            {
+            //try
+            //{
                 while (true)
                 {
                     var result = await reader.ReadAsync(cancellationToken);
@@ -144,11 +152,11 @@ namespace EmulatorRC.API.Channels
 
                     reader.AdvanceTo(buffer.End);
                 }
-            }
-            finally
-            {
-                await reader.CompleteAsync();
-            }
+            //}
+            //finally
+            //{
+            //    await reader.CompleteAsync();
+            //}
         }
 
         public Task RemoveCameraWriterAsync(string name) =>

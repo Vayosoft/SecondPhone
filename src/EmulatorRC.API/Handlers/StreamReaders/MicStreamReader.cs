@@ -12,10 +12,11 @@ namespace EmulatorRC.API.Handlers.StreamReaders
             _channel = channel;
         }
 
+        private readonly byte[] _header = {(byte) '-', (byte) '@', (byte) 'v', (byte) '0', (byte) '2', 2};
+
         public async Task ReadAsync(ConnectionContext connection, AudioHandshake handshake, CancellationToken token)
         {
-            var buf = new byte[] { (byte)'-', (byte)'@', (byte)'v', (byte)'0', (byte)'2', 2 };
-            _ = await connection.Transport.Output.WriteAsync(buf, token);
+            _ = await connection.Transport.Output.WriteAsync(_header, token);
             _ = _channel.ReadAllMicAsync(handshake.DeviceId, connection.Transport.Output, token);
 
             while (!token.IsCancellationRequested)
