@@ -4,12 +4,12 @@ using System.IO.Pipelines;
 
 namespace EmulatorRC.API.Handlers
 {
-    public sealed class SpeakerStreamHandler
+    public sealed class SpeakerStreamReader
     {
         private readonly StreamChannel _channel;
         private readonly ILogger _logger;
 
-        public SpeakerStreamHandler(StreamChannel channel, ILogger logger)
+        public SpeakerStreamReader(StreamChannel channel, ILogger logger)
         {
             _channel = channel;
             _logger = logger;
@@ -53,37 +53,6 @@ namespace EmulatorRC.API.Handlers
             catch (Exception e)
             {
                 _logger.LogError(e, "ReadFromChannel => {Error}\r\n", e.Message);
-            }
-        }
-
-        public async Task HandleInnerAsync(ConnectionContext connection, SpeakerHandshake handshake, CancellationToken token)
-        {
-            var channelWriter = _channel.GetOrCreateSpeakerWriter(handshake.DeviceId);
-            if (!channelWriter.IsError)
-            {
-                var writer = channelWriter.Value;
-
-                while (!token.IsCancellationRequested)
-                {
-                    var result = await connection.Transport.Input.ReadAsync(token);
-                    var buffer = result.Buffer;
-
-                    foreach (var segment in buffer)
-                    {
-                        await writer!.WriteAsync(segment, token);
-                    }
-
-                    if (result.IsCompleted)
-                    {
-                        break;
-                    }
-
-                    connection.Transport.Input.AdvanceTo(buffer.End);
-                }
-            }
-            else
-            {
-                _logger.LogError("{ConnectionId} => {Error}", connection.ConnectionId, channelWriter.FirstError.Description);
             }
         }
     }

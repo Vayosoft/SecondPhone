@@ -5,52 +5,21 @@ using System.IO.Pipelines;
 
 namespace EmulatorRC.API.Handlers
 {
-    public sealed class CameraStreamHandler
+    public sealed class CameraStreamReader
     {
         private readonly StreamChannel _channel;
         private readonly ILogger _logger;
 
-        public CameraStreamHandler(StreamChannel channel, ILogger logger)
+        public CameraStreamReader(StreamChannel channel, ILogger logger)
         {
             _channel = channel;
             _logger = logger;
         }
 
-        public async Task HandleOuterAsync(ConnectionContext connection, VideoHandshake handshake, CancellationToken token)
-        {
-            var channelWriter = _channel.GetOrCreateCameraWriter(handshake.DeviceId);
-            if (!channelWriter.IsError)
-            {
-                var writer = channelWriter.Value;
-
-                while (!token.IsCancellationRequested)
-                {
-                    var result = await connection.Transport.Input.ReadAsync(token);
-                    var buffer = result.Buffer;
-
-                    foreach (var segment in buffer)
-                    {
-                        await writer!.WriteAsync(segment, token);
-                    }
-
-                    if (result.IsCompleted)
-                    {
-                        break;
-                    }
-
-                    connection.Transport.Input.AdvanceTo(buffer.End);
-                }
-            }
-            else
-            {
-                _logger.LogError("{ConnectionId} => {Error}", connection.ConnectionId, channelWriter.FirstError.Description);
-            }
-        }
-
         private static ReadOnlySpan<byte> CommandPing => "CMD /v1/ping"u8;
         private static ReadOnlySpan<byte> GetBattery => "GET /battery"u8;
 
-        public async Task HandleInnerAsync(ConnectionContext connection, VideoHandshake videoHandshake, CancellationToken token)
+        public async Task ReadAsync(ConnectionContext connection, VideoHandshake videoHandshake, CancellationToken token)
         {
             _ = await connection.Transport.Output.WriteAsync(CreateMockHeader(videoHandshake.Width, videoHandshake.Height), token);
             _ = ReadFromChannelAsync(videoHandshake.DeviceId, connection.Transport.Output, token);

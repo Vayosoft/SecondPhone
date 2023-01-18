@@ -9,6 +9,7 @@ namespace EmulatorRC.API.Handlers
 {
     public sealed class OuterHandler : ConnectionHandler
     {
+        private readonly IServiceProvider _services;
         private readonly StreamChannel _channel;
         private readonly ILogger<OuterHandler> _logger;
         private readonly IHostApplicationLifetime _lifetime;
@@ -17,10 +18,12 @@ namespace EmulatorRC.API.Handlers
         private const int MaxHeaderLength = 1024;
 
         public OuterHandler(
+            IServiceProvider services,
             StreamChannel channel,
             ILogger<OuterHandler> logger,
             IHostApplicationLifetime lifetime)
         {
+            _services = services;
             _channel = channel;
             _logger = logger;
             _lifetime = lifetime;
@@ -30,17 +33,17 @@ namespace EmulatorRC.API.Handlers
         {
             _logger.LogInformation("{ConnectionId} connected", connection.ConnectionId);
 
-            Handshake handshake = null;
             try
             {
                 var cts = CancellationTokenSource.CreateLinkedTokenSource(
                     connection.ConnectionClosed, _lifetime.ApplicationStopping);
-                var token = cts.Token;
+                var cancellationToken = cts.Token;
 
+                Handshake handshake = null;
                 HandshakeStatus status = default;
                 while (status != HandshakeStatus.Successful)
                 {
-                    var result = await connection.Transport.Input.ReadAsync(token);
+                    var result = await connection.Transport.Input.ReadAsync(cancellationToken);
                     var buffer = result.Buffer;
 
                     var consumed = ProcessHandshake(ref buffer, out status, out handshake);
@@ -77,12 +80,16 @@ namespace EmulatorRC.API.Handlers
                 switch (handshake)
                 {
                     case VideoHandshake videoHandshake:
-                        var cameraStreamHandler = new CameraStreamHandler(_channel, _logger);
-                        await cameraStreamHandler.HandleOuterAsync(connection, videoHandshake, token);
+                        _logger.LogInformation("{ConnectionId} [Camera] start writing...", connection.ConnectionId);
+                        await _channel.WriterCameraAsync(videoHandshake.DeviceId, connection, cancellationToken);
+                        break;
+                    case AudioHandshake audioHandshake:
+                        _logger.LogInformation("{ConnectionId} [Mic] start writing...", connection.ConnectionId);
+                        await _channel.WriterMicAsync(audioHandshake.DeviceId, connection, cancellationToken);
                         break;
                     case SpeakerHandshake speakerHandshake:
-                        var speakerStreamHandler = new SpeakerStreamHandler(_channel, _logger);
-                        await speakerStreamHandler.HandleOuterAsync(connection, speakerHandshake, token);
+                        var speakerStreamHandler = new SpeakerStreamReader(_channel, _logger);
+                        await speakerStreamHandler.HandleOuterAsync(connection, speakerHandshake, cancellationToken);
                         break;
                 }
             }
@@ -94,17 +101,6 @@ namespace EmulatorRC.API.Handlers
             }
             finally
             {
-                if (handshake != default)
-                {
-                    switch (handshake)
-                    {
-                        case VideoHandshake videoHandshake:
-                            await _channel.RemoveCameraWriterAsync(videoHandshake.DeviceId);
-                            break;
-                    }
-                   
-                }
-
                 await connection.Transport.Input.CompleteAsync();
                 await connection.Transport.Output.CompleteAsync();
             }
@@ -158,9 +154,10 @@ namespace EmulatorRC.API.Handlers
 
                 command = session.StreamType switch
                 {
-                    "cam" => new VideoHandshake(0, 0) {DeviceId = session.DeviceId},
-                    "sound" => new SpeakerHandshake {DeviceId = session.DeviceId},
-                    _ => throw new ArgumentOutOfRangeException()
+                    "cam" => new VideoHandshake(session.DeviceId),
+                    "mic" => new AudioHandshake(session.DeviceId),
+                    "sound" => new SpeakerHandshake(session.DeviceId),
+                    _ => throw new ArgumentOutOfRangeException(session.StreamType)
                 };
                 status = HandshakeStatus.Successful;
                 return reader.Position;

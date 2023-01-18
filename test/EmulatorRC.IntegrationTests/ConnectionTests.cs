@@ -95,7 +95,8 @@ namespace EmulatorRC.IntegrationTests
 
             private static async Task Handshake(Socket socket, CancellationToken token)
             {
-                const string handshake = "CMD /v2/video.4?640x480&id=default";
+                //const string handshake = "CMD /v2/video.4?640x480&id=default";
+                const string handshake = "CMD /v2/audio";
                 var header = Encoding.UTF8.GetBytes(handshake);
 
                 await socket.SendAsync(header, token);
@@ -119,7 +120,7 @@ namespace EmulatorRC.IntegrationTests
                     //while ((bytesRead = await networkStream.ReadAsync(buffer, token)) > 0)
                     while ((bytesRead = await socket.ReceiveAsync(buffer, token)) > 0)
                     {
-                        if (bytesRead is 0 or 9)
+                        if (bytesRead is 0 or 6 or 9)
                         {
                             continue;
                         }
@@ -186,7 +187,7 @@ namespace EmulatorRC.IntegrationTests
                     new DeviceSession
                     {
                         DeviceId = "default",
-                        StreamType = "cam",
+                        StreamType = "mic",
                     });
 
                 var header = handshake.Length.ToByteArray();

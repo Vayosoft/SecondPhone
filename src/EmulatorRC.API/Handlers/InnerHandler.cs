@@ -26,13 +26,13 @@ namespace EmulatorRC.API.Handlers
         {
             _logger.LogInformation("{ConnectionId} connected", connection.ConnectionId);
 
-            Handshake handshake = null;
             try
             {
                 var cts = CancellationTokenSource.CreateLinkedTokenSource(
                     connection.ConnectionClosed, _lifetime.ApplicationStopping);
                 var cancellationToken = cts.Token;
 
+                Handshake handshake;
                 while (true)
                 {
                     var result = await connection.Transport.Input.ReadAsync(cancellationToken);
@@ -54,12 +54,19 @@ namespace EmulatorRC.API.Handlers
                 switch (handshake)
                 {
                     case VideoHandshake videoHandshake:
-                        var cameraStreamHandler = new CameraStreamHandler(_channel, _logger);
-                        await cameraStreamHandler.HandleInnerAsync(connection, videoHandshake, cancellationToken);
+                        var cameraStreamHandler = new CameraStreamReader(_channel, _logger);
+
+                        _logger.LogInformation("{ConnectionId} [Camera] start reading...", connection.ConnectionId);
+                        await cameraStreamHandler.ReadAsync(connection, videoHandshake, cancellationToken);
+                        break;
+                    case AudioHandshake audioHandshake:
+                        var microphoneStreamHandler = new MicStreamReader(_channel, _logger);
+
+                        _logger.LogInformation("{ConnectionId} [Mic] start reading...", connection.ConnectionId);
+                        await microphoneStreamHandler.ReadAsync(connection, audioHandshake, cancellationToken);
                         break;
                     case SpeakerHandshake speakerHandshake:
-                        var speakerStreamHandler = new SpeakerStreamHandler(_channel, _logger);
-                        await speakerStreamHandler.HandleInnerAsync(connection, speakerHandshake, cancellationToken);
+                        await _channel.WriteSpeakerAsync(speakerHandshake.DeviceId, connection, cancellationToken);
                         break;
                 }
             }
@@ -71,17 +78,6 @@ namespace EmulatorRC.API.Handlers
             }
             finally
             {
-                if (handshake != default)
-                {
-                    switch (handshake)
-                    {
-                        case SpeakerHandshake videoHandshake:
-                            await _channel.RemoveSpeakerWriterAsync(videoHandshake.DeviceId);
-                            break;
-                    }
-
-                }
-
                 await connection.Transport.Input.CompleteAsync();
                 await connection.Transport.Output.CompleteAsync();
             }
@@ -94,7 +90,7 @@ namespace EmulatorRC.API.Handlers
 
         //DroidCam
         private static ReadOnlySpan<byte> CommandVideo => "CMD /v2/video.4?"u8; //cam
-        private static ReadOnlySpan<byte> CommandAudio => "CMD /v2/audio?"u8; //mic
+        private static ReadOnlySpan<byte> CommandAudio => "CMD /v2/audio"u8; //mic
 
 
         [GeneratedRegex("id=(\\w+)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline)]
@@ -118,9 +114,10 @@ namespace EmulatorRC.API.Handlers
                 if (!int.TryParse(m.Groups[1].Value, out var width) || !int.TryParse(m.Groups[2].Value, out var height))
                     throw new ApplicationException("Handshake failed");
 
-                command = new VideoHandshake(width, height)
+                command = new VideoHandshake(m.Groups[3].Value)
                 {
-                    DeviceId = m.Groups[3].Value
+                    Width = width,
+                    Height = height,
                 };
             }
             else if (reader.IsNext(CommandSpeaker, true))
@@ -129,22 +126,31 @@ namespace EmulatorRC.API.Handlers
                 var m = HandshakeRegex().Match(str);
 
                 if (!m.Success || m.Groups.Count < 2)
-                    throw new ApplicationException("Handshake failed");
+                    throw new ApplicationException($"Speaker Handshake failed => {str}");
 
-                command = new SpeakerHandshake
-                {
-                    DeviceId = m.Groups[3].Value
-                };
+                command = new SpeakerHandshake(m.Groups[1].Value);
+            }
+            else if (reader.IsNext(CommandAudio, true))
+            {
+                //var str = Encoding.UTF8.GetString(reader.UnreadSequence);
+                //var m = HandshakeRegex().Match(str);
+
+                //if (!m.Success || m.Groups.Count < 2)
+                //    throw new ApplicationException("Handshake failed");
+
+                //command = new AudioHandshake(m.Groups[1].Value);
+                command = new AudioHandshake("default");
             }
             else
             {
-                throw new ApplicationException("Handshake failed");
+                var str = Encoding.UTF8.GetString(reader.UnreadSequence);
+                throw new ApplicationException($"Handshake failed=> { str }");
             }
 
             return reader.Position;
         }
     }
-
+  
     internal enum Commands : byte
     {
         Undefined,
@@ -152,11 +158,12 @@ namespace EmulatorRC.API.Handlers
         GetBattery
     }
 
-    public record Handshake
+    public record Handshake(string DeviceId);
+    public record SpeakerHandshake(string DeviceId) : Handshake(DeviceId);
+    public record AudioHandshake(string DeviceId) : Handshake(DeviceId);
+    public record VideoHandshake(string DeviceId) : Handshake(DeviceId)
     {
-        public required string DeviceId { get; init; }
-    }
+        public int Width { get; init; }
+        public int Height { get; init; } }
 
-    public record VideoHandshake(int Width, int Height) : Handshake;
-    public record SpeakerHandshake : Handshake;
 }
