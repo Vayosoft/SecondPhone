@@ -80,9 +80,10 @@ namespace EmulatorRC.API.Handlers
             {
                 await connection.Transport.Input.CompleteAsync();
                 await connection.Transport.Output.CompleteAsync();
-            }
 
-            _logger.LogInformation("{ConnectionId} disconnected", connection.ConnectionId);
+
+                _logger.LogInformation("{ConnectionId} disconnected", connection.ConnectionId);
+            }
         }
 
 

@@ -20,6 +20,7 @@ message DeviceInfo {
   int32 height = 2;
   int32 microphone = 3;
   int32 camera = 4;
+  int32 sound = 5;
 }
 
 message TouchEvents {
@@ -27,6 +28,7 @@ message TouchEvents {
   int32 height = 2;
   int64 time = 3;
   repeated MotionEventR events = 4;
+  int32 id = 5;
 }
 
 message MotionEventR {
