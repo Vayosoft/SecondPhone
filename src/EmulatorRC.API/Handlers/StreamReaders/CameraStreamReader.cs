@@ -1,19 +1,16 @@
 ﻿using EmulatorRC.API.Channels;
 using Microsoft.AspNetCore.Connections;
 using System.Buffers;
-using System.IO.Pipelines;
 
-namespace EmulatorRC.API.Handlers
+namespace EmulatorRC.API.Handlers.StreamReaders
 {
     public sealed class CameraStreamReader
     {
         private readonly StreamChannel _channel;
-        private readonly ILogger _logger;
 
-        public CameraStreamReader(StreamChannel channel, ILogger logger)
+        public CameraStreamReader(StreamChannel channel)
         {
             _channel = channel;
-            _logger = logger;
         }
 
         private static ReadOnlySpan<byte> CommandPing => "CMD /v1/ping"u8;
@@ -22,7 +19,7 @@ namespace EmulatorRC.API.Handlers
         public async Task ReadAsync(ConnectionContext connection, VideoHandshake videoHandshake, CancellationToken token)
         {
             _ = await connection.Transport.Output.WriteAsync(CreateMockHeader(videoHandshake.Width, videoHandshake.Height), token);
-            _ = ReadFromChannelAsync(videoHandshake.DeviceId, connection.Transport.Output, token);
+            _ = _channel.ReadAllCameraAsync(videoHandshake.DeviceId, connection.Transport.Output, token);
 
             while (!token.IsCancellationRequested)
             {
@@ -64,27 +61,6 @@ namespace EmulatorRC.API.Handlers
             }
 
             return reader.Position;
-        }
-
-        private async Task ReadFromChannelAsync(string deviceId, PipeWriter output, CancellationToken token)
-        {
-            try
-            {
-                while (!token.IsCancellationRequested)
-                {
-                    await foreach (var segment in _channel.ReadAllCameraAsync(deviceId, token))
-                    {
-                        await output.WriteAsync(segment, token);
-                    }
-
-                    await Task.Delay(1000, token);
-                }
-            }
-            catch (OperationCanceledException) { }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "ReadFromChannel => {Error}\r\n", e.Message);
-            }
         }
 
         private static byte[] CreateMockHeader(int width, int height)

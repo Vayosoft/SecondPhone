@@ -4,26 +4,24 @@ using Microsoft.AspNetCore.Connections;
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
+using EmulatorRC.API.Handlers.StreamReaders;
 
 namespace EmulatorRC.API.Handlers
 {
-    public sealed class OuterHandler : ConnectionHandler
+    public sealed class ClientHandler : ConnectionHandler
     {
-        private readonly IServiceProvider _services;
         private readonly StreamChannel _channel;
-        private readonly ILogger<OuterHandler> _logger;
+        private readonly ILogger<ClientHandler> _logger;
         private readonly IHostApplicationLifetime _lifetime;
 
         private const int MaxStackLength = 128;
         private const int MaxHeaderLength = 1024;
 
-        public OuterHandler(
-            IServiceProvider services,
+        public ClientHandler(
             StreamChannel channel,
-            ILogger<OuterHandler> logger,
+            ILogger<ClientHandler> logger,
             IHostApplicationLifetime lifetime)
         {
-            _services = services;
             _channel = channel;
             _logger = logger;
             _lifetime = lifetime;
@@ -61,7 +59,7 @@ namespace EmulatorRC.API.Handlers
                         }
                         case HandshakeStatus.Failed:
 
-                            _logger.LogError("{ConnectionId} => Handshake failed. {EndPoint}\r\nLength: {BufferLength}\r\nHex: {Hex}\r\nUTF8: {UTF8}",
+                            _logger.LogError("{ConnectionId} => Handshake failed. {EndPoint}. Length: {BufferLength}. Hex: {Hex}. UTF8: {UTF8}",
                                 connection.ConnectionId, connection.RemoteEndPoint, buffer.Length,
                                 Convert.ToHexString(buffer.ToArray()), Encoding.UTF8.GetString(buffer));
                             return;
@@ -80,16 +78,17 @@ namespace EmulatorRC.API.Handlers
                 switch (handshake)
                 {
                     case VideoHandshake videoHandshake:
-                        _logger.LogInformation("{ConnectionId} [Camera] start writing...", connection.ConnectionId);
+                        _logger.LogInformation("{ConnectionId} => Camera (Write)", connection.ConnectionId);
                         await _channel.WriterCameraAsync(videoHandshake.DeviceId, connection, cancellationToken);
                         break;
                     case AudioHandshake audioHandshake:
-                        _logger.LogInformation("{ConnectionId} [Mic] start writing...", connection.ConnectionId);
+                        _logger.LogInformation("{ConnectionId} => Mic (Write)", connection.ConnectionId);
                         await _channel.WriterMicAsync(audioHandshake.DeviceId, connection, cancellationToken);
                         break;
                     case SpeakerHandshake speakerHandshake:
-                        var speakerStreamHandler = new SpeakerStreamReader(_channel, _logger);
-                        await speakerStreamHandler.HandleOuterAsync(connection, speakerHandshake, cancellationToken);
+                        _logger.LogInformation("{ConnectionId} => Mic (Read)", connection.ConnectionId);
+                        var speakerStreamHandler = new SpeakerStreamReader(_channel);
+                        await speakerStreamHandler.ReadAsync(connection, speakerHandshake, cancellationToken);
                         break;
                 }
             }

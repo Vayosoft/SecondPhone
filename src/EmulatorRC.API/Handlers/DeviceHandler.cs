@@ -3,18 +3,19 @@ using Microsoft.AspNetCore.Connections;
 using System.Buffers;
 using System.Text;
 using System.Text.RegularExpressions;
+using EmulatorRC.API.Handlers.StreamReaders;
 
 namespace EmulatorRC.API.Handlers
 {
-    public sealed partial class InnerHandler : ConnectionHandler
+    public sealed partial class DeviceHandler : ConnectionHandler
     {
         private readonly StreamChannel _channel;
-        private readonly ILogger<InnerHandler> _logger;
+        private readonly ILogger<DeviceHandler> _logger;
         private readonly IHostApplicationLifetime _lifetime;
 
-        public InnerHandler(
+        public DeviceHandler(
             StreamChannel channel,
-            ILogger<InnerHandler> logger,
+            ILogger<DeviceHandler> logger,
             IHostApplicationLifetime lifetime)
         {
             _channel = channel;
@@ -54,18 +55,17 @@ namespace EmulatorRC.API.Handlers
                 switch (handshake)
                 {
                     case VideoHandshake videoHandshake:
-                        var cameraStreamHandler = new CameraStreamReader(_channel, _logger);
-
-                        _logger.LogInformation("{ConnectionId} [Camera] start reading...", connection.ConnectionId);
-                        await cameraStreamHandler.ReadAsync(connection, videoHandshake, cancellationToken);
+                        _logger.LogInformation("{ConnectionId} => Camera (Read)", connection.ConnectionId);
+                        var cameraStreamReader = new CameraStreamReader(_channel);
+                        await cameraStreamReader.ReadAsync(connection, videoHandshake, cancellationToken);
                         break;
                     case AudioHandshake audioHandshake:
-                        var microphoneStreamHandler = new MicStreamReader(_channel, _logger);
-
-                        _logger.LogInformation("{ConnectionId} [Mic] start reading...", connection.ConnectionId);
-                        await microphoneStreamHandler.ReadAsync(connection, audioHandshake, cancellationToken);
+                        _logger.LogInformation("{ConnectionId} => Mic (Read)", connection.ConnectionId);
+                        var micStreamReader = new MicStreamReader(_channel);
+                        await micStreamReader.ReadAsync(connection, audioHandshake, cancellationToken);
                         break;
                     case SpeakerHandshake speakerHandshake:
+                        _logger.LogInformation("{ConnectionId} => Speaker (Write)", connection.ConnectionId);
                         await _channel.WriteSpeakerAsync(speakerHandshake.DeviceId, connection, cancellationToken);
                         break;
                 }
@@ -109,10 +109,10 @@ namespace EmulatorRC.API.Handlers
                 var m = VideoHandshakeRegex().Match(str);
 
                 if (!m.Success || m.Groups.Count < 4)
-                    throw new ApplicationException("Handshake failed");
+                    throw new ApplicationException($"Handshake failed (Camera) => {str}");
 
                 if (!int.TryParse(m.Groups[1].Value, out var width) || !int.TryParse(m.Groups[2].Value, out var height))
-                    throw new ApplicationException("Handshake failed");
+                    throw new ApplicationException($"Handshake failed (Camera) => {str}");
 
                 command = new VideoHandshake(m.Groups[3].Value)
                 {
@@ -126,7 +126,7 @@ namespace EmulatorRC.API.Handlers
                 var m = HandshakeRegex().Match(str);
 
                 if (!m.Success || m.Groups.Count < 2)
-                    throw new ApplicationException($"Speaker Handshake failed => {str}");
+                    throw new ApplicationException($"Handshake failed (Speaker) => {str}");
 
                 command = new SpeakerHandshake(m.Groups[1].Value);
             }
@@ -136,7 +136,7 @@ namespace EmulatorRC.API.Handlers
                 //var m = HandshakeRegex().Match(str);
 
                 //if (!m.Success || m.Groups.Count < 2)
-                //    throw new ApplicationException("Handshake failed");
+                //    throw new ApplicationException($"Handshake failed (Mic) => {str}");
 
                 //command = new AudioHandshake(m.Groups[1].Value);
                 command = new AudioHandshake("default");
@@ -144,7 +144,7 @@ namespace EmulatorRC.API.Handlers
             else
             {
                 var str = Encoding.UTF8.GetString(reader.UnreadSequence);
-                throw new ApplicationException($"Handshake failed=> { str }");
+                throw new ApplicationException($"Handshake failed => { str }");
             }
 
             return reader.Position;
