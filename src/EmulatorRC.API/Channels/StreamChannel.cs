@@ -89,7 +89,7 @@ namespace EmulatorRC.API.Channels
         public Task ReadAllCameraAsync(string name, PipeWriter output, CancellationToken cancellationToken) =>
             ReadAllAsync(_cameraClientToDevice, name, output, cancellationToken);
         public Task ReadAllSpeakerAsync(string name, PipeWriter output, CancellationToken cancellationToken) =>
-            ReadAllAsync(_cameraClientToDevice, name, output, cancellationToken);
+            ReadAllAsync(_speakerDeviceToClient, name, output, cancellationToken);
 
         private async Task ReadAllAsync(ConcurrentDictionary<string, Pipe> channels, string name, PipeWriter output, CancellationToken token)
         {
@@ -117,7 +117,7 @@ namespace EmulatorRC.API.Channels
         public IAsyncEnumerable<ReadOnlyMemory<byte>> ReadAllCameraAsync(string name, CancellationToken cancellationToken) =>
             ReadAllAsync(_cameraClientToDevice, name, cancellationToken);
         public IAsyncEnumerable<ReadOnlyMemory<byte>> ReadAllSpeakerAsync(string name, CancellationToken cancellationToken) =>
-            ReadAllAsync(_cameraClientToDevice, name, cancellationToken);
+            ReadAllAsync(_speakerDeviceToClient, name, cancellationToken);
 
         private static async IAsyncEnumerable<ReadOnlyMemory<byte>> ReadAllAsync(ConcurrentDictionary<string, Pipe> channels, string name,
             [EnumeratorCancellation] CancellationToken cancellationToken)
