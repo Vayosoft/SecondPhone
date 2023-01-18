@@ -57,11 +57,11 @@ public class Program
 
                     options.ListenAnyIP(outerPort, listenOptions =>
                     {
-                        listenOptions.UseConnectionHandler<ClientHandler>();
+                        listenOptions.UseConnectionHandler<ClientStreamHandler>();
                     });
                     options.ListenAnyIP(innerPort, listenOptions =>
                     {
-                        listenOptions.UseConnectionHandler<DeviceHandler>();
+                        listenOptions.UseConnectionHandler<DeviceStreamHandler>();
                     });
                 });
 

@@ -7,15 +7,15 @@ using EmulatorRC.API.Handlers.StreamReaders;
 
 namespace EmulatorRC.API.Handlers
 {
-    public sealed partial class DeviceHandler : ConnectionHandler
+    public sealed partial class DeviceStreamHandler : ConnectionHandler
     {
         private readonly StreamChannel _channel;
-        private readonly ILogger<DeviceHandler> _logger;
+        private readonly ILogger<DeviceStreamHandler> _logger;
         private readonly IHostApplicationLifetime _lifetime;
 
-        public DeviceHandler(
+        public DeviceStreamHandler(
             StreamChannel channel,
-            ILogger<DeviceHandler> logger,
+            ILogger<DeviceStreamHandler> logger,
             IHostApplicationLifetime lifetime)
         {
             _channel = channel;

@@ -119,6 +119,7 @@ namespace EmulatorRC.API.Handlers
                     return reader.Position;
                 }
 
+
                 if (!reader.TryReadExact(length, out var header))
                 {
                     //todo security issue
