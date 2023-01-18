@@ -4,7 +4,7 @@ using Grpc.Core.Interceptors;
 
 namespace EmulatorRC.API.Services.Interceptors
 {
-    public class ExceptionInterceptor : Interceptor
+    public sealed class ExceptionInterceptor : Interceptor
     {
         private readonly ILogger<ExceptionInterceptor> _logger;
         private readonly Guid _correlationId;

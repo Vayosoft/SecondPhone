@@ -11,7 +11,7 @@ namespace EmulatorRC.API.Services.Interceptors
     //    }
     //});
 
-    public class LoggerInterceptor : Interceptor
+    public sealed class LoggerInterceptor : Interceptor
     {
         private readonly ILogger<LoggerInterceptor> _logger;
 
@@ -73,7 +73,7 @@ namespace EmulatorRC.API.Services.Interceptors
             where TRequest : class
             where TResponse : class
         {
-            _logger.LogInformation("gRPC {Method} DeviceId: {Device}. Type: {Type}. Request: {Request}. Response: {Response}",
+            _logger.LogInformation("gRPC {Method} DeviceId: {Device} Call[{Type}]: {Request} => {Response}",
                 context.Method, context.RequestHeaders.GetValue("x-device-id"), methodType, typeof(TRequest).Name, typeof(TResponse).Name);
 
             if (!_logger.IsEnabled(LogLevel.Trace)) return;

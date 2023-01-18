@@ -21,15 +21,16 @@ namespace EmulatorRC.API.Channels
         }
 
         public Task WriteSpeakerAsync(string name, ConnectionContext connection, CancellationToken cancellationToken) =>
-            WriterAsync(_speakerDeviceToClient, name, connection, cancellationToken);
+            WriterAsync(_speakerDeviceToClient, name, connection, cancellationToken: cancellationToken);
 
         public Task WriterCameraAsync(string name, ConnectionContext connection, CancellationToken cancellationToken) =>
-            WriterAsync(_cameraClientToDevice, name, connection, cancellationToken);
+            WriterAsync(_cameraClientToDevice, name, connection, cancellationToken: cancellationToken);
 
         public Task WriterMicAsync(string name, ConnectionContext connection, CancellationToken cancellationToken) => 
-            WriterAsync(_micClientToDevice, name, connection, cancellationToken);
+            WriterAsync(_micClientToDevice, name, connection, cancellationToken: cancellationToken);
 
-        private async Task WriterAsync(ConcurrentDictionary<string, Pipe> channels, string name, ConnectionContext connection, CancellationToken cancellationToken)
+        private async Task WriterAsync(ConcurrentDictionary<string, Pipe> channels, string name, ConnectionContext connection,
+            [CallerMemberName] string callerName = "", CancellationToken cancellationToken = default)
         {
             var channelWriter = GetOrCreateWriter(channels, name);
             try
@@ -58,8 +59,8 @@ namespace EmulatorRC.API.Channels
                 }
                 else
                 {
-                    _logger.LogError("{Channel} WriterAsync {ConnectionId} => {Error}", 
-                        channels.GetType().Name, connection.ConnectionId, channelWriter.FirstError.Description);
+                    _logger.LogError("{Channel} {ConnectionId} => {Error}",
+                        callerName, connection.ConnectionId, channelWriter.FirstError.Description);
                 }
             }
             finally
@@ -86,22 +87,22 @@ namespace EmulatorRC.API.Channels
         }
 
         public Task ReadAllMicAsync(string name, PipeWriter output, CancellationToken cancellationToken) =>
-            ReadAllAsync(_micClientToDevice, name, output, cancellationToken);
+            ReadAllAsync(_micClientToDevice, name, output, cancellationToken: cancellationToken);
         public Task ReadAllCameraAsync(string name, PipeWriter output, CancellationToken cancellationToken) =>
-            ReadAllAsync(_cameraClientToDevice, name, output, cancellationToken);
+            ReadAllAsync(_cameraClientToDevice, name, output, cancellationToken: cancellationToken);
         public Task ReadAllSpeakerAsync(string name, PipeWriter output, CancellationToken cancellationToken) =>
-            ReadAllAsync(_speakerDeviceToClient, name, output, cancellationToken);
+            ReadAllAsync(_speakerDeviceToClient, name, output, cancellationToken: cancellationToken);
 
         private async Task ReadAllAsync(ConcurrentDictionary<string, Pipe> channels, string name, PipeWriter output,
-            CancellationToken token)
+            [CallerMemberName] string callerName = "", CancellationToken cancellationToken = default)
         {
-            while (!token.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    await foreach (var segment in ReadAllAsync(channels, name, token))
+                    await foreach (var segment in ReadAllAsync(channels, name, cancellationToken))
                     {
-                        await output.WriteAsync(segment, token);
+                        await output.WriteAsync(segment, cancellationToken);
                     }
                 }
                 catch (OperationCanceledException)
@@ -109,10 +110,10 @@ namespace EmulatorRC.API.Channels
                 }
                 catch (Exception e)
                 {
-                    _logger.LogWarning(e, "{Channel} ReadAllAsync => {Error}", channels.GetType().Name, e.Message);
+                    _logger.LogWarning(e, "{Channel} => {Error}", callerName, e.Message);
                 }
 
-                await Task.Delay(1000, token);
+                await Task.Delay(1000, cancellationToken);
             }
         }
 
