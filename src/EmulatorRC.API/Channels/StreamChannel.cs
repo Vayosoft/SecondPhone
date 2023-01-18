@@ -58,7 +58,8 @@ namespace EmulatorRC.API.Channels
                 }
                 else
                 {
-                    _logger.LogError("WriterAsync {ConnectionId} => {Error}", connection.ConnectionId, channelWriter.FirstError.Description);
+                    _logger.LogError("{Channel} WriterAsync {ConnectionId} => {Error}", 
+                        channels.GetType().Name, connection.ConnectionId, channelWriter.FirstError.Description);
                 }
             }
             finally
@@ -70,12 +71,12 @@ namespace EmulatorRC.API.Channels
         private static ErrorOr<PipeWriter> GetOrCreateWriter(ConcurrentDictionary<string, Pipe> channels, string name)
         {
             if (channels.TryGetValue(name, out var channel))
-                return Error.Conflict("Channel is busy");
+                return Error.Conflict(description: $"Channel {name} is busy");
 
             using (Locker.GetLockerByName(name).Lock())
             {
                 if (channels.TryGetValue(name, out channel))
-                    return Error.Conflict("Channel is busy");
+                    return Error.Conflict(description: $"Channel {name} is busy");
 
                 channel = new Pipe();
                 channels[name] = channel;
@@ -91,32 +92,27 @@ namespace EmulatorRC.API.Channels
         public Task ReadAllSpeakerAsync(string name, PipeWriter output, CancellationToken cancellationToken) =>
             ReadAllAsync(_speakerDeviceToClient, name, output, cancellationToken);
 
-        private async Task ReadAllAsync(ConcurrentDictionary<string, Pipe> channels, string name, PipeWriter output, CancellationToken token)
+        private async Task ReadAllAsync(ConcurrentDictionary<string, Pipe> channels, string name, PipeWriter output,
+            CancellationToken token)
         {
-            try
+            while (!token.IsCancellationRequested)
             {
-                while (!token.IsCancellationRequested)
+                try
                 {
-                    try
+                    await foreach (var segment in ReadAllAsync(channels, name, token))
                     {
-                        await foreach (var segment in ReadAllAsync(channels, name, token))
-                        {
-                            await output.WriteAsync(segment, token);
-                        }
+                        await output.WriteAsync(segment, token);
                     }
-                    catch (OperationCanceledException) { }
-                    catch (Exception e)
-                    {
-                        _logger.LogWarning(e, "{Channel} ReadAllAsync => {Error}", channels.GetType().Name, e.Message);
-                    }
-
-                    await Task.Delay(1000, token);
                 }
-            }
-            catch (OperationCanceledException) { }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "ReadAllAsync => {Error}", e.Message);
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception e)
+                {
+                    _logger.LogWarning(e, "{Channel} ReadAllAsync => {Error}", channels.GetType().Name, e.Message);
+                }
+
+                await Task.Delay(1000, token);
             }
         }
 
@@ -131,32 +127,24 @@ namespace EmulatorRC.API.Channels
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (!channels.TryGetValue(name, out var channel)) yield break;
-
             var reader = channel.Reader;
-            //try
-            //{
-                while (true)
+            while (true)
+            {
+                var result = await reader.ReadAsync(cancellationToken);
+                var buffer = result.Buffer;
+
+                foreach (var segment in buffer)
                 {
-                    var result = await reader.ReadAsync(cancellationToken);
-                    var buffer = result.Buffer;
-
-                    foreach (var segment in buffer)
-                    {
-                        yield return segment;
-                    }
-
-                    if (result.IsCompleted)
-                    {
-                        break;
-                    }
-
-                    reader.AdvanceTo(buffer.End);
+                    yield return segment;
                 }
-            //}
-            //finally
-            //{
-            //    await reader.CompleteAsync();
-            //}
+
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+
+                reader.AdvanceTo(buffer.End);
+            }
         }
 
         public Task RemoveCameraWriterAsync(string name) =>
