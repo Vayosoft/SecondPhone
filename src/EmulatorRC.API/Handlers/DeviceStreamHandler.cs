@@ -25,7 +25,7 @@ namespace EmulatorRC.API.Handlers
 
         public override async Task OnConnectedAsync(ConnectionContext connection)
         {
-            _logger.LogInformation("{ConnectionId} connected", connection.ConnectionId);
+            _logger.LogInformation("Stream {ConnectionId} connected", connection.ConnectionId);
 
             try
             {
@@ -55,17 +55,17 @@ namespace EmulatorRC.API.Handlers
                 switch (handshake)
                 {
                     case VideoHandshake videoHandshake:
-                        _logger.LogInformation("{ConnectionId} => Camera (Read)", connection.ConnectionId);
+                        _logger.LogInformation("Stream {ConnectionId} => Camera (Read)", connection.ConnectionId);
                         var cameraStreamReader = new CameraStreamReader(_channel);
                         await cameraStreamReader.ReadAsync(connection, videoHandshake, cancellationToken);
                         break;
                     case AudioHandshake audioHandshake:
-                        _logger.LogInformation("{ConnectionId} => Mic (Read)", connection.ConnectionId);
+                        _logger.LogInformation("Stream {ConnectionId} => Mic (Read)", connection.ConnectionId);
                         var micStreamReader = new MicStreamReader(_channel);
                         await micStreamReader.ReadAsync(connection, audioHandshake, cancellationToken);
                         break;
                     case SpeakerHandshake speakerHandshake:
-                        _logger.LogInformation("{ConnectionId} => Speaker (Write)", connection.ConnectionId);
+                        _logger.LogInformation("Stream {ConnectionId} => Speaker (Write)", connection.ConnectionId);
                         await _channel.WriteSpeakerAsync(speakerHandshake.DeviceId, connection, cancellationToken);
                         break;
                 }
@@ -74,7 +74,7 @@ namespace EmulatorRC.API.Handlers
             catch (OperationCanceledException) { }
             catch (Exception e)
             {
-                _logger.LogError(e, "{ConnectionId} => {Error}", connection.ConnectionId, e.Message);
+                _logger.LogError(e, "Stream {ConnectionId} => {Error}", connection.ConnectionId, e.Message);
             }
             finally
             {
@@ -82,7 +82,7 @@ namespace EmulatorRC.API.Handlers
                 await connection.Transport.Output.CompleteAsync();
 
 
-                _logger.LogInformation("{ConnectionId} disconnected", connection.ConnectionId);
+                _logger.LogInformation("Stream {ConnectionId} disconnected", connection.ConnectionId);
             }
         }
 
