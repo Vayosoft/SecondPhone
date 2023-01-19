@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Connections;
 using System.Buffers;
 using System.Text;
 using System.Text.RegularExpressions;
-using EmulatorRC.API.Handlers.StreamReaders;
 
 namespace EmulatorRC.API.Handlers
 {
@@ -56,17 +55,17 @@ namespace EmulatorRC.API.Handlers
                 {
                     case VideoHandshake videoHandshake:
                         _logger.LogInformation("TCP (Device) {ConnectionId} => Camera [Read]", connection.ConnectionId);
-                        var cameraStreamReader = new CameraStreamReader(_channel);
-                        await cameraStreamReader.ReadAsync(connection, videoHandshake, cancellationToken);
+                        _ = await connection.Transport.Output.WriteAsync(CreateMockHeader(videoHandshake.Width, videoHandshake.Height), cancellationToken);
+                        await _channel.ReadCameraAsync(videoHandshake.DeviceId, connection.Transport, cancellationToken);
                         break;
                     case AudioHandshake audioHandshake:
                         _logger.LogInformation("TCP (Device) {ConnectionId} => Mic [Read]", connection.ConnectionId);
-                        var micStreamReader = new MicStreamReader(_channel);
-                        await micStreamReader.ReadAsync(connection, audioHandshake, cancellationToken);
+                        _ = await connection.Transport.Output.WriteAsync(_header, cancellationToken);
+                        await _channel.ReadMicAsync(audioHandshake.DeviceId, connection.Transport, cancellationToken);
                         break;
                     case SpeakerHandshake speakerHandshake:
                         _logger.LogInformation("TCP (Device) {ConnectionId} => Speaker [Write]", connection.ConnectionId);
-                        await _channel.WriteSpeakerAsync(speakerHandshake.DeviceId, connection, cancellationToken);
+                        await _channel.WriteSpeakerAsync(speakerHandshake.DeviceId, connection.Transport, cancellationToken);
                         break;
                 }
             }
@@ -81,11 +80,9 @@ namespace EmulatorRC.API.Handlers
                 await connection.Transport.Input.CompleteAsync();
                 await connection.Transport.Output.CompleteAsync();
 
-
                 _logger.LogInformation("TCP (Device) {ConnectionId} disconnected", connection.ConnectionId);
             }
         }
-
 
         private static ReadOnlySpan<byte> CommandSpeaker => "CMD /v1/sound?"u8;
 
@@ -150,6 +147,33 @@ namespace EmulatorRC.API.Handlers
 
             return reader.Position;
         }
+
+        private static byte[] CreateMockHeader(int width, int height)
+        {
+            const int some1 = 0x21; //25,
+            const int some2 = 0x307fe8f5;
+
+            var byteBuffer = new List<byte>(9)
+            {
+                //0x02, 0x80 - 640
+                (byte) (width >> 8 & 255),
+                (byte) (width & 255),
+                //0x01, 0xe0 - 480
+                (byte)(height >> 8 & 255),
+                (byte)(height & 255),
+                //0x21 - 33
+                some1 & 255,
+                //0xf5, 0xe8, 0x7f, 0x30
+                some2 & 255,
+                some2 >> 8 & 255,
+                some2 >> 16 & 255,
+                some2 >> 24 & 255
+            };
+
+            return byteBuffer.ToArray();
+        }
+
+        private readonly byte[] _header = { (byte)'-', (byte)'@', (byte)'v', (byte)'0', (byte)'2', 2 };
     }
   
     internal enum Commands : byte

@@ -1,9 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using EmulatorRC.API.Handlers;
 using EmulatorRC.Commons;
 using ErrorOr;
-using Microsoft.AspNetCore.Connections;
+using System.Buffers;
 
 namespace EmulatorRC.API.Channels
 {
@@ -11,49 +12,33 @@ namespace EmulatorRC.API.Channels
     {
         private readonly ILogger<StreamChannel> _logger;
 
-        private readonly ConcurrentDictionary<string, Pipe> _cameraClientToDevice = new();
-        private readonly ConcurrentDictionary<string, Pipe> _micClientToDevice = new();
-        private readonly ConcurrentDictionary<string, Pipe> _speakerDeviceToClient = new();
-
-        private static readonly ConcurrentDictionary<string, bool> Camera = new();
-        private static readonly ConcurrentDictionary<string, bool> Mic = new();
-        private static readonly ConcurrentDictionary<string, bool> Speaker = new();
+        private static readonly ConcurrentDictionary<string, IDuplexPipe> Camera = new();
+        private static readonly ConcurrentDictionary<string, IDuplexPipe> Mic = new();
+        private static readonly ConcurrentDictionary<string, IDuplexPipe> Speaker = new();
 
         public StreamChannel(ILogger<StreamChannel> logger)
         {
             _logger = logger;
         }
 
-        public Task WriteSpeakerAsync(string name, ConnectionContext connection, CancellationToken cancellationToken) =>
-            WriterAsync(_speakerDeviceToClient, Speaker, name, connection, cancellationToken: cancellationToken);
-
-        public Task WriterCameraAsync(string name, ConnectionContext connection, CancellationToken cancellationToken) =>
-            WriterAsync(_cameraClientToDevice, Camera, name, connection, cancellationToken: cancellationToken);
-
-        public Task WriterMicAsync(string name, ConnectionContext connection, CancellationToken cancellationToken) => 
-            WriterAsync(_micClientToDevice, Mic, name, connection, cancellationToken: cancellationToken);
-
-        private async Task WriterAsync(ConcurrentDictionary<string, Pipe> channels, ConcurrentDictionary<string, bool> readers, string name, ConnectionContext connection,
-            [CallerMemberName] string callerType = "", CancellationToken cancellationToken = default)
+        public async Task ReadCameraAsync(string name, IDuplexPipe pipe, CancellationToken cancellationToken)
         {
-            var channelWriter = GetOrCreateWriter(channels, name);
+            var initChannel = InitChannel(Camera, name, pipe);
             try
             {
-                if (!channelWriter.IsError)
+                if (!initChannel.IsError)
                 {
-                    var writer = channelWriter.Value;
-
-                    while (true)
+                    while (!cancellationToken.IsCancellationRequested)
                     {
-                        var result = await connection.Transport.Input.ReadAsync(cancellationToken);
+                        var result = await pipe.Input.ReadAsync(cancellationToken);
                         var buffer = result.Buffer;
 
-                        if (readers.ContainsKey(name))
+                        var consumed = ProcessCommand(buffer, out var cmd);
+                        switch (cmd)
                         {
-                            foreach (var segment in buffer)
-                            {
-                                await writer!.WriteAsync(segment, cancellationToken);
-                            }
+                            case Commands.GetBattery:
+                                _ = await pipe.Output.WriteAsync("\r\n\r\n100"u8.ToArray(), cancellationToken);
+                                break;
                         }
 
                         if (result.IsCompleted)
@@ -61,118 +46,145 @@ namespace EmulatorRC.API.Channels
                             break;
                         }
 
-                        connection.Transport.Input.AdvanceTo(buffer.End);
+                        pipe.Input.AdvanceTo(consumed);
                     }
                 }
                 else
                 {
-                    _logger.LogError("{ConnectionId} {ChannelType} => {ChannelName} - {Error}",
-                        connection.ConnectionId, callerType, name, channelWriter.FirstError.Description);
+                    _logger.LogError("Camera => {ChannelName} - {Error}", name, initChannel.FirstError.Description);
                 }
             }
             finally
             {
-                await RemoveWriterAsync(channels, name);
+                await RemoveChannelAsync(Camera, name);
             }
         }
 
-        private static ErrorOr<PipeWriter> GetOrCreateWriter(ConcurrentDictionary<string, Pipe> channels, string name)
+        private static ReadOnlySpan<byte> CommandPing => "CMD /v1/ping"u8;
+        private static ReadOnlySpan<byte> GetBattery => "GET /battery"u8;
+
+        private static SequencePosition ProcessCommand(ReadOnlySequence<byte> buffer, out Commands cmd)
         {
-            if (channels.TryGetValue(name, out var channel))
+            var reader = new SequenceReader<byte>(buffer);
+
+            if (reader.IsNext(CommandPing, true))
+            {
+                cmd = Commands.Ping;
+            }
+            else if (reader.IsNext(GetBattery, true))
+            {
+                cmd = Commands.GetBattery;
+            }
+            else
+            {
+                cmd = Commands.Undefined;
+            }
+
+            return reader.Position;
+        }
+
+        public Task ReadMicAsync(string name, IDuplexPipe pipe, CancellationToken cancellationToken) =>
+            ReadAsync(Mic, name, pipe, cancellationToken: cancellationToken);
+        public Task ReadSpeakerAsync(string name, IDuplexPipe pipe, CancellationToken cancellationToken) =>
+            ReadAsync(Speaker, name, pipe, cancellationToken: cancellationToken);
+
+        private async Task ReadAsync(ConcurrentDictionary<string, IDuplexPipe> channels, string name, IDuplexPipe pipe,
+            [CallerMemberName] string callerType = "", CancellationToken cancellationToken = default)
+        {
+            var ch = InitChannel(channels, name, pipe);
+            try
+            {
+                if (!ch.IsError)
+                {
+                    while (!cancellationToken.IsCancellationRequested)
+                    {
+                        var result = await pipe.Input.ReadAsync(cancellationToken);
+                        var buffer = result.Buffer;
+
+                        var consumed = buffer.End;
+
+                        if (result.IsCompleted)
+                        {
+                            break;
+                        }
+
+                        pipe.Input.AdvanceTo(consumed);
+                    }
+                }
+                else
+                {
+                    _logger.LogError("{ChannelType} => {ChannelName} - {Error}", callerType, name, ch.FirstError.Description);
+                }
+            }
+            finally
+            {
+                await RemoveChannelAsync(channels, name);
+            }
+        }
+
+        private static ErrorOr<bool> InitChannel(ConcurrentDictionary<string, IDuplexPipe> channels, string name, IDuplexPipe pipe)
+        {
+            if (channels.TryGetValue(name, out _))
                 return Error.Conflict(description: "Channel is busy");
 
             using (Locker.GetLockerByName(name).Lock())
             {
-                if (channels.TryGetValue(name, out channel))
+                if (channels.TryGetValue(name, out _))
                     return Error.Conflict(description: "Channel is busy");
 
-                channel = new Pipe();
-                channels[name] = channel;
+                channels[name] = pipe;
             }
 
-            return channel.Writer;
+            return true;
         }
 
-        public Task ReadAllMicAsync(string name, PipeWriter output, CancellationToken cancellationToken) =>
-            ReadAllAsync(_micClientToDevice, Mic, name, output, cancellationToken: cancellationToken);
-        public Task ReadAllCameraAsync(string name, PipeWriter output, CancellationToken cancellationToken) =>
-            ReadAllAsync(_cameraClientToDevice, Camera, name, output, cancellationToken: cancellationToken);
-        public Task ReadAllSpeakerAsync(string name, PipeWriter output, CancellationToken cancellationToken) =>
-            ReadAllAsync(_speakerDeviceToClient, Speaker, name, output, cancellationToken: cancellationToken);
+        private static async Task RemoveChannelAsync(ConcurrentDictionary<string, IDuplexPipe> channels, string name)
+        {
+            if (channels.TryRemove(name, out var channel))
+            {
+                await channel.Output.CompleteAsync();
+            }
+        }
 
-        private async Task ReadAllAsync(ConcurrentDictionary<string, Pipe> channels, ConcurrentDictionary<string, bool> readers, string name, PipeWriter output,
+        public Task WriteCameraAsync(string name, IDuplexPipe pipe, CancellationToken cancellationToken) =>
+            WriteAsync(Camera, name, pipe, cancellationToken: cancellationToken);
+        public Task WriteMicAsync(string name, IDuplexPipe pipe, CancellationToken cancellationToken) =>
+            WriteAsync(Mic, name, pipe, cancellationToken: cancellationToken);
+
+        public Task WriteSpeakerAsync(string name, IDuplexPipe pipe, CancellationToken cancellationToken) =>
+            WriteAsync(Speaker, name, pipe, cancellationToken: cancellationToken);
+
+        private async Task WriteAsync(ConcurrentDictionary<string, IDuplexPipe> channels, string name, IDuplexPipe pipe,
             [CallerMemberName] string callerType = "", CancellationToken cancellationToken = default)
         {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                readers.TryAdd(name, true);
-                try
-                {
-                    await foreach (var segment in ReadAllAsync(channels, name, cancellationToken))
-                    {
-                        await output.WriteAsync(segment, cancellationToken);
-                    }
-                }
-                catch (OperationCanceledException) { }
-                catch (Exception e)
-                {
-                    _logger.LogWarning(e, "{ChannelType} => {ChannelName} - {Error}", callerType, name, e.Message);
-                }
-                finally
-                {
-                    readers.TryRemove(name, out _);
-                }
-
-                await Task.Delay(1000, cancellationToken);
-            }
-        }
-
-        public IAsyncEnumerable<ReadOnlyMemory<byte>> ReadAllMicAsync(string name, CancellationToken cancellationToken) =>
-            ReadAllAsync(_micClientToDevice, name, cancellationToken);
-        public IAsyncEnumerable<ReadOnlyMemory<byte>> ReadAllCameraAsync(string name, CancellationToken cancellationToken) =>
-            ReadAllAsync(_cameraClientToDevice, name, cancellationToken);
-        public IAsyncEnumerable<ReadOnlyMemory<byte>> ReadAllSpeakerAsync(string name, CancellationToken cancellationToken) =>
-            ReadAllAsync(_speakerDeviceToClient, name, cancellationToken);
-
-        private static async IAsyncEnumerable<ReadOnlyMemory<byte>> ReadAllAsync(ConcurrentDictionary<string, Pipe> channels, string name,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            if (!channels.TryGetValue(name, out var channel)) yield break;
-            var reader = channel.Reader;
+            var reader = pipe.Input;
             while (true)
             {
                 var result = await reader.ReadAsync(cancellationToken);
                 var buffer = result.Buffer;
-                try
-                {
-                    if (result.IsCompleted)
-                    {
-                        yield break;
-                    }
 
-                    foreach (var segment in buffer)
+                if (channels.TryGetValue(name, out var channel))
+                {
+                    try
                     {
-                        yield return segment;
+                        foreach (var segment in buffer)
+                        {
+                            await channel.Output.WriteAsync(segment, cancellationToken);
+                        }
+                    }
+                    catch (OperationCanceledException) { }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "{ChannelType} => {ChannelName} - {Error}", callerType, name, e.Message);
                     }
                 }
-                finally
-                {
-                    reader.AdvanceTo(buffer.End);
-                }
-            }
-        }
 
-        public Task RemoveCameraWriterAsync(string name) =>
-            RemoveWriterAsync(_cameraClientToDevice, name);
-        public Task RemoveSpeakerWriterAsync(string name) =>
-            RemoveWriterAsync(_speakerDeviceToClient, name);
-        public Task RemoveMicWriterAsync(string name) =>
-            RemoveWriterAsync(_micClientToDevice, name);
-        private static async Task RemoveWriterAsync(ConcurrentDictionary<string, Pipe> channels, string name)
-        {
-            if (channels.TryRemove(name, out var channel))
-            {
-                await channel.Writer.CompleteAsync();
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+
+                reader.AdvanceTo(buffer.End);
             }
         }
     }

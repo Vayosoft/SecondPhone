@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Connections;
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
-using EmulatorRC.API.Handlers.StreamReaders;
 
 namespace EmulatorRC.API.Handlers
 {
@@ -79,16 +78,15 @@ namespace EmulatorRC.API.Handlers
                 {
                     case VideoHandshake videoHandshake:
                         _logger.LogInformation("TCP (Client) {ConnectionId} => Camera [Write]", connection.ConnectionId);
-                        await _channel.WriterCameraAsync(videoHandshake.DeviceId, connection, cancellationToken);
+                        await _channel.WriteCameraAsync(videoHandshake.DeviceId, connection.Transport, cancellationToken);
                         break;
                     case AudioHandshake audioHandshake:
                         _logger.LogInformation("TCP (Client) {ConnectionId} => Mic [Write]", connection.ConnectionId);
-                        await _channel.WriterMicAsync(audioHandshake.DeviceId, connection, cancellationToken);
+                        await _channel.WriteMicAsync(audioHandshake.DeviceId, connection.Transport, cancellationToken);
                         break;
                     case SpeakerHandshake speakerHandshake:
                         _logger.LogInformation("TCP (Client) {ConnectionId} => Speaker [Read]", connection.ConnectionId);
-                        var speakerStreamHandler = new SpeakerStreamReader(_channel);
-                        await speakerStreamHandler.ReadAsync(connection, speakerHandshake, cancellationToken);
+                        await _channel.ReadSpeakerAsync(speakerHandshake.DeviceId, connection.Transport, cancellationToken);
                         break;
                 }
             }

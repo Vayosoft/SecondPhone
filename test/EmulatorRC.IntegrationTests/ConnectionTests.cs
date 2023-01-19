@@ -40,11 +40,11 @@ namespace EmulatorRC.IntegrationTests
             using var cts = new CancellationTokenSource(5000);
             var cancellationToken = cts.Token;
 
-            var client = new Client();
-            await client.ConnectAsync(cancellationToken);
-
             var emulator = new Emulator(sourceFileLength);
             await emulator.ConnectAsync(cancellationToken);
+
+            var client = new Client();
+            await client.ConnectAsync(cancellationToken);
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
