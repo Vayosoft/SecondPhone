@@ -15,22 +15,26 @@ namespace EmulatorRC.API.Channels
         private readonly ConcurrentDictionary<string, Pipe> _micClientToDevice = new();
         private readonly ConcurrentDictionary<string, Pipe> _speakerDeviceToClient = new();
 
+        private static readonly ConcurrentDictionary<string, bool> Camera = new();
+        private static readonly ConcurrentDictionary<string, bool> Mic = new();
+        private static readonly ConcurrentDictionary<string, bool> Speaker = new();
+
         public StreamChannel(ILogger<StreamChannel> logger)
         {
             _logger = logger;
         }
 
         public Task WriteSpeakerAsync(string name, ConnectionContext connection, CancellationToken cancellationToken) =>
-            WriterAsync(_speakerDeviceToClient, name, connection, cancellationToken: cancellationToken);
+            WriterAsync(_speakerDeviceToClient, Speaker, name, connection, cancellationToken: cancellationToken);
 
         public Task WriterCameraAsync(string name, ConnectionContext connection, CancellationToken cancellationToken) =>
-            WriterAsync(_cameraClientToDevice, name, connection, cancellationToken: cancellationToken);
+            WriterAsync(_cameraClientToDevice, Camera, name, connection, cancellationToken: cancellationToken);
 
         public Task WriterMicAsync(string name, ConnectionContext connection, CancellationToken cancellationToken) => 
-            WriterAsync(_micClientToDevice, name, connection, cancellationToken: cancellationToken);
+            WriterAsync(_micClientToDevice, Mic, name, connection, cancellationToken: cancellationToken);
 
-        private async Task WriterAsync(ConcurrentDictionary<string, Pipe> channels, string name, ConnectionContext connection,
-            [CallerMemberName] string callerName = "", CancellationToken cancellationToken = default)
+        private async Task WriterAsync(ConcurrentDictionary<string, Pipe> channels, ConcurrentDictionary<string, bool> readers, string name, ConnectionContext connection,
+            [CallerMemberName] string callerType = "", CancellationToken cancellationToken = default)
         {
             var channelWriter = GetOrCreateWriter(channels, name);
             try
@@ -44,9 +48,12 @@ namespace EmulatorRC.API.Channels
                         var result = await connection.Transport.Input.ReadAsync(cancellationToken);
                         var buffer = result.Buffer;
 
-                        foreach (var segment in buffer)
+                        if (readers.ContainsKey(name))
                         {
-                            await writer!.WriteAsync(segment, cancellationToken);
+                            foreach (var segment in buffer)
+                            {
+                                await writer!.WriteAsync(segment, cancellationToken);
+                            }
                         }
 
                         if (result.IsCompleted)
@@ -59,8 +66,8 @@ namespace EmulatorRC.API.Channels
                 }
                 else
                 {
-                    _logger.LogError("{Channel} {ConnectionId} => {Error}",
-                        callerName, connection.ConnectionId, channelWriter.FirstError.Description);
+                    _logger.LogError("{ConnectionId} {ChannelType} => {ChannelName} - {Error}",
+                        connection.ConnectionId, callerType, name, channelWriter.FirstError.Description);
                 }
             }
             finally
@@ -72,12 +79,12 @@ namespace EmulatorRC.API.Channels
         private static ErrorOr<PipeWriter> GetOrCreateWriter(ConcurrentDictionary<string, Pipe> channels, string name)
         {
             if (channels.TryGetValue(name, out var channel))
-                return Error.Conflict(description: $"Channel {name} is busy");
+                return Error.Conflict(description: "Channel is busy");
 
             using (Locker.GetLockerByName(name).Lock())
             {
                 if (channels.TryGetValue(name, out channel))
-                    return Error.Conflict(description: $"Channel {name} is busy");
+                    return Error.Conflict(description: "Channel is busy");
 
                 channel = new Pipe();
                 channels[name] = channel;
@@ -87,17 +94,18 @@ namespace EmulatorRC.API.Channels
         }
 
         public Task ReadAllMicAsync(string name, PipeWriter output, CancellationToken cancellationToken) =>
-            ReadAllAsync(_micClientToDevice, name, output, cancellationToken: cancellationToken);
+            ReadAllAsync(_micClientToDevice, Mic, name, output, cancellationToken: cancellationToken);
         public Task ReadAllCameraAsync(string name, PipeWriter output, CancellationToken cancellationToken) =>
-            ReadAllAsync(_cameraClientToDevice, name, output, cancellationToken: cancellationToken);
+            ReadAllAsync(_cameraClientToDevice, Camera, name, output, cancellationToken: cancellationToken);
         public Task ReadAllSpeakerAsync(string name, PipeWriter output, CancellationToken cancellationToken) =>
-            ReadAllAsync(_speakerDeviceToClient, name, output, cancellationToken: cancellationToken);
+            ReadAllAsync(_speakerDeviceToClient, Speaker, name, output, cancellationToken: cancellationToken);
 
-        private async Task ReadAllAsync(ConcurrentDictionary<string, Pipe> channels, string name, PipeWriter output,
-            [CallerMemberName] string callerName = "", CancellationToken cancellationToken = default)
+        private async Task ReadAllAsync(ConcurrentDictionary<string, Pipe> channels, ConcurrentDictionary<string, bool> readers, string name, PipeWriter output,
+            [CallerMemberName] string callerType = "", CancellationToken cancellationToken = default)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
+                readers.TryAdd(name, true);
                 try
                 {
                     await foreach (var segment in ReadAllAsync(channels, name, cancellationToken))
@@ -105,12 +113,14 @@ namespace EmulatorRC.API.Channels
                         await output.WriteAsync(segment, cancellationToken);
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                }
+                catch (OperationCanceledException) { }
                 catch (Exception e)
                 {
-                    _logger.LogWarning(e, "{Channel} => {Error}", callerName, e.Message);
+                    _logger.LogWarning(e, "{ChannelType} => {ChannelName} - {Error}", callerType, name, e.Message);
+                }
+                finally
+                {
+                    readers.TryRemove(name, out _);
                 }
 
                 await Task.Delay(1000, cancellationToken);
@@ -133,18 +143,22 @@ namespace EmulatorRC.API.Channels
             {
                 var result = await reader.ReadAsync(cancellationToken);
                 var buffer = result.Buffer;
-
-                foreach (var segment in buffer)
+                try
                 {
-                    yield return segment;
-                }
+                    if (result.IsCompleted)
+                    {
+                        yield break;
+                    }
 
-                if (result.IsCompleted)
+                    foreach (var segment in buffer)
+                    {
+                        yield return segment;
+                    }
+                }
+                finally
                 {
-                    break;
+                    reader.AdvanceTo(buffer.End);
                 }
-
-                reader.AdvanceTo(buffer.End);
             }
         }
 

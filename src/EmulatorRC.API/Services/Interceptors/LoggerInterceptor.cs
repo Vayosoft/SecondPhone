@@ -34,7 +34,7 @@ namespace EmulatorRC.API.Services.Interceptors
             catch (Exception ex)
             {
                 // Note: The gRPC framework also logs exceptions thrown by handlers to .NET Core logging.
-                _logger.LogError(ex, "Error thrown by {Method}.", context.Method);
+                _logger.LogError(ex, "Error thrown by {RequestPath}.", context.Method);
 
                 throw;
             }
@@ -73,8 +73,8 @@ namespace EmulatorRC.API.Services.Interceptors
             where TRequest : class
             where TResponse : class
         {
-            _logger.LogInformation("gRPC {Method} DeviceId: {Device} Call[{Type}]: {Request} => {Response}",
-                context.Method, context.RequestHeaders.GetValue("x-device-id"), methodType, typeof(TRequest).Name, typeof(TResponse).Name);
+            _logger.LogInformation("gRPC {RequestPath} DeviceId: {Device} Request: {Request} => {Response} ({RequestType})",
+                context.Method, context.RequestHeaders.GetValue("x-device-id"), typeof(TRequest).Name, typeof(TResponse).Name, methodType);
 
             if (!_logger.IsEnabled(LogLevel.Trace)) return;
 
