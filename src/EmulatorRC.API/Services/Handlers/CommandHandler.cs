@@ -4,14 +4,15 @@ using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using EmulatorRC.Commons;
 using System.Buffers;
+using EmulatorRC.API.Model.Commands;
 
-namespace EmulatorRC.API.Handlers
+namespace EmulatorRC.API.Services.Handlers
 {
-    public abstract class StreamHandler
+    public abstract class CommandHandler
     {
-        protected readonly ILogger<StreamHandler> Logger;
+        protected readonly ILogger<CommandHandler> Logger;
 
-        protected StreamHandler(ILogger<StreamHandler> logger)
+        protected CommandHandler(ILogger<CommandHandler> logger)
         {
             Logger = logger;
         }
@@ -109,23 +110,21 @@ namespace EmulatorRC.API.Handlers
         }
     }
 
-    public class CameraHandler : StreamHandler
+    public sealed class CameraCommandHandler : CommandHandler
     {
         private static readonly ConcurrentDictionary<string, IDuplexPipe> Channels = new();
 
-        public CameraHandler(ILogger<StreamHandler> logger) 
+        public CameraCommandHandler(ILogger<CommandHandler> logger)
             : base(logger) { }
 
-        public Task WriteAsync(VideoHandshake handshake, IDuplexPipe pipe, CancellationToken cancellationToken) =>
-            WriteAsync(Channels, handshake.DeviceId, pipe, cancellationToken: cancellationToken);
+        public Task WriteAsync(VideoCommand command, IDuplexPipe pipe, CancellationToken cancellationToken) =>
+            WriteAsync(Channels, command.DeviceId, pipe, cancellationToken: cancellationToken);
 
-        public async Task ReadAsync(VideoDeviceRequest handshake, IDuplexPipe pipe, CancellationToken cancellationToken)
+        public async Task ReadAsync(VideoCommand command, IDuplexPipe pipe, CancellationToken cancellationToken)
         {
-            _ = await pipe.Output.WriteAsync(CreateMockHeader(handshake.Width, handshake.Height), cancellationToken);
+            _ = await pipe.Output.WriteAsync(CreateMockHeader(command.Width, command.Height), cancellationToken);
 
-            Logger.LogInformation("TCP (Device) {DeviceId} => Camera [Read]", handshake.DeviceId);
-
-            var initChannel = InitChannel(Channels, handshake.DeviceId, pipe);
+            var initChannel = InitChannel(Channels, command.DeviceId, pipe);
             try
             {
                 if (!initChannel.IsError)
@@ -153,12 +152,12 @@ namespace EmulatorRC.API.Handlers
                 }
                 else
                 {
-                    Logger.LogError("Camera => {ChannelName} - {Error}", handshake.DeviceId, initChannel.FirstError.Description);
+                    Logger.LogError("Camera => {ChannelName} - {Error}", command.DeviceId, initChannel.FirstError.Description);
                 }
             }
             finally
             {
-                await RemoveChannelAsync(Channels, handshake.DeviceId);
+                await RemoveChannelAsync(Channels, command.DeviceId);
             }
         }
 
@@ -209,44 +208,46 @@ namespace EmulatorRC.API.Handlers
 
             return byteBuffer.ToArray();
         }
+
+        internal enum Commands : byte
+        {
+            Undefined,
+            Ping,
+            GetBattery
+        }
     }
 
-    public class MicrophoneHandler : StreamHandler
+    public sealed class MicrophoneCommandHandler : CommandHandler
     {
         private static readonly ConcurrentDictionary<string, IDuplexPipe> Channels = new();
         private readonly byte[] _header = { (byte)'-', (byte)'@', (byte)'v', (byte)'0', (byte)'2', 2 };
 
-        public MicrophoneHandler(ILogger<StreamHandler> logger)
+        public MicrophoneCommandHandler(ILogger<CommandHandler> logger)
             : base(logger) { }
 
-        public Task WriteAsync(AudioHandshake handshake, IDuplexPipe pipe, CancellationToken cancellationToken) =>
-            WriteAsync(Channels, handshake.DeviceId, pipe, cancellationToken: cancellationToken);
+        public Task WriteAsync(AudioCommand command, IDuplexPipe pipe, CancellationToken cancellationToken) =>
+            WriteAsync(Channels, command.DeviceId, pipe, cancellationToken: cancellationToken);
 
-        public async Task ReadAsync(AudioDeviceRequest handshake, IDuplexPipe pipe, CancellationToken cancellationToken)
+        public async Task ReadAsync(AudioCommand command, IDuplexPipe pipe, CancellationToken cancellationToken)
         {
             _ = await pipe.Output.WriteAsync(_header, cancellationToken);
-
-            Logger.LogInformation("TCP (Device) {DeviceId} => Mic [Read]", handshake.DeviceId);
-
-            await ReadAsync(Channels, handshake.DeviceId, pipe, cancellationToken: cancellationToken);
+            await ReadAsync(Channels, command.DeviceId, pipe, cancellationToken: cancellationToken);
         }
     }
 
-    public class SpeakerHandler : StreamHandler
+    public sealed class SpeakerCommandHandler : CommandHandler
     {
         private static readonly ConcurrentDictionary<string, IDuplexPipe> Channels = new();
 
-        public SpeakerHandler(ILogger<StreamHandler> logger)
+        public SpeakerCommandHandler(ILogger<CommandHandler> logger)
             : base(logger) { }
 
-        public Task WriteAsync(SpeakerDeviceRequest handshake, IDuplexPipe pipe, CancellationToken cancellationToken)
+        public Task WriteAsync(SpeakerCommand command, IDuplexPipe pipe, CancellationToken cancellationToken)
         {
-            Logger.LogInformation("TCP (Device) {DeviceId} => Speaker [Write]", handshake.DeviceId);
-
-            return WriteAsync(Channels, handshake.DeviceId, pipe, cancellationToken: cancellationToken);
+            return WriteAsync(Channels, command.DeviceId, pipe, cancellationToken: cancellationToken);
         }
 
-        public Task ReadMicAsync(SpeakerHandshake handshake, IDuplexPipe pipe, CancellationToken cancellationToken) =>
-            ReadAsync(Channels, handshake.DeviceId, pipe, cancellationToken: cancellationToken);
+        public Task ReadAsync(SpeakerCommand command, IDuplexPipe pipe, CancellationToken cancellationToken) =>
+            ReadAsync(Channels, command.DeviceId, pipe, cancellationToken: cancellationToken);
     }
 }

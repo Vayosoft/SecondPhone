@@ -1,27 +1,29 @@
-﻿using EmulatorRC.API.Channels;
+﻿using EmulatorRC.API.Model.Commands;
+using EmulatorRC.API.Services.Handlers;
 using EmulatorRC.Entities;
 using Microsoft.AspNetCore.Connections;
 using System.Buffers;
+using System.IO.Pipelines;
 using System.Text;
 using System.Text.Json;
 
-namespace EmulatorRC.API.Handlers
+namespace EmulatorRC.API.Services
 {
-    public sealed class ClientStreamHandler : ConnectionHandler
+    public sealed class ClientController : ConnectionHandler
     {
-        private readonly StreamChannel _channel;
-        private readonly ILogger<ClientStreamHandler> _logger;
+        private readonly IServiceProvider _services;
+        private readonly ILogger<ClientController> _logger;
         private readonly IHostApplicationLifetime _lifetime;
 
         private const int MaxStackLength = 128;
         private const int MaxHeaderLength = 1024;
 
-        public ClientStreamHandler(
-            StreamChannel channel,
-            ILogger<ClientStreamHandler> logger,
+        public ClientController(
+            IServiceProvider services,
+            ILogger<ClientController> logger,
             IHostApplicationLifetime lifetime)
         {
-            _channel = channel;
+            _services = services;
             _logger = logger;
             _lifetime = lifetime;
         }
@@ -36,57 +38,33 @@ namespace EmulatorRC.API.Handlers
                     connection.ConnectionClosed, _lifetime.ApplicationStopping);
                 var cancellationToken = cts.Token;
 
-                Handshake handshake = null;
-                HandshakeStatus status = default;
-                while (status != HandshakeStatus.Successful)
+                var command = await GetCommandRequestAsync(connection.Transport, cancellationToken);
+
+                //todo authentication
+                if (string.IsNullOrEmpty(command.DeviceId))
                 {
-                    var result = await connection.Transport.Input.ReadAsync(cancellationToken);
-                    var buffer = result.Buffer;
-
-                    var consumed = ProcessHandshake(ref buffer, out status, out handshake);
-                    switch (status)
-                    {
-                        case HandshakeStatus.Successful:
-                        {
-                            //todo authentication
-                            if (string.IsNullOrEmpty(handshake.DeviceId))
-                            {
-                                _logger.LogError("TCP (Client) {ConnectionId} => Authentication failed", connection.ConnectionId);
-                                return;
-                            }
-                            break;
-                        }
-                        case HandshakeStatus.Failed:
-
-                            _logger.LogError("TCP (Client) {ConnectionId} => Handshake failed. {EndPoint}. Length: {BufferLength}. Hex: {Hex}. UTF8: {UTF8}",
-                                connection.ConnectionId, connection.RemoteEndPoint, buffer.Length,
-                                Convert.ToHexString(buffer.ToArray()), Encoding.UTF8.GetString(buffer));
-                            return;
-                    }
-
-                    if (result.IsCompleted)
-                    {
-                        break;
-                    }
-
-                    connection.Transport.Input.AdvanceTo(consumed);
-
-                    if(status == HandshakeStatus.Successful) break;
+                    throw new ApplicationException("Authentication failed");
                 }
 
-                switch (handshake)
+                switch (command)
                 {
-                    case VideoHandshake videoHandshake:
+                    case VideoCommand videoCommand:
                         _logger.LogInformation("TCP (Client) {ConnectionId} => Camera [Write]", connection.ConnectionId);
-                        await _channel.WriteCameraAsync(videoHandshake.DeviceId, connection.Transport, cancellationToken);
+
+                        var cameraHandler = _services.GetRequiredService<CameraCommandHandler>();
+                        await cameraHandler.WriteAsync(videoCommand, connection.Transport, cancellationToken);
                         break;
-                    case AudioHandshake audioHandshake:
+                    case AudioCommand audioCommand:
                         _logger.LogInformation("TCP (Client) {ConnectionId} => Mic [Write]", connection.ConnectionId);
-                        await _channel.WriteMicAsync(audioHandshake.DeviceId, connection.Transport, cancellationToken);
+
+                        var micHandler = _services.GetRequiredService<MicrophoneCommandHandler>();
+                        await micHandler.WriteAsync(audioCommand, connection.Transport, cancellationToken);
                         break;
-                    case SpeakerHandshake speakerHandshake:
+                    case SpeakerCommand speakerCommand:
                         _logger.LogInformation("TCP (Client) {ConnectionId} => Speaker [Read]", connection.ConnectionId);
-                        await _channel.ReadSpeakerAsync(speakerHandshake.DeviceId, connection.Transport, cancellationToken);
+
+                        var speakerHandler = _services.GetRequiredService<SpeakerCommandHandler>();
+                        await speakerHandler.ReadAsync(speakerCommand, connection.Transport, cancellationToken);
                         break;
                 }
             }
@@ -105,7 +83,37 @@ namespace EmulatorRC.API.Handlers
             }
         }
 
-        private SequencePosition ProcessHandshake(ref ReadOnlySequence<byte> buffer, out HandshakeStatus status, out Handshake command)
+        public async Task<CommandRequest> GetCommandRequestAsync(IDuplexPipe pipe, CancellationToken cancellationToken)
+        {
+            CommandRequest command = null;
+            HandshakeStatus status = default;
+            while (status != HandshakeStatus.Successful)
+            {
+                var result = await pipe.Input.ReadAsync(cancellationToken);
+                var buffer = result.Buffer;
+
+                var consumed = ProcessHandshake(ref buffer, out status, out command);
+
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+
+                pipe.Input.AdvanceTo(consumed);
+
+                if (status == HandshakeStatus.Failed)
+                    throw new ApplicationException($"Handshake failed." +
+                                                   $" Length: {buffer.Length}." +
+                                                   $" Hex: {Convert.ToHexString(buffer.ToArray())}." +
+                                                   $" UTF8: {Encoding.UTF8.GetString(buffer)}");
+
+                if (status == HandshakeStatus.Successful) break;
+            }
+
+            return command;
+        }
+
+        private SequencePosition ProcessHandshake(ref ReadOnlySequence<byte> buffer, out HandshakeStatus status, out CommandRequest command)
         {
             var reader = new SequenceReader<byte>(buffer);
             try
@@ -152,9 +160,9 @@ namespace EmulatorRC.API.Handlers
 
                 command = session.StreamType switch
                 {
-                    "cam" => new VideoHandshake(session.DeviceId),
-                    "mic" => new AudioHandshake(session.DeviceId),
-                    "sound" => new SpeakerHandshake(session.DeviceId),
+                    "cam" => new VideoCommand(session.DeviceId),
+                    "mic" => new AudioCommand(session.DeviceId),
+                    "sound" => new SpeakerCommand(session.DeviceId),
                     _ => throw new ArgumentOutOfRangeException(session.StreamType)
                 };
                 status = HandshakeStatus.Successful;

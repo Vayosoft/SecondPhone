@@ -6,11 +6,11 @@ using Commons.Cache;
 using Commons.Core.Application;
 using Commons.Core.Cache;
 using EmulatorRC.API.Channels;
-using EmulatorRC.API.Handlers;
 using EmulatorRC.API.Hubs;
 using EmulatorRC.API.Model;
 using EmulatorRC.API.Model.Bridge;
 using EmulatorRC.API.Services;
+using EmulatorRC.API.Services.Handlers;
 using EmulatorRC.API.Services.Interceptors;
 using EmulatorRC.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -57,11 +57,11 @@ public class Program
 
                     options.ListenAnyIP(outerPort, listenOptions =>
                     {
-                        listenOptions.UseConnectionHandler<ClientStreamHandler>();
+                        listenOptions.UseConnectionHandler<ClientController>();
                     });
                     options.ListenAnyIP(innerPort, listenOptions =>
                     {
-                        listenOptions.UseConnectionHandler<DeviceStreamHandler>();
+                        listenOptions.UseConnectionHandler<DeviceController>();
                     });
                 });
 
@@ -71,8 +71,11 @@ public class Program
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
                 builder.Services.AddSingleton<DeviceScreenChannel>();
                 builder.Services.AddSingleton<TouchChannel>();
-				builder.Services.AddSingleton<DeviceInfoChannel>();	
-                builder.Services.AddSingleton<StreamChannel>();
+				builder.Services.AddSingleton<DeviceInfoChannel>();
+
+                builder.Services.AddTransient<CameraCommandHandler>();
+                builder.Services.AddTransient<MicrophoneCommandHandler>();
+                builder.Services.AddTransient<SpeakerCommandHandler>();
 
                 builder.Services.AddSingleton<TcpStreamChannel>();
                 builder.Services.AddSingleton<IMemoryCacheProvider, MemoryCacheProvider>();
