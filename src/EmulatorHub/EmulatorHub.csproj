@@ -1,36 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+    <PropertyGroup>
+      <TargetFramework>net7.0</TargetFramework>
+      <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <Compile Remove="Enums\**" />
+      <EmbeddedResource Remove="Enums\**" />
+      <None Remove="Enums\**" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="App.Metrics" Version="4.3.0" />
+      <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.4.0" />
+      <PackageReference Include="LanguageExt.Core" Version="4.4.0" />
+      <PackageReference Include="System.Buffers" Version="4.5.1" />
+      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.25.1" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Application\Commons\Specifications\" />
+      <Folder Include="Domain\Commons\Enums\" />
+    </ItemGroup>
+    
+    <ItemGroup>
+	  <PackageReference Include="Vayosoft" Version="2.3.0" />
+	  <PackageReference Include="Vayosoft.Identity" Version="2.3.0" />
+	  <PackageReference Include="Vayosoft.PushBrokers" Version="2.3.0" />
+	  <PackageReference Include="Vayosoft.SmsBrokers" Version="2.3.0" />
+	  <PackageReference Include="Vayosoft.Threading" Version="2.3.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Enums\**" />
-    <EmbeddedResource Remove="Enums\**" />
-    <None Remove="Enums\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="App.Metrics" Version="4.3.0" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.4.0" />
-    <PackageReference Include="LanguageExt.Core" Version="4.4.0" />
-    <PackageReference Include="System.Buffers" Version="4.5.1" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.25.1" />
-    <!--
-    <PackageReference Include="Vayosoft" Version="2.3.0" />
-    <PackageReference Include="Vayosoft.Identity" Version="2.3.0" />
-    <PackageReference Include="Vayosoft.PushBrokers" Version="2.3.0" />
-    <PackageReference Include="Vayosoft.SmsBrokers" Version="2.3.0" />
-    <PackageReference Include="Vayosoft.Threading" Version="2.3.0" />
-	-->
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Application\Commons\Specifications\" />
-    <Folder Include="Domain\Commons\Enums\" />
-  </ItemGroup>
-
+	<!--
   <ItemGroup>
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Identity\Vayosoft.Identity.csproj" />
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.PushBrokers\Vayosoft.PushBrokers.csproj" />
@@ -38,5 +40,5 @@
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Threading\Vayosoft.Threading.csproj" />
     <ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft\Vayosoft.csproj" />
   </ItemGroup>
-
+	-->
 </Project>

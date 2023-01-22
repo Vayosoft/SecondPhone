@@ -22,9 +22,6 @@
 	  <PackageReference Include="AspNetCore.HealthChecks.MongoDb" Version="6.0.2" />
 	  <PackageReference Include="AspNetCore.HealthChecks.MySql" Version="6.0.2" />
 	  <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="6.0.4" />
-	  <!--
-	  <PackageReference Include="Vayosoft.Web.Identity" Version="2.3.0" />
-	  -->
   </ItemGroup>
 
   <ItemGroup>
@@ -33,6 +30,12 @@
   </ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Vayosoft.Web.Identity" Version="2.3.0" />
+	</ItemGroup>
+
+	<!--
+	<ItemGroup>
 		<ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Web.Identity\Vayosoft.Web.Identity.csproj" />
 	</ItemGroup>
+	-->
 </Project>
