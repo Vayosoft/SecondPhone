@@ -28,12 +28,12 @@ namespace EmulatorRC.API.Services
         {
             _logger.LogInformation("TCP (Device) {ConnectionId} connected", connection.ConnectionId);
 
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(
+                connection.ConnectionClosed, _lifetime.ApplicationStopping);
+            var cancellationToken = cts.Token;
+
             try
             {
-                var cts = CancellationTokenSource.CreateLinkedTokenSource(
-                    connection.ConnectionClosed, _lifetime.ApplicationStopping);
-                var cancellationToken = cts.Token;
-
                 var command = await GetCommandRequestAsync(connection.Transport, cancellationToken);
 
                 //todo authentication
