@@ -9,7 +9,7 @@
   <ItemGroup>
 	  <ProjectReference Include="..\EmulatorHub\EmulatorHub.csproj" />
   </ItemGroup>
-
+	<!--
 	<ItemGroup>
 		<PackageReference Include="Vayosoft.AutoMapper" Version="2.3.0" />
 		<PackageReference Include="Vayosoft.Caching" Version="2.3.0" />
@@ -17,7 +17,7 @@
 		<PackageReference Include="Vayosoft.Identity.EntityFramework" Version="2.3.0" />
 		<PackageReference Include="Vayosoft.Persistence.EntityFramework" Version="2.3.0" />
 	</ItemGroup>
-	<!--
+	-->
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.AutoMapper\Vayosoft.AutoMapper.csproj" />
 		<ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Caching\Vayosoft.Caching.csproj" />
@@ -25,5 +25,5 @@
 		<ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Identity.EntityFramework\Vayosoft.Identity.EntityFramework.csproj" />
 		<ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Persistence.EntityFramework\Vayosoft.Persistence.EntityFramework.csproj" />
 	</ItemGroup>
-	-->
+
 </Project>
