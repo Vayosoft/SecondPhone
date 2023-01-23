@@ -1,5 +1,4 @@
 ﻿using App.Metrics;
-using EmulatorHub.API.Model.Diagnostics;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using EmulatorHub.Application.PushGateway.Channels;

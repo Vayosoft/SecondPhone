@@ -39,7 +39,7 @@ namespace EmulatorHub.API.Controllers
                 .Project<MobileClient, MobileClientDto>(_projector)
                 .ToListAsync(cancellationToken: cancellationToken);
 
-            return Ok(clients);
+            return Ok(new { clients });
         }
 
         [ProducesResponseType(typeof(MobileClientDto), StatusCodes.Status200OK)]

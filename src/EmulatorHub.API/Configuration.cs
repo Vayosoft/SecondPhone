@@ -5,7 +5,6 @@ using App.Metrics.Formatters.Ascii;
 using App.Metrics.Formatters.Prometheus;
 using EmulatorHub.API.Services.Diagnostics;
 using App.Metrics.Extensions.Configuration;
-using EmulatorHub.API.Model.Diagnostics;
 
 namespace EmulatorHub.API
 {
