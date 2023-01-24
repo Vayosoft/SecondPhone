@@ -12,7 +12,7 @@ namespace EmulatorHub.Application.Administration.Specifications
 
         public EmulatorSpec(int page, int size, string searchTerm = null)
         {
-            Page = page; Size = size;
+            Page = page; PageSize = size;
             _searchTerm = searchTerm;
         }
 
@@ -23,6 +23,7 @@ namespace EmulatorHub.Application.Administration.Specifications
                     .Where(u => u.Name.Contains(_searchTerm));
 
             return query;
+            //return query.OrderBy(e => e.Name);
         }
 
         protected override Sorting<EmulatorDto, string> BuildDefaultSorting()

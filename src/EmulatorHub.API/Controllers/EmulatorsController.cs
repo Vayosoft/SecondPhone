@@ -38,7 +38,7 @@ namespace EmulatorHub.API.Controllers
             var spec = new EmulatorSpec(page, size, searchTerm);
             var query = new SpecificationQuery<EmulatorSpec, IPagedEnumerable<EmulatorDto>>(spec);
 
-            return Paged(await queryBus.Send(query, token), size);
+            return Page(await queryBus.Send(query, token), size);
         }
 
         [PermissionAuthorization("DEVICE", SecurityPermissions.Edit)]
