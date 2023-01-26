@@ -86,9 +86,15 @@ namespace EmulatorHub.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (!_cache.TryGetValue<UserEntity>($"{model.PhoneNumber}:{model.Password}", out var user))
+            if (!_cache.TryGetValue<UserEntity>($"{model.PhoneNumber}:{model.Password}", out var cachedUser) || cachedUser == null)
             {
-                return NotFound();
+                return NotFound(model.PhoneNumber);
+            }
+
+            var user = await _userRepository.FindByIdAsync(cachedUser.Id, cancellationToken);
+            if (user == null)
+            {
+                return NotFound(cachedUser.Phone);
             }
 
             var authResult = await _authService.AuthenticateAsync(user, IpAddress(), cancellationToken);

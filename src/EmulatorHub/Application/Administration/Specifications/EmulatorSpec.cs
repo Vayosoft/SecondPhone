@@ -23,7 +23,6 @@ namespace EmulatorHub.Application.Administration.Specifications
                     .Where(u => u.Name.Contains(_searchTerm));
 
             return query;
-            //return query.OrderBy(e => e.Name);
         }
 
         protected override Sorting<EmulatorDto, string> BuildDefaultSorting()
