@@ -19,4 +19,5 @@ namespace EmulatorRC.Client
             return TimeSpan.FromSeconds(seconds);
         }
     }
+
 }

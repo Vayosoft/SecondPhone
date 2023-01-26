@@ -62,7 +62,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{173484FC-5
 		resources\images\test\test-img-1.jpg = resources\images\test\test-img-1.jpg
 	EndProjectSection
 EndProject
-
+#-----------------------------------------------------------------------------------------------------------------------------------------------------------
 #Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft", "..\Vayosoft\src\Vayosoft\Vayosoft.csproj", "{46F5BD59-F246-4382-8E67-8822CE42EAF7}"
 #EndProject
 #Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.AutoMapper", "..\Vayosoft\src\Vayosoft.AutoMapper\Vayosoft.AutoMapper.csproj", "{0F011BAF-DBAA-42EB-B0C6-92C3A7C6AB74}"
@@ -89,7 +89,7 @@ EndProject
 #EndProject
 #Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vayosoft.Web", "..\Vayosoft\src\Vayosoft.Web\Vayosoft.Web.csproj", "{A43BA97E-4ED0-45C6-B073-9821073A5C93}"
 #EndProject
-
+#-----------------------------------------------------------------------------------------------------------------------------------------------------------
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

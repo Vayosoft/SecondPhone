@@ -2,6 +2,7 @@
 using EmulatorHub.Application.PushGateway.Models;
 using EmulatorHub.Domain.Commons.Entities;
 using FluentValidation;
+using FluentValidation.Results;
 using LanguageExt.Common;
 using MediatR;
 using Vayosoft.Commands;
@@ -67,7 +68,10 @@ namespace EmulatorHub.Application.PushGateway.Commands
 
             if (string.IsNullOrEmpty(emulator.Client.PushToken))
             {
-                return new Result<Unit>(new ValidationException("The client has no token."));
+                return new Result<Unit>(new ValidationException("Invalid Argument", new[]
+                {
+                    new ValidationFailure("PushToken", "The client has no push token")
+                }));
             }
 
             _channel.Enqueue(new PushMessage(emulator.Client.PushToken, request.Message));

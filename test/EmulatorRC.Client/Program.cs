@@ -8,75 +8,50 @@ using EmulatorRC.API.Protos;
 using Google.Protobuf;
 using System;
 using EmulatorHub.Application.Commons.Services.IdentityProvider;
+using NAudio.Wave;
 
-var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
-var url = "http://192.168.10.6:5006";
-//var url = "http://localhost:5004";
 
-var cts = new CancellationTokenSource();
-
-var uploadTask = Task.Run(async () =>
-{
-    try{
-        var channel = GrpcChannel.ForAddress(url, new GrpcChannelOptions
-    
-        {
-            Credentials = ChannelCredentials.Insecure,
-            //Credentials = ChannelCredentials.SecureSsl
-        });
-
-        var client = new DeviceService.DeviceServiceClient(channel);
-        var headers = new Metadata
-        {
-            {"X-DEVICE-ID", "default"}
-        };
-
-        var pool = ArrayPool<byte>.Shared;
-        using var call = client.UploadScreens(headers);
-        while (!cts.IsCancellationRequested)
-        {
-            var buffer = pool.Rent(50 * 1024);
-            try
-            {
-                await call.RequestStream.WriteAsync(new DeviceScreen
-                {
-                    Image = ByteString.CopyFrom(buffer)
-                }, CancellationToken.None);
-            }
-            finally
-            {
-                pool.Return(buffer);
-            }
-           
-        }
-
-        await call.RequestStream.CompleteAsync();
-    }
-    catch (Exception e)
-    {
-        Console.WriteLine(e.Message);
-    }
-});
-
-var screenClient = new GrpcStub(url, tokenResult.Token);
-//var screenClient2 = new GrpcStub(url, tokenResult.Token);
 try
 {
-    Console.WriteLine("Starting to send messages");
-    Console.WriteLine("Type a message to echo then press enter.");
-    while (true)
+    var cts = new CancellationTokenSource(60000);
+    var channel = GrpcChannel.ForAddress("http://192.168.10.6:5556", new GrpcChannelOptions
+
     {
-        Console.WriteLine(url);
-        var result = Console.ReadLine();
+        Credentials = ChannelCredentials.Insecure,
+        //Credentials = ChannelCredentials.SecureSsl
+    });
 
-        if (result is "1")
-        {
-            cts.Cancel();
-            break;
-        }
+    var client = new EmulatorController.EmulatorControllerClient(channel);
 
-        await screenClient.SendAsync(result ?? string.Empty);
-       // await screenClient2.SendAsync(result ?? string.Empty);
+    ////var s = await client.getScreenshotAsync(new ImageFormat { Format = ImageFormat.Types.ImgFormat.Png }, new CallOptions());
+    //var res = client.streamScreenshot(new ImageFormat { Format = ImageFormat.Types.ImgFormat.Png, Width = 720, Height = 1280, }, new CallOptions { });
+    //var counter = 0;
+    //await foreach (var scr in res.ResponseStream.ReadAllAsync(cts.Token))
+    //{
+    //    File.WriteAllBytes($"d:\\temp\\images\\image_{counter++}.png", scr.Image_.ToByteArray());
+    //}
+
+    var format = new AudioFormat
+    {
+        Channels = AudioFormat.Types.Channels.Stereo,
+        Format = AudioFormat.Types.SampleFormat.AudFmtS16,
+        Mode = AudioFormat.Types.DeliveryMode.ModeRealTime,
+        SamplingRate = 44100
+    };
+    var audioStream = client.streamAudio(format, new CallOptions { });
+
+    var f = WaveFormat.CreateCustomFormat(WaveFormatEncoding.Pcm,
+        (int)format.SamplingRate,
+        (int)format.Channels,
+        (int)format.SamplingRate * (int)format.Channels,
+        4, 32);
+
+    using var audioPlayer = new AudioPlayer(f);
+    audioPlayer.Play();
+
+    await foreach (var sample in audioStream.ResponseStream.ReadAllAsync())
+    {
+        audioPlayer.AddSample(sample.Audio.ToByteArray());
     }
 }
 catch (Exception e)
@@ -84,10 +59,92 @@ catch (Exception e)
     Console.WriteLine(e.Message);
 }
 
-await uploadTask;
-await screenClient.DisposeAsync();
-cts.Dispose();
-Console.WriteLine("Done!");
+return;
+
+//await ExecuteClientServer();
+
+async Task ExecuteClientServer()
+{
+    var tokenResult = TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(5));
+    var url = "http://192.168.10.6:5006";
+    //var url = "http://localhost:5004";
+
+    var cts = new CancellationTokenSource();
+
+    var uploadTask = Task.Run(async () =>
+    {
+        try
+        {
+            var channel = GrpcChannel.ForAddress(url, new GrpcChannelOptions
+
+            {
+                Credentials = ChannelCredentials.Insecure,
+                //Credentials = ChannelCredentials.SecureSsl
+            });
+
+            var client = new DeviceService.DeviceServiceClient(channel);
+            var headers = new Metadata
+            {
+                {"X-DEVICE-ID", "default"}
+            };
+
+            var pool = ArrayPool<byte>.Shared;
+            using var call = client.UploadScreens(headers);
+            while (!cts.IsCancellationRequested)
+            {
+                var buffer = pool.Rent(50 * 1024);
+                try
+                {
+                    await call.RequestStream.WriteAsync(new DeviceScreen
+                    {
+                        Image = ByteString.CopyFrom(buffer)
+                    }, CancellationToken.None);
+                }
+                finally
+                {
+                    pool.Return(buffer);
+                }
+            }
+
+            await call.RequestStream.CompleteAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    });
+
+    var screenClient = new GrpcStub(url, tokenResult.Token);
+//var screenClient2 = new GrpcStub(url, tokenResult.Token);
+    try
+    {
+        Console.WriteLine("Starting to send messages");
+        Console.WriteLine("Type a message to echo then press enter.");
+        while (true)
+        {
+            Console.WriteLine(url);
+            var result = Console.ReadLine();
+
+            if (result is "1")
+            {
+                cts.Cancel();
+                break;
+            }
+
+            await screenClient.SendAsync(result ?? string.Empty);
+            // await screenClient2.SendAsync(result ?? string.Empty);
+        }
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine(e.Message);
+    }
+
+    await uploadTask;
+    await screenClient.DisposeAsync();
+    cts.Dispose();
+    Console.WriteLine("Done!");
+}
 
 //AsymmetricKey.Create();
 
