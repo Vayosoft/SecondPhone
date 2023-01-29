@@ -9,6 +9,7 @@ using EmulatorRC.API.Channels;
 using EmulatorRC.API.Hubs;
 using EmulatorRC.API.Model;
 using EmulatorRC.API.Model.Bridge;
+using EmulatorRC.API.Protos;
 using EmulatorRC.API.Services;
 using EmulatorRC.API.Services.Handlers;
 using EmulatorRC.API.Services.Interceptors;
@@ -82,6 +83,7 @@ public class Program
                 builder.Services.AddSingleton<IPubSubCacheProvider, RedisProvider>();
                 builder.Services.AddSingleton<ApplicationCache>();
 
+                //******************************************************* gRPC
                 builder.Services.AddGrpc(options =>
                 {
                     options.Interceptors.Add<LoggerInterceptor>();
@@ -98,6 +100,12 @@ public class Program
                     options.EnableDetailedErrors = true;
                     options.MaxReceiveMessageSize = 5 * 1024 * 1024; // 2 MB
                 });
+
+                builder.Services.AddGrpcClient<EmulatorController.EmulatorControllerClient>(o =>
+                {
+                    o.Address = new Uri("http://192.168.10.6:5556");
+                });
+                //*******************************************************
 
                 //Authentication
                 var symmetricKey = "qwertyuiopasdfghjklzxcvbnm123456"; //configuration["Jwt:Symmetric:Key"];

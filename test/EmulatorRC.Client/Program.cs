@@ -24,7 +24,7 @@ try
     var client = new EmulatorController.EmulatorControllerClient(channel);
 
     ////var s = await client.getScreenshotAsync(new ImageFormat { Format = ImageFormat.Types.ImgFormat.Png }, new CallOptions());
-    //var res = client.streamScreenshot(new ImageFormat { Format = ImageFormat.Types.ImgFormat.Png, Width = 720, Height = 1280, }, new CallOptions { });
+    //using var res = client.streamScreenshot(new ImageFormat { Format = ImageFormat.Types.ImgFormat.Png, Width = 720, Height = 1280, }, new CallOptions { });
     //var counter = 0;
     //await foreach (var scr in res.ResponseStream.ReadAllAsync(cts.Token))
     //{
@@ -38,18 +38,18 @@ try
         Mode = AudioFormat.Types.DeliveryMode.ModeRealTime,
         SamplingRate = 44100
     };
-    var audioStream = client.streamAudio(format, new CallOptions { });
+    using var audioStream = client.streamAudio(format, new CallOptions { });
 
-    var f = WaveFormat.CreateCustomFormat(WaveFormatEncoding.Pcm,
+    var waveFormat = WaveFormat.CreateCustomFormat(WaveFormatEncoding.Pcm,
         (int)format.SamplingRate,
         (int)format.Channels,
         (int)format.SamplingRate * (int)format.Channels,
         4, 32);
 
-    using var audioPlayer = new AudioPlayer(f);
+    using var audioPlayer = new AudioPlayer(waveFormat);
     audioPlayer.Play();
 
-    await foreach (var sample in audioStream.ResponseStream.ReadAllAsync())
+    await foreach (var sample in audioStream.ResponseStream.ReadAllAsync(cts.Token))
     {
         audioPlayer.AddSample(sample.Audio.ToByteArray());
     }
