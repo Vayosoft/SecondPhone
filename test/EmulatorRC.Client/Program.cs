@@ -11,57 +11,69 @@ using EmulatorHub.Application.Commons.Services.IdentityProvider;
 using NAudio.Wave;
 
 
-try
+await ExecuteClient();
+//await ExecuteClientServer();
+
+
+async Task ExecuteClient()
 {
-    var cts = new CancellationTokenSource(60000);
-    var channel = GrpcChannel.ForAddress("http://192.168.10.6:5556", new GrpcChannelOptions
-
+    try
     {
-        Credentials = ChannelCredentials.Insecure,
-        //Credentials = ChannelCredentials.SecureSsl
-    });
+        var cts = new CancellationTokenSource(60000);
+        var channel = GrpcChannel.ForAddress("http://192.168.10.6:5556", new GrpcChannelOptions
+        {
+            Credentials = ChannelCredentials.Insecure,
+            //Credentials = ChannelCredentials.SecureSsl
+        });
 
-    var client = new EmulatorController.EmulatorControllerClient(channel);
+        var client = new EmulatorController.EmulatorControllerClient(channel);
 
-    ////var s = await client.getScreenshotAsync(new ImageFormat { Format = ImageFormat.Types.ImgFormat.Png }, new CallOptions());
-    //using var res = client.streamScreenshot(new ImageFormat { Format = ImageFormat.Types.ImgFormat.Png, Width = 720, Height = 1280, }, new CallOptions { });
-    //var counter = 0;
-    //await foreach (var scr in res.ResponseStream.ReadAllAsync(cts.Token))
-    //{
-    //    File.WriteAllBytes($"d:\\temp\\images\\image_{counter++}.png", scr.Image_.ToByteArray());
-    //}
+        var audioTask = Task.Run(async () =>
+        {
+            var format = new AudioFormat
+            {
+                Channels = AudioFormat.Types.Channels.Stereo,
+                Format = AudioFormat.Types.SampleFormat.AudFmtS16,
+                Mode = AudioFormat.Types.DeliveryMode.ModeRealTime,
+                SamplingRate = 44100
+            };
+            using var audioStream = client.streamAudio(format, new CallOptions { });
 
-    var format = new AudioFormat
+            var waveFormat = WaveFormat.CreateCustomFormat(WaveFormatEncoding.Pcm,
+                (int) format.SamplingRate,
+                (int) format.Channels,
+                (int) format.SamplingRate * (int) format.Channels,
+                4, 32);
+
+            using var audioPlayer = new AudioPlayer(waveFormat);
+            audioPlayer.Play();
+
+            await foreach (var sample in audioStream.ResponseStream.ReadAllAsync(cts.Token))
+            {
+                audioPlayer.AddSample(sample.Audio.ToByteArray());
+            }
+        });
+
+        var videoTask = Task.Run(async () =>
+        {
+            //var s = await client.getScreenshotAsync(new ImageFormat { Format = ImageFormat.Types.ImgFormat.Png }, new CallOptions());
+            using var res = client.streamScreenshot(
+                new ImageFormat {Format = ImageFormat.Types.ImgFormat.Png, Width = 720, Height = 1280,},
+                new CallOptions { });
+            var counter = 0;
+            await foreach (var scr in res.ResponseStream.ReadAllAsync(cts.Token))
+            {
+                File.WriteAllBytes($"d:\\temp\\images\\image_{counter++}.png", scr.Image_.ToByteArray());
+            }
+        });
+
+        await Task.WhenAll(audioTask, videoTask);
+    }
+    catch (Exception e)
     {
-        Channels = AudioFormat.Types.Channels.Stereo,
-        Format = AudioFormat.Types.SampleFormat.AudFmtS16,
-        Mode = AudioFormat.Types.DeliveryMode.ModeRealTime,
-        SamplingRate = 44100
-    };
-    using var audioStream = client.streamAudio(format, new CallOptions { });
-
-    var waveFormat = WaveFormat.CreateCustomFormat(WaveFormatEncoding.Pcm,
-        (int)format.SamplingRate,
-        (int)format.Channels,
-        (int)format.SamplingRate * (int)format.Channels,
-        4, 32);
-
-    using var audioPlayer = new AudioPlayer(waveFormat);
-    audioPlayer.Play();
-
-    await foreach (var sample in audioStream.ResponseStream.ReadAllAsync(cts.Token))
-    {
-        audioPlayer.AddSample(sample.Audio.ToByteArray());
+        Console.WriteLine(e.Message);
     }
 }
-catch (Exception e)
-{
-    Console.WriteLine(e.Message);
-}
-
-return;
-
-//await ExecuteClientServer();
 
 async Task ExecuteClientServer()
 {
