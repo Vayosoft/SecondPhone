@@ -49,19 +49,19 @@ namespace EmulatorRC.API.Services
                 switch (command)
                 {
                     case VideoCommand videoCommand:
-                        _logger.LogInformation("TCP (Client) {ConnectionId} => Camera [Write]", connection.ConnectionId);
+                        _logger.LogInformation("TCP (Client) {ConnectionId} => {DeviceId} Camera [Write]", connection.ConnectionId, command.DeviceId);
 
                         var cameraHandler = _services.GetRequiredService<CameraCommandHandler>();
                         await cameraHandler.WriteAsync(videoCommand, connection.Transport, cancellationToken);
                         break;
                     case AudioCommand audioCommand:
-                        _logger.LogInformation("TCP (Client) {ConnectionId} => Mic [Write]", connection.ConnectionId);
+                        _logger.LogInformation("TCP (Client) {ConnectionId} => {DeviceId} Mic [Write]", connection.ConnectionId, command.DeviceId);
 
                         var micHandler = _services.GetRequiredService<MicrophoneCommandHandler>();
                         await micHandler.WriteAsync(audioCommand, connection.Transport, cancellationToken);
                         break;
                     case SpeakerCommand speakerCommand:
-                        _logger.LogInformation("TCP (Client) {ConnectionId} => Speaker [Read]", connection.ConnectionId);
+                        _logger.LogInformation("TCP (Client) {ConnectionId} => {DeviceId} Speaker [Read]", connection.ConnectionId, command.DeviceId);
 
                         var speakerHandler = _services.GetRequiredService<SpeakerCommandHandler>();
                         await speakerHandler.ReadAsync(speakerCommand, connection.Transport, cancellationToken);

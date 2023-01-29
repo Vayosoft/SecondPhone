@@ -2,6 +2,7 @@
 using System.IO.Pipelines;
 using System.Text;
 using System.Text.RegularExpressions;
+using Commons.Core.Models;
 using EmulatorRC.API.Model.Commands;
 using EmulatorRC.API.Services.Handlers;
 using Microsoft.AspNetCore.Connections;
@@ -45,19 +46,19 @@ namespace EmulatorRC.API.Services
                 switch (command)
                 {
                     case VideoCommand videoCommand:
-                        _logger.LogInformation("TCP (Device) {ConnectionId} => Camera [Read]", connection.ConnectionId);
+                        _logger.LogInformation("TCP (Device) {ConnectionId} => {DeviceId} Camera [Read]", connection.ConnectionId, command.DeviceId);
 
                         var cameraHandler = _services.GetRequiredService<CameraCommandHandler>();
                         await cameraHandler.ReadAsync(videoCommand, connection.Transport, cancellationToken);
                         break;
                     case AudioCommand audioCommand:
-                        _logger.LogInformation("TCP (Device) {ConnectionId} => Mic [Read]", connection.ConnectionId);
+                        _logger.LogInformation("TCP (Device) {ConnectionId} => {DeviceId} Mic [Read]", connection.ConnectionId, command.DeviceId);
 
                         var micHandler = _services.GetRequiredService<MicrophoneCommandHandler>();
                         await micHandler.ReadAsync(audioCommand, connection.Transport, cancellationToken);
                         break;
                     case SpeakerCommand speakerCommand:
-                        _logger.LogInformation("TCP (Device) {ConnectionId} => Speaker [Write]", connection.ConnectionId);
+                        _logger.LogInformation("TCP (Device) {ConnectionId} => {DeviceId} Speaker [Write]", connection.ConnectionId, command.DeviceId);
 
                         var speakerHandler = _services.GetRequiredService<SpeakerCommandHandler>();
                         await speakerHandler.WriteAsync(speakerCommand, connection.Transport, cancellationToken);
@@ -142,14 +143,13 @@ namespace EmulatorRC.API.Services
             }
             else if (reader.IsNext(CommandAudio, true))
             {
-                //var str = Encoding.UTF8.GetString(reader.UnreadSequence);
-                //var m = HandshakeRegex().Match(str);
+                var str = Encoding.UTF8.GetString(reader.UnreadSequence);
+                var m = HandshakeRegex().Match(str);
 
-                //if (!m.Success || m.Groups.Count < 2)
-                //    throw new ApplicationException($"Handshake failed (Mic) => {str}");
+                if (!m.Success || m.Groups.Count < 2)
+                    throw new ApplicationException($"Handshake failed (Mic) => {str}");
 
-                //command = new AudioHandshake(m.Groups[1].Value);
-                command = new AudioCommand("default");
+                command = new AudioCommand(m.Groups[1].Value);
             }
             else
             {
