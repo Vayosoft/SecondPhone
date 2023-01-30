@@ -7,6 +7,7 @@ import "Protos/device.proto";
 service ClientService {
 	rpc GetDeviceInfo(Syn) returns (stream DeviceInfo);
 	rpc GetScreens (stream ScreenRequest) returns (stream DeviceScreen);
+	rpc GetAudio (Syn) returns (stream DeviceAudio);
 	rpc SendTouchEvents (stream TouchEvents) returns (Ack);
 }
 

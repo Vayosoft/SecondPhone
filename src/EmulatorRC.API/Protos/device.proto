@@ -15,6 +15,11 @@ message DeviceScreen {
 	int32 orientation = 3;
 }
 
+message DeviceAudio {
+	uint64 timestamp = 1;
+    bytes audio = 2;
+}
+
 message DeviceInfo {
   int32 width = 1;
   int32 height = 2;
