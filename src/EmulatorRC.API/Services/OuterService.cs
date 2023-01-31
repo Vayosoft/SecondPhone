@@ -2,7 +2,11 @@
 using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using Grpc.Core;
+using ImageMagick.Formats;
+using ImageMagick;
 using System.Runtime.CompilerServices;
+using Google.Protobuf;
+using Microsoft.IO;
 
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
 namespace EmulatorRC.API.Services
@@ -82,6 +86,7 @@ namespace EmulatorRC.API.Services
         //    }
         //}
 
+        private static readonly ImageFormat ImageFormat = new() { Format = ImageFormat.Types.ImgFormat.Png, Width = 480, Height = 720 };
         private static readonly CallOptions CallOptions = new();
         public override async Task GetScreens(
             IAsyncStreamReader<ScreenRequest> requestStream,
@@ -92,19 +97,36 @@ namespace EmulatorRC.API.Services
 
             var cancellationToken = cancellationSource.Token;
 
-            var imageFormat = new ImageFormat { Format = ImageFormat.Types.ImgFormat.Png, Width = 720, Height = 1280 };
-
             await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
             {
-                var response = await _emulatorClient.getScreenshotAsync(imageFormat, CallOptions);
-                var deviceScreen = new DeviceScreen
-                {
-                    Id = (DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond).ToString(),
-                    Image = response.Image_,
-                };
-                await responseStream.WriteAsync(deviceScreen, cancellationToken);
+                var response = await _emulatorClient.getScreenshotAsync(ImageFormat, CallOptions);
+                await responseStream.WriteAsync(GetScreen(response.Image_.Span), cancellationToken);
             }
         }
+
+        private static readonly JpegWriteDefines JpegWriteDefines = new() { OptimizeCoding = true };
+        //private static readonly RecyclableMemoryStreamManager RecyclableMemoryStreamManager = new();
+        private static DeviceScreen GetScreen(ReadOnlySpan<byte> imageSpan)
+        {
+            using var image = new MagickImage(imageSpan);
+            image.Format = image.Format;
+            image.Quality = 30;
+
+            var data = image.ToByteArray(JpegWriteDefines).AsSpan();
+            var deviceScreen = new DeviceScreen
+            {
+                Image = ByteString.CopyFrom(data),
+            };
+            return deviceScreen;
+        }
+
+        private static readonly AudioFormat AudioFormat = new AudioFormat
+        {
+            Channels = AudioFormat.Types.Channels.Stereo,
+            Format = AudioFormat.Types.SampleFormat.AudFmtS16,
+            Mode = AudioFormat.Types.DeliveryMode.ModeRealTime,
+            SamplingRate = 8000 //44100
+        };
 
         public override async Task GetAudio(Syn request, IServerStreamWriter<DeviceAudio> responseStream,
             ServerCallContext context)
@@ -113,16 +135,7 @@ namespace EmulatorRC.API.Services
 
             var cancellationToken = cancellationSource.Token;
 
-            var format = new AudioFormat
-            {
-                Channels = AudioFormat.Types.Channels.Stereo,
-                Format = AudioFormat.Types.SampleFormat.AudFmtS16,
-                Mode = AudioFormat.Types.DeliveryMode.ModeRealTime,
-                SamplingRate = 44100
-            };
-
-            using var audioStream = _emulatorClient.streamAudio(format, CallOptions);
-
+            using var audioStream = _emulatorClient.streamAudio(AudioFormat, CallOptions);
             await foreach (var sample in audioStream.ResponseStream.ReadAllAsync(cancellationToken))
             {
                 var deviceAudio = new DeviceAudio

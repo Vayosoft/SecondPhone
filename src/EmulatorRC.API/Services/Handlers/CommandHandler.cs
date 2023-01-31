@@ -89,6 +89,7 @@ namespace EmulatorRC.API.Services.Handlers
                         var buffer = result.Buffer;
 
                         var consumed = buffer.End;
+                        await Task.Delay(1000, cancellationToken);
 
                         if (result.IsCompleted)
                         {
@@ -140,6 +141,9 @@ namespace EmulatorRC.API.Services.Handlers
                             case Commands.GetBattery:
                                 _ = await pipe.Output.WriteAsync("\r\n\r\n100"u8.ToArray(), cancellationToken);
                                 break;
+                            default:
+                                await Task.Delay(1000, cancellationToken);
+                                break;
                         }
 
                         if (result.IsCompleted)
@@ -180,6 +184,8 @@ namespace EmulatorRC.API.Services.Handlers
             {
                 cmd = Commands.Undefined;
             }
+
+            reader.AdvanceToEnd();
 
             return reader.Position;
         }

@@ -157,6 +157,8 @@ namespace EmulatorRC.API.Services
                 throw new ApplicationException($"Handshake failed => {str}");
             }
 
+            reader.AdvanceToEnd();
+
             return reader.Position;
         }
     }

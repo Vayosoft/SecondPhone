@@ -6,9 +6,11 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using EmulatorRC.API.Protos;
 using Google.Protobuf;
-using System;
 using EmulatorHub.Application.Commons.Services.IdentityProvider;
+using ImageMagick;
+using ImageMagick.Formats;
 using NAudio.Wave;
+using ImageFormat = EmulatorRC.API.Protos.ImageFormat;
 
 
 await ExecuteClient();
@@ -35,14 +37,14 @@ async Task ExecuteClient()
                 Channels = AudioFormat.Types.Channels.Stereo,
                 Format = AudioFormat.Types.SampleFormat.AudFmtS16,
                 Mode = AudioFormat.Types.DeliveryMode.ModeRealTime,
-                SamplingRate = 44100
+                SamplingRate = 8000//44100
             };
             using var audioStream = client.streamAudio(format, new CallOptions { });
 
             var waveFormat = WaveFormat.CreateCustomFormat(WaveFormatEncoding.Pcm,
-                (int) format.SamplingRate,
-                (int) format.Channels,
-                (int) format.SamplingRate * (int) format.Channels,
+                (int)format.SamplingRate,
+                (int)format.Channels,
+                (int)format.SamplingRate * (int)format.Channels,
                 4, 32);
 
             using var audioPlayer = new AudioPlayer(waveFormat);
@@ -57,17 +59,31 @@ async Task ExecuteClient()
         var videoTask = Task.Run(async () =>
         {
             //var s = await client.getScreenshotAsync(new ImageFormat { Format = ImageFormat.Types.ImgFormat.Png }, new CallOptions());
-            using var res = client.streamScreenshot(
-                new ImageFormat {Format = ImageFormat.Types.ImgFormat.Png, Width = 720, Height = 1280,},
-                new CallOptions { });
+            var imageFormat = new ImageFormat
+            {
+                Format = ImageFormat.Types.ImgFormat.Png, 
+                Width = 720,
+                Height = 1280
+            };
+            using var res = client.streamScreenshot(imageFormat, new CallOptions { });
             var counter = 0;
             await foreach (var scr in res.ResponseStream.ReadAllAsync(cts.Token))
             {
-                File.WriteAllBytes($"d:\\temp\\images\\image_{counter++}.png", scr.Image_.ToByteArray());
+                //using var stream = new MemoryStream(scr.Image_.ToByteArray());
+                //var optimizer = new ImageOptimizer();
+                //optimizer.Compress(stream);
+                using var image = new MagickImage(scr.Image_.ToByteArray());
+                image.Format = image.Format; // Get or Set the format of the image.
+                //image.Resize(40, 40); // fit the image into the requested width and height. 
+                image.Quality = 30; // This is the Compression level.
+
+                var data = image.ToByteArray(new JpegWriteDefines { });
+
+                File.WriteAllBytes($"d:\\temp\\images\\image_{counter++}.png", data);
             }
         });
 
-        await Task.WhenAll(audioTask, videoTask);
+        await Task.WhenAll(audioTask);
     }
     catch (Exception e)
     {
