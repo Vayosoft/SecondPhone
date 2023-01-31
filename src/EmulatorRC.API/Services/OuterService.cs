@@ -6,6 +6,7 @@ using ImageMagick.Formats;
 using ImageMagick;
 using System.Runtime.CompilerServices;
 using Google.Protobuf;
+using Microsoft.IO;
 
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
 namespace EmulatorRC.API.Services
@@ -123,7 +124,8 @@ namespace EmulatorRC.API.Services
             using var res = _emulatorClient.streamScreenshot(ImageFormat, CallOptions);
             await foreach (var response in res.ResponseStream.ReadAllAsync(cancellationToken))
             {
-                await _screens.WriteAsync(deviceId, GetScreen(response.Image_.Span), cancellationToken);
+                var screen = GetDeviceScreen(response.Image_.Span);
+                await _screens.WriteAsync(deviceId, screen, cancellationToken);
             }
         }
 
@@ -164,17 +166,22 @@ namespace EmulatorRC.API.Services
         {
             OptimizeCoding = true
         };
-
-        private static DeviceScreen GetScreen(ReadOnlySpan<byte> imageSpan)
+        private static readonly RecyclableMemoryStreamManager RecyclableMemoryStreamManager = new();
+        private static DeviceScreen GetDeviceScreen(ReadOnlySpan<byte> imageSpan)
         {
             using var image = new MagickImage(imageSpan);
             image.Format = image.Format;
             image.Quality = 30;
 
+            //using var stream = RecyclableMemoryStreamManager.GetStream();
+            //image.Write(stream);
+
+            var data = image.ToByteArray(JpegWriteDefines).AsMemory();
             var deviceScreen = new DeviceScreen
             {
                 Id = "-1",
-                Image = UnsafeByteOperations.UnsafeWrap(image.ToByteArray(JpegWriteDefines)),
+                Image = UnsafeByteOperations.UnsafeWrap(data),
+                //Image = ByteString.FromStream(stream)
             };
             return deviceScreen;
         }
