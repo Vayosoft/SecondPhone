@@ -60,20 +60,20 @@ namespace EmulatorRC.API.Services
             return new Ack();
         }
 
-        public override async Task UploadScreens(
-            IAsyncStreamReader<DeviceScreen> requestStream, 
-            IServerStreamWriter<Ack> responseStream,
-            ServerCallContext context)
-        {
-            Handshake(context, out var deviceId, out var cancellationSource);
+        //public override async Task UploadScreens(
+        //    IAsyncStreamReader<DeviceScreen> requestStream, 
+        //    IServerStreamWriter<Ack> responseStream,
+        //    ServerCallContext context)
+        //{
+        //    Handshake(context, out var deviceId, out var cancellationSource);
 
-            var cancellationToken = cancellationSource.Token;
-            await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
-            {
-                await _screens.WriteAsync(deviceId, request, cancellationToken);
-                await responseStream.WriteAsync(Ack, cancellationToken);
-            }
-        }
+        //    var cancellationToken = cancellationSource.Token;
+        //    await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
+        //    {
+        //        await _screens.WriteAsync(deviceId, request, cancellationToken);
+        //        await responseStream.WriteAsync(Ack, cancellationToken);
+        //    }
+        //}
 
         //public override async Task<Ack> UploadScreens(IAsyncStreamReader<DeviceScreen> requestStream, ServerCallContext context)
         //{

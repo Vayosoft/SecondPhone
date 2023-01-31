@@ -12,20 +12,20 @@ namespace EmulatorRC.API.Services
 {
     public sealed class OuterService : ClientService.ClientServiceBase
     {
-        //private readonly DeviceScreenChannel _screens;
+        private readonly DeviceScreenChannel _screens;
         private readonly EmulatorController.EmulatorControllerClient _emulatorClient;
         private readonly TouchChannel _touchEvents;
         private readonly DeviceInfoChannel _deviceInfo;
         private readonly IHostApplicationLifetime _lifeTime;
 
         public OuterService(
-            //DeviceScreenChannel screens,
+            DeviceScreenChannel screens,
             EmulatorController.EmulatorControllerClient emulatorClient,
             TouchChannel touchEvents, 
             DeviceInfoChannel deviceInfo,
             IHostApplicationLifetime lifeTime)
         {
-            //_screens = screens;
+            _screens = screens;
             _emulatorClient = emulatorClient;
             _touchEvents = touchEvents;
             _lifeTime = lifeTime;
@@ -85,19 +85,45 @@ namespace EmulatorRC.API.Services
         //    }
         //}
 
+        //public override async Task GetScreens(
+        //    IAsyncStreamReader<ScreenRequest> requestStream,
+        //    IServerStreamWriter<DeviceScreen> responseStream,
+        //    ServerCallContext context)
+        //{
+        //    Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
+
+        //    var cancellationToken = cancellationSource.Token;
+
+        //    await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
+        //    {
+        //        var response = await _emulatorClient.getScreenshotAsync(ImageFormat, CallOptions);
+        //        await responseStream.WriteAsync(GetScreen(response.Image_.Span), cancellationToken);
+        //    }
+        //}
+
         public override async Task GetScreens(
             IAsyncStreamReader<ScreenRequest> requestStream,
             IServerStreamWriter<DeviceScreen> responseStream,
             ServerCallContext context)
         {
             Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
-
             var cancellationToken = cancellationSource.Token;
+
+            _ = WriteScreensToChannel(deviceId, cancellationToken);
 
             await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
             {
-                var response = await _emulatorClient.getScreenshotAsync(ImageFormat, CallOptions);
-                await responseStream.WriteAsync(GetScreen(response.Image_.Span), cancellationToken);
+                var response = await _screens.ReadAsync(deviceId, request.Id, cancellationToken);
+                await responseStream.WriteAsync(response, cancellationToken);
+            }
+        }
+
+        private async Task WriteScreensToChannel(string deviceId, CancellationToken cancellationToken)
+        {
+            using var res = _emulatorClient.streamScreenshot(ImageFormat, CallOptions);
+            await foreach (var response in res.ResponseStream.ReadAllAsync(cancellationToken))
+            {
+                await _screens.WriteAsync(deviceId, GetScreen(response.Image_.Span), cancellationToken);
             }
         }
 
@@ -147,6 +173,7 @@ namespace EmulatorRC.API.Services
 
             var deviceScreen = new DeviceScreen
             {
+                Id = "-1",
                 Image = UnsafeByteOperations.UnsafeWrap(image.ToByteArray(JpegWriteDefines)),
             };
             return deviceScreen;

@@ -12,7 +12,6 @@ using ImageMagick.Formats;
 using NAudio.Wave;
 using ImageFormat = EmulatorRC.API.Protos.ImageFormat;
 
-
 await ExecuteClient();
 //await ExecuteClientServer();
 

@@ -57,12 +57,12 @@ namespace EmulatorRC.API.Services
                         var micHandler = _services.GetRequiredService<MicrophoneCommandHandler>();
                         await micHandler.ReadAsync(audioCommand, connection.Transport, cancellationToken);
                         break;
-                    case SpeakerCommand speakerCommand:
-                        _logger.LogInformation("TCP (Device) {ConnectionId} => {DeviceId} Speaker [Write]", connection.ConnectionId, command.DeviceId);
+                    //case SpeakerCommand speakerCommand:
+                    //    _logger.LogInformation("TCP (Device) {ConnectionId} => {DeviceId} Speaker [Write]", connection.ConnectionId, command.DeviceId);
 
-                        var speakerHandler = _services.GetRequiredService<SpeakerCommandHandler>();
-                        await speakerHandler.WriteAsync(speakerCommand, connection.Transport, cancellationToken);
-                        break;
+                    //    var speakerHandler = _services.GetRequiredService<SpeakerCommandHandler>();
+                    //    await speakerHandler.WriteAsync(speakerCommand, connection.Transport, cancellationToken);
+                    //    break;
                 }
             }
             catch (ConnectionResetException) { }
