@@ -70,7 +70,7 @@ public class Program
                 builder.Services.AddSignalR();
 
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
-                builder.Services.AddSingleton<DeviceScreenChannel>();
+                builder.Services.AddSingleton<DeviceHandler>();
                 builder.Services.AddSingleton<TouchChannel>();
 				builder.Services.AddSingleton<DeviceInfoChannel>();
 

@@ -2,31 +2,28 @@
 using EmulatorRC.API.Extensions;
 using EmulatorRC.API.Protos;
 using Grpc.Core;
-using ImageMagick.Formats;
-using ImageMagick;
 using System.Runtime.CompilerServices;
-using Google.Protobuf;
-using Microsoft.IO;
+using EmulatorRC.API.Services.Handlers;
 
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
 namespace EmulatorRC.API.Services
 {
     public sealed class OuterService : ClientService.ClientServiceBase
     {
-        private readonly DeviceScreenChannel _screens;
+        private readonly DeviceHandler _deviceHandler;
         private readonly EmulatorController.EmulatorControllerClient _emulatorClient;
         private readonly TouchChannel _touchEvents;
         private readonly DeviceInfoChannel _deviceInfo;
         private readonly IHostApplicationLifetime _lifeTime;
 
         public OuterService(
-            DeviceScreenChannel screens,
+            DeviceHandler deviceHandler,
             EmulatorController.EmulatorControllerClient emulatorClient,
             TouchChannel touchEvents, 
             DeviceInfoChannel deviceInfo,
             IHostApplicationLifetime lifeTime)
         {
-            _screens = screens;
+            _deviceHandler = deviceHandler;
             _emulatorClient = emulatorClient;
             _touchEvents = touchEvents;
             _lifeTime = lifeTime;
@@ -69,39 +66,6 @@ namespace EmulatorRC.API.Services
         }
 
         //[Authorize]
-        //public override async Task GetScreens(
-        //    IAsyncStreamReader<ScreenRequest> requestStream,
-        //    IServerStreamWriter<DeviceScreen> responseStream,
-        //    ServerCallContext context)
-        //{
-        //    Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
-
-        //    //if (!_channel.Subscribe(clientId, deviceId))
-        //    //    throw new RpcException(new Status(StatusCode.Internal, "Subscription failed."));
-        //    var cancellationToken = cancellationSource.Token;
-        //    await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
-        //    {
-        //        var response = await _screens.ReadAsync(deviceId, request.Id, cancellationToken);
-        //        await responseStream.WriteAsync(response, cancellationToken);
-        //    }
-        //}
-
-        //public override async Task GetScreens(
-        //    IAsyncStreamReader<ScreenRequest> requestStream,
-        //    IServerStreamWriter<DeviceScreen> responseStream,
-        //    ServerCallContext context)
-        //{
-        //    Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
-
-        //    var cancellationToken = cancellationSource.Token;
-
-        //    await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
-        //    {
-        //        var response = await _emulatorClient.getScreenshotAsync(ImageFormat, CallOptions);
-        //        await responseStream.WriteAsync(GetScreen(response.Image_.Span), cancellationToken);
-        //    }
-        //}
-
         public override async Task GetScreens(
             IAsyncStreamReader<ScreenRequest> requestStream,
             IServerStreamWriter<DeviceScreen> responseStream,
@@ -110,81 +74,26 @@ namespace EmulatorRC.API.Services
             Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
             var cancellationToken = cancellationSource.Token;
 
-            _ = WriteScreensToChannel(deviceId, cancellationToken);
+            _ = _deviceHandler.WriteScreensToChannelAsync(deviceId, _emulatorClient, cancellationToken);
 
             await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
             {
-                var response = await _screens.ReadAsync(deviceId, request.Id, cancellationToken);
+                var response = await _deviceHandler.ReadScreenFromChannelAsync(deviceId, cancellationToken);
                 await responseStream.WriteAsync(response, cancellationToken);
             }
         }
 
-        private async Task WriteScreensToChannel(string deviceId, CancellationToken cancellationToken)
-        {
-            using var res = _emulatorClient.streamScreenshot(ImageFormat, CallOptions);
-            await foreach (var response in res.ResponseStream.ReadAllAsync(cancellationToken))
-            {
-                var screen = GetDeviceScreen(response.Image_.Span);
-                await _screens.WriteAsync(deviceId, screen, cancellationToken);
-            }
-        }
 
         public override async Task GetAudio(Syn request, IServerStreamWriter<DeviceAudio> responseStream,
             ServerCallContext context)
         {
             Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
-
             var cancellationToken = cancellationSource.Token;
 
-            using var audioStream = _emulatorClient.streamAudio(AudioFormat, CallOptions);
-            await foreach (var sample in audioStream.ResponseStream.ReadAllAsync(cancellationToken))
+            await foreach (var deviceAudio in _deviceHandler.ReadAllAudioAsync(_emulatorClient, cancellationToken))
             {
-                var deviceAudio = new DeviceAudio
-                {
-                    Audio = sample.Audio,
-                    Timestamp = sample.Timestamp
-                };
                 await responseStream.WriteAsync(deviceAudio, cancellationToken);
             }
         }
-
-        private static readonly CallOptions CallOptions = new();
-        private static readonly ImageFormat ImageFormat = new()
-        {
-            Format = ImageFormat.Types.ImgFormat.Png,
-            Width = 480,
-            Height = 720
-        };
-        private static readonly AudioFormat AudioFormat = new()
-        {
-            Channels = AudioFormat.Types.Channels.Stereo,
-            Format = AudioFormat.Types.SampleFormat.AudFmtS16,
-            Mode = AudioFormat.Types.DeliveryMode.ModeRealTime,
-            SamplingRate = 8000
-        };
-        private static readonly JpegWriteDefines JpegWriteDefines = new()
-        {
-            OptimizeCoding = true
-        };
-        private static readonly RecyclableMemoryStreamManager RecyclableMemoryStreamManager = new();
-        private static DeviceScreen GetDeviceScreen(ReadOnlySpan<byte> imageSpan)
-        {
-            using var image = new MagickImage(imageSpan);
-            image.Format = image.Format;
-            image.Quality = 30;
-
-            //using var stream = RecyclableMemoryStreamManager.GetStream();
-            //image.Write(stream);
-
-            var data = image.ToByteArray(JpegWriteDefines).AsMemory();
-            var deviceScreen = new DeviceScreen
-            {
-                Id = "-1",
-                Image = UnsafeByteOperations.UnsafeWrap(data),
-                //Image = ByteString.FromStream(stream)
-            };
-            return deviceScreen;
-        }
-
     }
 }

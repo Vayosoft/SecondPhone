@@ -8,19 +8,16 @@ namespace EmulatorRC.API.Services
 {
     public sealed class InnerService : DeviceService.DeviceServiceBase
     {
-        private readonly DeviceScreenChannel _screens;
         private readonly TouchChannel _touchEvents;
         private readonly DeviceInfoChannel _deviceInfo;
         private readonly IHostApplicationLifetime _lifeTime;
         private static readonly Ack Ack = new();
 
         public InnerService(
-            DeviceScreenChannel screens,
             TouchChannel touchEvents,
             DeviceInfoChannel deviceInfo,
             IHostApplicationLifetime lifeTime)
         {
-            _screens = screens;
             _touchEvents = touchEvents;
             _deviceInfo = deviceInfo;
             _lifeTime = lifeTime;
@@ -59,33 +56,5 @@ namespace EmulatorRC.API.Services
 
             return new Ack();
         }
-
-        //public override async Task UploadScreens(
-        //    IAsyncStreamReader<DeviceScreen> requestStream, 
-        //    IServerStreamWriter<Ack> responseStream,
-        //    ServerCallContext context)
-        //{
-        //    Handshake(context, out var deviceId, out var cancellationSource);
-
-        //    var cancellationToken = cancellationSource.Token;
-        //    await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
-        //    {
-        //        await _screens.WriteAsync(deviceId, request, cancellationToken);
-        //        await responseStream.WriteAsync(Ack, cancellationToken);
-        //    }
-        //}
-
-        //public override async Task<Ack> UploadScreens(IAsyncStreamReader<DeviceScreen> requestStream, ServerCallContext context)
-        //{
-        //    Handshake(context, out var deviceId, out var cancellationSource);
-
-        //    var cancellationToken = cancellationSource.Token;
-        //    await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
-        //    {
-        //        await _screens.WriteAsync(deviceId, request, cancellationToken);
-        //    }
-
-        //    return new Ack();
-        //}
     }
 }
