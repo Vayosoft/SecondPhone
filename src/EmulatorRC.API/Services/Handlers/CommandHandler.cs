@@ -240,20 +240,4 @@ namespace EmulatorRC.API.Services.Handlers
             await ReadAsync(Channels, command.DeviceId, pipe, cancellationToken: cancellationToken);
         }
     }
-
-    public sealed class SpeakerCommandHandler : CommandHandler
-    {
-        private static readonly ConcurrentDictionary<string, IDuplexPipe> Channels = new();
-
-        public SpeakerCommandHandler(ILogger<CommandHandler> logger)
-            : base(logger) { }
-
-        public Task WriteAsync(SpeakerCommand command, IDuplexPipe pipe, CancellationToken cancellationToken)
-        {
-            return WriteAsync(Channels, command.DeviceId, pipe, cancellationToken: cancellationToken);
-        }
-
-        public Task ReadAsync(SpeakerCommand command, IDuplexPipe pipe, CancellationToken cancellationToken) =>
-            ReadAsync(Channels, command.DeviceId, pipe, cancellationToken: cancellationToken);
-    }
 }

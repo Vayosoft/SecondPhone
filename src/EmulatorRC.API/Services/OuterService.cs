@@ -10,14 +10,14 @@ namespace EmulatorRC.API.Services
 {
     public sealed class OuterService : ClientService.ClientServiceBase
     {
-        private readonly DeviceHandler _deviceHandler;
+        private readonly DeviceRpcHandler _deviceHandler;
         private readonly EmulatorController.EmulatorControllerClient _emulatorClient;
         private readonly TouchChannel _touchEvents;
         private readonly DeviceInfoChannel _deviceInfo;
         private readonly IHostApplicationLifetime _lifeTime;
 
         public OuterService(
-            DeviceHandler deviceHandler,
+            DeviceRpcHandler deviceHandler,
             EmulatorController.EmulatorControllerClient emulatorClient,
             TouchChannel touchEvents, 
             DeviceInfoChannel deviceInfo,

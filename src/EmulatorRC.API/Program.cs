@@ -70,13 +70,12 @@ public class Program
                 builder.Services.AddSignalR();
 
                 builder.Services.AddSingleton<IEmulatorDataRepository, EmulatorDataRepository>();
-                builder.Services.AddSingleton<DeviceHandler>();
+                builder.Services.AddSingleton<DeviceRpcHandler>();
                 builder.Services.AddSingleton<TouchChannel>();
 				builder.Services.AddSingleton<DeviceInfoChannel>();
 
                 builder.Services.AddTransient<CameraCommandHandler>();
                 builder.Services.AddTransient<MicrophoneCommandHandler>();
-                builder.Services.AddTransient<SpeakerCommandHandler>();
 
                 builder.Services.AddSingleton<TcpStreamChannel>();
                 builder.Services.AddSingleton<IMemoryCacheProvider, MemoryCacheProvider>();
