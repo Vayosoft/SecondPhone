@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.IO.Pipelines;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Text.RegularExpressions;
 using EmulatorRC.API.Model.Commands;
@@ -44,11 +45,17 @@ namespace EmulatorRC.API.Services
 
                 switch (command)
                 {
-                    case VideoCommand videoCommand:
-                        _logger.LogInformation("TCP (Device) {ConnectionId} => {DeviceId} Camera [Read]", connection.ConnectionId, command.DeviceId);
+                    case CameraFrontCommand frontCamCommand:
+                        _logger.LogInformation("TCP (Device) {ConnectionId} => {DeviceId} Front Camera [Read]", connection.ConnectionId, command.DeviceId);
 
-                        var cameraHandler = _services.GetRequiredService<CameraCommandHandler>();
-                        await cameraHandler.ReadAsync(videoCommand, connection.Transport, cancellationToken);
+                        var frontCameraHandler = _services.GetRequiredService<CameraFrontCommandHandler>();
+                        await frontCameraHandler.ReadAsync(frontCamCommand, connection.Transport, cancellationToken);
+                        break;
+                    case CameraRearCommand rearCamCommand:
+                        _logger.LogInformation("TCP (Device) {ConnectionId} => {DeviceId} Rear Camera [Read]", connection.ConnectionId, command.DeviceId);
+
+                        var rearCameraHandler = _services.GetRequiredService<CameraRearCommandHandler>();
+                        await rearCameraHandler.ReadAsync(rearCamCommand, connection.Transport, cancellationToken);
                         break;
                     case AudioCommand audioCommand:
                         _logger.LogInformation("TCP (Device) {ConnectionId} => {DeviceId} Mic [Read]", connection.ConnectionId, command.DeviceId);
@@ -92,7 +99,8 @@ namespace EmulatorRC.API.Services
         }
 
         //DroidCam
-        private static ReadOnlySpan<byte> CommandVideo => "CMD /v2/video.4?"u8; //cam
+        private static ReadOnlySpan<byte> CommandVideoFront => "CMD /v2/video.0?"u8; // front cam
+        private static ReadOnlySpan<byte> CommandVideoRear => "CMD /v2/video.1?"u8; // rear cam
         private static ReadOnlySpan<byte> CommandAudio => "CMD /v2/audio"u8; //mic
 
         [GeneratedRegex("id=(\\w+)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline)]
@@ -105,22 +113,13 @@ namespace EmulatorRC.API.Services
         {
             var reader = new SequenceReader<byte>(buffer);
 
-            if (reader.IsNext(CommandVideo, true))
+            if (reader.IsNext(CommandVideoFront, true))
             {
-                var str = Encoding.UTF8.GetString(reader.UnreadSequence);
-                var m = VideoHandshakeRegex().Match(str);
-
-                if (!m.Success || m.Groups.Count < 4)
-                    throw new ApplicationException($"Handshake failed (Camera) => {str}");
-
-                if (!int.TryParse(m.Groups[1].Value, out var width) || !int.TryParse(m.Groups[2].Value, out var height))
-                    throw new ApplicationException($"Handshake failed (Camera) => {str}");
-
-                command = new VideoCommand(m.Groups[3].Value)
-                {
-                    Width = width,
-                    Height = height,
-                };
+                command = GetCameraCommand<CameraFrontCommand>(Encoding.UTF8.GetString(reader.UnreadSequence));
+            }
+            else if (reader.IsNext(CommandVideoRear, true))
+            {
+                command = GetCameraCommand<CameraRearCommand>(Encoding.UTF8.GetString(reader.UnreadSequence));
             }
             else if (reader.IsNext(CommandAudio, true))
             {
@@ -142,5 +141,24 @@ namespace EmulatorRC.API.Services
 
             return reader.Position;
         }
+
+        private static T GetCameraCommand<T>(string str) where T : CameraCommand, new()
+        {
+            var m = VideoHandshakeRegex().Match(str);
+
+            if (!m.Success || m.Groups.Count < 4)
+                throw new ApplicationException($"Handshake failed ({typeof(T).Name}) => {str}");
+
+            if (!int.TryParse(m.Groups[1].Value, out var width) || !int.TryParse(m.Groups[2].Value, out var height))
+                throw new ApplicationException($"Handshake failed ({typeof(T).Name}) => {str}");
+
+            return new T
+            {
+                Width = width,
+                Height = height,
+                DeviceId = m.Groups[3].Value
+             };
+        }
+
     }
 }

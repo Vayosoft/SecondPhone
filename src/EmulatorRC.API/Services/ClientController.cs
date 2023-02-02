@@ -48,11 +48,17 @@ namespace EmulatorRC.API.Services
 
                 switch (command)
                 {
-                    case VideoCommand videoCommand:
-                        _logger.LogInformation("TCP (Client) {ConnectionId} => {DeviceId} Camera [Write]", connection.ConnectionId, command.DeviceId);
+                    case CameraFrontCommand frontCamCommand:
+                        _logger.LogInformation("TCP (Client) {ConnectionId} => {DeviceId} Front Camera [Write]", connection.ConnectionId, command.DeviceId);
 
-                        var cameraHandler = _services.GetRequiredService<CameraCommandHandler>();
-                        await cameraHandler.WriteAsync(videoCommand, connection.Transport, cancellationToken);
+                        var frontCameraHandler = _services.GetRequiredService<CameraFrontCommandHandler>();
+                        await frontCameraHandler.WriteAsync(frontCamCommand, connection.Transport, cancellationToken);
+                        break;
+                    case CameraRearCommand rearCamCommand:
+                        _logger.LogInformation("TCP (Client) {ConnectionId} => {DeviceId} Rear Camera [Write]", connection.ConnectionId, command.DeviceId);
+
+                        var rearCameraHandler = _services.GetRequiredService<CameraRearCommandHandler>();
+                        await rearCameraHandler.WriteAsync(rearCamCommand, connection.Transport, cancellationToken);
                         break;
                     case AudioCommand audioCommand:
                         _logger.LogInformation("TCP (Client) {ConnectionId} => {DeviceId} Mic [Write]", connection.ConnectionId, command.DeviceId);
@@ -153,7 +159,8 @@ namespace EmulatorRC.API.Services
 
                 command = session.StreamType switch
                 {
-                    "cam" => new VideoCommand(session.DeviceId),
+                    "cam" or "cam.front" => new CameraFrontCommand { DeviceId = session.DeviceId },
+                    "cam.rear" => new CameraRearCommand { DeviceId = session.DeviceId },
                     "mic" => new AudioCommand(session.DeviceId),
                     _ => throw new ArgumentOutOfRangeException(session.StreamType)
                 };

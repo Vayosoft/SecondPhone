@@ -40,9 +40,11 @@ namespace EmulatorRC.IntegrationTests
             using var cts = new CancellationTokenSource(5000);
             var cancellationToken = cts.Token;
 
+            // inner
             var emulator = new Emulator(sourceFileLength);
             await emulator.ConnectAsync(cancellationToken);
 
+            // outer
             var client = new Client();
             await client.ConnectAsync(cancellationToken);
 
@@ -68,11 +70,30 @@ namespace EmulatorRC.IntegrationTests
             using var cts = new CancellationTokenSource(10000);
             var cancellationToken = cts.Token;
 
-            var client = new Client();
+            var client = new Client("cam");
             await client.ConnectAsync(cancellationToken);
             await client.StartWithImagesAsync(cancellationToken);
 
             client.Dispose();
+
+            _logger.WriteLine("Done!");
+        }
+
+        [Fact]
+        public async Task TwoCamClients()
+        {
+            using var cts = new CancellationTokenSource(30000);
+            var cancellationToken = cts.Token;
+
+            using var frontCamClient = new Client("cam.front");
+            await frontCamClient.ConnectAsync(cancellationToken);
+            var fTask = frontCamClient.StartWithImagesAsync(cancellationToken);
+
+            using var rearCamClient = new Client("cam.rear");
+            await rearCamClient.ConnectAsync(cancellationToken);
+            var rTask = rearCamClient.StartWithImagesAsync(cancellationToken, 60);
+
+            await Task.WhenAll(fTask, rTask);
 
             _logger.WriteLine("Done!");
         }
@@ -143,10 +164,12 @@ namespace EmulatorRC.IntegrationTests
         public class Client : IDisposable
         {
             private readonly Socket _socket;
+            private readonly string _streamType;
 
-            public Client()
+            public Client(string streamType = "mic")
             {
                 _socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                _streamType = streamType;
             }
 
             public async Task ConnectAsync(CancellationToken cancellationToken)
@@ -160,7 +183,7 @@ namespace EmulatorRC.IntegrationTests
                 return SendAsync(_socket, cancellationToken);
             }
 
-            public async Task StartWithImagesAsync(CancellationToken cancellationToken)
+            public async Task StartWithImagesAsync(CancellationToken cancellationToken, int delayMs = 30)
             {
                 try
                 {
@@ -174,20 +197,20 @@ namespace EmulatorRC.IntegrationTests
                             var length = data.Length.ToByteArray();
                             await _socket.SendAsync(length, cancellationToken);
                             await _socket.SendAsync(data, cancellationToken);
-                            await Task.Delay(30, cancellationToken);
+                            await Task.Delay(delayMs, cancellationToken);
                         }
                     }
                 }
                 catch (OperationCanceledException) { }
             }
 
-            private static async Task Handshake(Socket socket, CancellationToken token)
+            private async Task Handshake(Socket socket, CancellationToken token)
             {
                 var handshake = JsonSerializer.SerializeToUtf8Bytes(
                     new DeviceSession
                     {
                         DeviceId = "default",
-                        StreamType = "mic",
+                        StreamType = _streamType,
                     });
 
                 var header = handshake.Length.ToByteArray();
