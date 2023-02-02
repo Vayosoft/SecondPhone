@@ -100,10 +100,15 @@ public class Program
                     options.MaxReceiveMessageSize = 5 * 1024 * 1024; // 2 MB
                 });
 
-                builder.Services.AddGrpcClient<EmulatorController.EmulatorControllerClient>(o =>
+                var deviceRpc = configuration.GetSection("DeviceRpc").Get<Dictionary<string, string>>();
+                foreach (var (key, value) in deviceRpc)
                 {
-                    o.Address = new Uri("http://192.168.10.6:5556");
-                });
+                    builder.Services.AddGrpcClient<EmulatorController.EmulatorControllerClient>(key, o =>
+                    {
+                        o.Address = new Uri(value);
+                    });
+                }
+
                 //*******************************************************
 
                 //Authentication

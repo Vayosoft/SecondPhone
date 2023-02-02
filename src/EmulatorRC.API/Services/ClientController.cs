@@ -155,7 +155,6 @@ namespace EmulatorRC.API.Services
                 {
                     "cam" => new VideoCommand(session.DeviceId),
                     "mic" => new AudioCommand(session.DeviceId),
-                    "sound" => new SpeakerCommand(session.DeviceId),
                     _ => throw new ArgumentOutOfRangeException(session.StreamType)
                 };
                 status = HandshakeStatus.Successful;

@@ -91,8 +91,6 @@ namespace EmulatorRC.API.Services
             return command;
         }
 
-        private static ReadOnlySpan<byte> CommandSpeaker => "CMD /v1/sound?"u8;
-
         //DroidCam
         private static ReadOnlySpan<byte> CommandVideo => "CMD /v2/video.4?"u8; //cam
         private static ReadOnlySpan<byte> CommandAudio => "CMD /v2/audio"u8; //mic
@@ -123,16 +121,6 @@ namespace EmulatorRC.API.Services
                     Width = width,
                     Height = height,
                 };
-            }
-            else if (reader.IsNext(CommandSpeaker, true))
-            {
-                var str = Encoding.UTF8.GetString(reader.UnreadSequence);
-                var m = HandshakeRegex().Match(str);
-
-                if (!m.Success || m.Groups.Count < 2)
-                    throw new ApplicationException($"Handshake failed (Speaker) => {str}");
-
-                command = new SpeakerCommand(m.Groups[1].Value);
             }
             else if (reader.IsNext(CommandAudio, true))
             {

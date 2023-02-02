@@ -88,8 +88,8 @@ namespace EmulatorRC.API.Services.Handlers
                         var result = await pipe.Input.ReadAsync(cancellationToken);
                         var buffer = result.Buffer;
 
-                        var consumed = buffer.End;
                         await Task.Delay(1000, cancellationToken);
+                        var consumed = buffer.End;
 
                         if (result.IsCompleted)
                         {
@@ -143,6 +143,7 @@ namespace EmulatorRC.API.Services.Handlers
                                 break;
                             default:
                                 await Task.Delay(1000, cancellationToken);
+                                consumed = buffer.End;
                                 break;
                         }
 
@@ -182,10 +183,9 @@ namespace EmulatorRC.API.Services.Handlers
             }
             else
             {
+                reader.AdvanceToEnd();
                 cmd = Commands.Undefined;
             }
-
-            reader.AdvanceToEnd();
 
             return reader.Position;
         }

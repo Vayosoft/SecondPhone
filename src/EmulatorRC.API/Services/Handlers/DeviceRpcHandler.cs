@@ -5,11 +5,14 @@ using ImageMagick.Formats;
 using ImageMagick;
 using Grpc.Core;
 using EmulatorRC.API.Channels;
+using Grpc.Net.ClientFactory;
 
 namespace EmulatorRC.API.Services.Handlers
 {
     public sealed class DeviceRpcHandler : ChannelBase<DeviceScreen>
     {
+        private readonly GrpcClientFactory _grpcClientFactory;
+
         private static readonly CallOptions CallOptions = new();
         private static readonly ImageFormat ImageFormat = new()
         {
@@ -18,9 +21,10 @@ namespace EmulatorRC.API.Services.Handlers
             Height = 720
         };
 
-        public async IAsyncEnumerable<DeviceAudio> ReadAllAudioAsync(EmulatorController.EmulatorControllerClient emulatorClient, 
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<DeviceAudio> ReadAllAudioAsync(string deviceId, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            var emulatorClient = _grpcClientFactory.CreateClient<EmulatorController.EmulatorControllerClient>(deviceId);
+
             using var audioStream = emulatorClient.streamAudio(AudioFormat, CallOptions);
             await foreach (var sample in audioStream.ResponseStream.ReadAllAsync(cancellationToken))
             {
@@ -46,8 +50,10 @@ namespace EmulatorRC.API.Services.Handlers
             return GetOrCreateChannel(deviceId).Reader.ReadAsync(cancellationToken);
         }
 
-        public async Task WriteScreensToChannelAsync(string deviceId, EmulatorController.EmulatorControllerClient emulatorClient, CancellationToken cancellationToken = default)
+        public async Task WriteScreensToChannelAsync(string deviceId, CancellationToken cancellationToken = default)
         {
+            var emulatorClient = _grpcClientFactory.CreateClient<EmulatorController.EmulatorControllerClient>(deviceId);
+
             using var res = emulatorClient.streamScreenshot(ImageFormat, CallOptions);
             await foreach (var response in res.ResponseStream.ReadAllAsync(cancellationToken))
             {
@@ -66,6 +72,11 @@ namespace EmulatorRC.API.Services.Handlers
         {
             OptimizeCoding = true
         };
+
+        public DeviceRpcHandler(GrpcClientFactory grpcClientFactory)
+        {
+            _grpcClientFactory = grpcClientFactory;
+        }
 
         //private static readonly RecyclableMemoryStreamManager RecyclableMemoryStreamManager = new();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

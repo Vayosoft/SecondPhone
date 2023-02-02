@@ -11,20 +11,17 @@ namespace EmulatorRC.API.Services
     public sealed class OuterService : ClientService.ClientServiceBase
     {
         private readonly DeviceRpcHandler _deviceHandler;
-        private readonly EmulatorController.EmulatorControllerClient _emulatorClient;
         private readonly TouchChannel _touchEvents;
         private readonly DeviceInfoChannel _deviceInfo;
         private readonly IHostApplicationLifetime _lifeTime;
 
         public OuterService(
             DeviceRpcHandler deviceHandler,
-            EmulatorController.EmulatorControllerClient emulatorClient,
             TouchChannel touchEvents, 
             DeviceInfoChannel deviceInfo,
             IHostApplicationLifetime lifeTime)
         {
             _deviceHandler = deviceHandler;
-            _emulatorClient = emulatorClient;
             _touchEvents = touchEvents;
             _lifeTime = lifeTime;
             _deviceInfo = deviceInfo;
@@ -74,7 +71,7 @@ namespace EmulatorRC.API.Services
             Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
             var cancellationToken = cancellationSource.Token;
 
-            _ = _deviceHandler.WriteScreensToChannelAsync(deviceId, _emulatorClient, cancellationToken);
+            _ = _deviceHandler.WriteScreensToChannelAsync(deviceId, cancellationToken);
 
             await foreach (var request in requestStream.ReadAllAsync(cancellationToken))
             {
@@ -90,7 +87,7 @@ namespace EmulatorRC.API.Services
             Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
             var cancellationToken = cancellationSource.Token;
 
-            await foreach (var deviceAudio in _deviceHandler.ReadAllAudioAsync(_emulatorClient, cancellationToken))
+            await foreach (var deviceAudio in _deviceHandler.ReadAllAudioAsync(deviceId, cancellationToken))
             {
                 await responseStream.WriteAsync(deviceAudio, cancellationToken);
             }
