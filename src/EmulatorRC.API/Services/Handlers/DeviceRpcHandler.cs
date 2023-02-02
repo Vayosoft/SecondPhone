@@ -84,7 +84,7 @@ namespace EmulatorRC.API.Services.Handlers
         {
             using var image = new MagickImage(imageSpan);
             image.Format = image.Format;
-            image.Quality = 50;
+            image.Quality = 60;
 
             //using var stream = RecyclableMemoryStreamManager.GetStream();
             //image.Write(stream);

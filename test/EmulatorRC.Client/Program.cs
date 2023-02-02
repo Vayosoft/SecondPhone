@@ -62,7 +62,11 @@ async Task ExecuteClient()
             {
                 Format = ImageFormat.Types.ImgFormat.Png, 
                 Width = 720,
-                Height = 1280
+                Height = 1280,
+                Rotation = new Rotation
+                {
+                    Rotation_ = Rotation.Types.SkinRotation.Portrait,
+                }
             };
             using var res = client.streamScreenshot(imageFormat, new CallOptions { });
             var counter = 0;
@@ -74,7 +78,7 @@ async Task ExecuteClient()
                 using var image = new MagickImage(scr.Image_.ToByteArray());
                 image.Format = image.Format; // Get or Set the format of the image.
                 //image.Resize(40, 40); // fit the image into the requested width and height. 
-                image.Quality = 30; // This is the Compression level.
+                image.Quality = 60; // This is the Compression level.
 
                 var data = image.ToByteArray(new JpegWriteDefines { });
 
