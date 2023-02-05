@@ -111,17 +111,17 @@ namespace EmulatorRC.API.Services.Handlers
         }
     }
 
-    public sealed class CameraCommandHandler : CommandHandler
+    public abstract class CameraCommandHandler : CommandHandler
     {
-        private static readonly ConcurrentDictionary<string, IDuplexPipe> Channels = new();
-
-        public CameraCommandHandler(ILogger<CommandHandler> logger)
+        protected CameraCommandHandler(ILogger<CommandHandler> logger)
             : base(logger) { }
 
-        public Task WriteAsync(VideoCommand command, IDuplexPipe pipe, CancellationToken cancellationToken) =>
+        protected abstract ConcurrentDictionary<string, IDuplexPipe> Channels { get; }
+
+        public Task WriteAsync(CameraCommand command, IDuplexPipe pipe, CancellationToken cancellationToken) =>
             WriteAsync(Channels, command.DeviceId, pipe, cancellationToken: cancellationToken);
 
-        public async Task ReadAsync(VideoCommand command, IDuplexPipe pipe, CancellationToken cancellationToken)
+        public async Task ReadAsync(CameraCommand command, IDuplexPipe pipe, CancellationToken cancellationToken)
         {
             _ = await pipe.Output.WriteAsync(CreateMockHeader(command.Width, command.Height), cancellationToken);
 
@@ -222,6 +222,25 @@ namespace EmulatorRC.API.Services.Handlers
             GetBattery
         }
     }
+
+    public sealed class CameraFrontCommandHandler : CameraCommandHandler
+    {
+        private static readonly ConcurrentDictionary<string, IDuplexPipe> Pipes = new();
+
+        public CameraFrontCommandHandler(ILogger<CommandHandler> logger) : base(logger) {}
+
+        protected override ConcurrentDictionary<string, IDuplexPipe> Channels => Pipes;
+    }
+
+    public sealed class CameraRearCommandHandler : CameraCommandHandler
+    {
+        private static readonly ConcurrentDictionary<string, IDuplexPipe> Pipes = new();
+
+        public CameraRearCommandHandler(ILogger<CommandHandler> logger) : base(logger) { }
+
+        protected override ConcurrentDictionary<string, IDuplexPipe> Channels => Pipes;
+    }
+
 
     public sealed class MicrophoneCommandHandler : CommandHandler
     {

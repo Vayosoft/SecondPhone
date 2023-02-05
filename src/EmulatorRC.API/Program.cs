@@ -74,7 +74,8 @@ public class Program
                 builder.Services.AddSingleton<TouchChannel>();
 				builder.Services.AddSingleton<DeviceInfoChannel>();
 
-                builder.Services.AddTransient<CameraCommandHandler>();
+                builder.Services.AddTransient<CameraFrontCommandHandler>();
+                builder.Services.AddTransient<CameraRearCommandHandler>();
                 builder.Services.AddTransient<MicrophoneCommandHandler>();
 
                 builder.Services.AddSingleton<TcpStreamChannel>();
