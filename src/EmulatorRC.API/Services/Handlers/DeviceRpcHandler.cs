@@ -61,6 +61,7 @@ namespace EmulatorRC.API.Services.Handlers
 
                 var deviceScreen = new DeviceScreen
                 {
+                    Timestamp = response.TimestampUs,
                     Image = UnsafeByteOperations.UnsafeWrap(PrepareImage(response.Image_.Span)),
                     //Image = ByteString.FromStream(stream)
                 };

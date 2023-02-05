@@ -9,9 +9,9 @@ service DeviceService {
 }
 
 message DeviceScreen {
-	string id = 1;
+	uint64 timestamp = 1;
 	bytes image = 2;
-	int32 orientation = 3;
+	
 }
 
 message DeviceAudio {
@@ -25,6 +25,7 @@ message DeviceInfo {
   int32 microphone = 3;
   int32 camera = 4;
   int32 sound = 5;
+  int32 orientation = 6;
 }
 
 message TouchEvents {
