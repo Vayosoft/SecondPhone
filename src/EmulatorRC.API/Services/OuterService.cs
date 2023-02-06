@@ -4,6 +4,7 @@ using EmulatorRC.API.Protos;
 using Grpc.Core;
 using System.Runtime.CompilerServices;
 using EmulatorRC.API.Services.Handlers;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 //https://learn.microsoft.com/ru-ru/aspnet/core/grpc/json-transcoding?view=aspnetcore-7.0
 namespace EmulatorRC.API.Services
@@ -56,6 +57,13 @@ namespace EmulatorRC.API.Services
             Handshake(context, out var deviceId, out var clientId, out var cancellationSource);
 
             var cancellationToken = cancellationSource.Token;
+
+            var lastDeviceInfo = _deviceInfo.ReadLastAsync(deviceId);
+            if (lastDeviceInfo != null)
+            {
+                await responseStream.WriteAsync(lastDeviceInfo, cancellationToken);
+            }
+
             await foreach (var data in _deviceInfo.ReadAllAsync(deviceId, cancellationToken))
             {
                 await responseStream.WriteAsync(data, cancellationToken);

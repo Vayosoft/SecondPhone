@@ -99,7 +99,7 @@ namespace EmulatorRC.API.Services
         }
 
         //DroidCam
-        private static ReadOnlySpan<byte> CommandVideoFront => "CMD /v2/video.0?"u8; // front cam
+        private static ReadOnlySpan<byte> CommandVideoFront => "CMD /v2/video.4?"u8; // front cam
         private static ReadOnlySpan<byte> CommandVideoRear => "CMD /v2/video.1?"u8; // rear cam
         private static ReadOnlySpan<byte> CommandAudio => "CMD /v2/audio"u8; //mic
 
