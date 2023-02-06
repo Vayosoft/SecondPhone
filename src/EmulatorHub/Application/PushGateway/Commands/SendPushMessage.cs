@@ -31,13 +31,13 @@ namespace EmulatorHub.Application.PushGateway.Commands
 
     internal sealed class HandleSendPushMessage : ICommandHandler<SendPushMessage, Result<Unit>>
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IUoW _unitOfWork;
         private readonly IValidator<SendPushMessage> _validator;
         private readonly HandlerChannel<PushMessage, MessageChannelHandler> _channel;
 
 
         public HandleSendPushMessage(
-            IUnitOfWork unitOfWork,
+            IUoW unitOfWork,
             IValidator<SendPushMessage> validator,
             HandlerChannel<PushMessage, MessageChannelHandler> channel
             )

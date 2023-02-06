@@ -27,9 +27,6 @@ namespace EmulatorHub.Infrastructure
     {
         public static IServiceCollection AddHubApplication(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddHttpContextAccessor()
-                .AddScoped<IUserContext, UserContext>();
-
             services.AddCoreServices();
             services.AddValidation();
 
@@ -74,8 +71,8 @@ namespace EmulatorHub.Infrastructure
         {
             services.AddMySqlContext<HubDbContext>(configuration);
             services
-                .AddScoped<IUnitOfWork>(s => s.GetRequiredService<HubDbContext>())
-                .AddScoped<IDataProvider>(s => s.GetRequiredService<HubDbContext>())
+                .AddScoped<IUoW>(s => s.GetRequiredService<HubDbContext>())
+                .AddScoped<IDAO>(s => s.GetRequiredService<HubDbContext>())
                 .AddScoped<ILinqProvider>(s => s.GetRequiredService<HubDbContext>());
 
             services.AddMySqlContext<IdentityContext>(configuration);

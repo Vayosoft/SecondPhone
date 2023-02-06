@@ -37,7 +37,7 @@ namespace EmulatorHub.API.Testing
             return TypedResults.Ok(TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(60)));
         }
 
-        public static async Task<Ok<List<UserEntity>>> GetAllUsers(IDataProvider db)
+        public static async Task<Ok<List<UserEntity>>> GetAllUsers(IDAO db)
         {
             var userSpec = new GetAllUsersSpec();
             //var userSpec = new GetAllUsersSpec("ff79465d-0f75-4995-a121-574f292e9406", "su");
@@ -46,7 +46,7 @@ namespace EmulatorHub.API.Testing
             return TypedResults.Ok(user);
         }
 
-        public static async Task<Results<Ok<Emulator>, NotFound>> GetItem(long id, IUnitOfWork db)
+        public static async Task<Results<Ok<Emulator>, NotFound>> GetItem(long id, IUoW db)
         {
             return await db.FindAsync<Emulator>(1) is Emulator item
                 ? TypedResults.Ok(item)
@@ -54,7 +54,7 @@ namespace EmulatorHub.API.Testing
         }
 
 
-        public static async Task<Results<Ok<Emulator>, NotFound>> RegisterClient(string clientId, string deviceId, IUnitOfWork db, [FromServices] ILogger<Emulator> logger)
+        public static async Task<Results<Ok<Emulator>, NotFound>> RegisterClient(string clientId, string deviceId, IUoW db, [FromServices] ILogger<Emulator> logger)
         {
             var user = await db.FindAsync<UserEntity>(1);
             if (user is { } item)

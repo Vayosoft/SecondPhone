@@ -1,5 +1,4 @@
-﻿using EmulatorHub.Application.Commons.Services;
-using EmulatorHub.Application.Commons.Services.Commons;
+﻿using EmulatorHub.IntegrationTests.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 

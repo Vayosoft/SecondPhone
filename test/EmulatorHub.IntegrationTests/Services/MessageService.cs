@@ -1,9 +1,7 @@
-﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 
-namespace EmulatorHub.Application.Commons.Services
+namespace EmulatorHub.IntegrationTests.Services
 {
     public class MessageService
     {
@@ -33,4 +31,23 @@ namespace EmulatorHub.Application.Commons.Services
             return body;
         }
     }
+
+    //[MemoryDiagnoser]
+    //public class HttpBenchmarks
+    //{
+    //    private static MessageService UserService { get; }
+
+    //    static HttpBenchmarks()
+    //    {
+    //        var host = new HostBuilder()
+    //            .ConfigureServices(services =>
+    //            {
+    //                services.AddHttpClient();
+    //                services.AddTransient<MessageService>();
+    //            })
+    //            .Build();
+
+    //        UserService = host.Services.GetRequiredService<MessageService>();
+    //    }
+    //}
 }

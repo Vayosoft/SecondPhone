@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using EmulatorHub.API.Services.Monitoring;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using EmulatorHub.API;
+using Vayosoft.Identity;
 using Vayosoft.Web.Swagger;
 using Vayosoft.Web.Identity.Authentication;
 
@@ -43,6 +44,8 @@ try
         builder.Services.AddSwaggerService();
 
         builder.Services.AddHubApplication(builder.Configuration);
+        builder.Services.AddHttpContextAccessor()
+            .AddScoped<IUserContext, UserContext>();
 
         builder.Services.AddStackExchangeRedisCache(options =>
         {

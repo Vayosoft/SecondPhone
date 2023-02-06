@@ -44,7 +44,7 @@ namespace EmulatorHub.API.Controllers
         [PermissionAuthorization("DEVICE", SecurityPermissions.Edit)]
         [HttpPost("/register-device")]
         public async Task<IActionResult> RegisterEmulator([FromBody] RegisterDevice command,
-            [FromServices] IUnitOfWork store, CancellationToken cancellationToken)
+            [FromServices] IUoW store, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {

@@ -8,10 +8,10 @@ using Vayosoft.Caching;
 using Vayosoft.Commons.ValueObjects;
 using Vayosoft.Identity;
 using Vayosoft.Identity.Authentication;
-using Vayosoft.Identity.Extensions;
 using Vayosoft.Identity.Persistence;
 using Vayosoft.SmsBrokers;
 using Vayosoft.Utilities;
+using Vayosoft.Web.Extensions;
 using Vayosoft.Web.Identity.Authorization;
 using Vayosoft.Web.Model.Authentication;
 
@@ -51,7 +51,7 @@ namespace EmulatorHub.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            var key = $"one-time-password:{IpAddress()}";
+            var key = $"one-time-password:{HttpContext.GetIpAddress()}";
             var timeout = TimeSpans.FifteenSeconds;
 
             var lastTime = _cache.Get<DateTime?>(key);
@@ -97,48 +97,15 @@ namespace EmulatorHub.API.Controllers
                 return NotFound(cachedUser.Phone);
             }
 
-            var authResult = await _authService.AuthenticateAsync(user, IpAddress(), cancellationToken);
+            var authResult = await _authService.AuthenticateAsync(user, HttpContext.GetIpAddress(), cancellationToken);
             await HttpContext.Session.SetAsync("_roles", authResult.Roles);
-            SetTokenCookie(authResult.RefreshToken);
+            HttpContext.SetTokenCookie(authResult.RefreshToken, _env.IsProduction());
             var response = new AuthenticationResponse(
                 authResult.User.Username,
                 authResult.Token,
                 authResult.TokenExpirationTime);
 
             return Ok(response);
-        }
-
-        private void SetTokenCookie(string token)
-        {
-            // append cookie with refresh token to the http response
-            var cookieOptions = new CookieOptions
-            {
-                Expires = DateTime.UtcNow.AddDays(7),
-
-                // Set the secure flag, which Chrome's changes will require for SameSite none.
-                // Note this will also require you to be running on HTTPS.
-                Secure = _env.IsProduction(),
-
-                // Set the cookie to HTTP only which is good practice unless you really do need
-                // to access it client side in scripts.
-                HttpOnly = true,
-
-                // Add the SameSite attribute, this will emit the attribute with a value of none.
-                SameSite = SameSiteMode.Strict
-                //SameSite = SameSiteMode.None
-
-                // The client should follow its default cookie policy.
-                // SameSite = SameSiteMode.Unspecified
-            };
-            Response.Cookies.Append("refreshToken", token, cookieOptions);
-        }
-
-        private string IpAddress()
-        {
-            if (Request.Headers.TryGetValue("X-Forwarded-For", out var header))
-                return header;
-            else
-                return HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString();
         }
 
         private static int GetFixedHash(string s, int length)

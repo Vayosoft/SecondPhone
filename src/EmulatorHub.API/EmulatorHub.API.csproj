@@ -28,13 +28,13 @@
 	  <ProjectReference Include="..\EmulatorHub.Infrastructure\EmulatorHub.Infrastructure.csproj" />
     <ProjectReference Include="..\EmulatorHub\EmulatorHub.csproj" />
   </ItemGroup>
-	
+	<!--
 	<ItemGroup>
 		<PackageReference Include="Vayosoft.Web.Identity" Version="2.3.1" />
 	</ItemGroup>
-	<!--
+	-->
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Vayosoft\src\Vayosoft.Web.Identity\Vayosoft.Web.Identity.csproj" />
 	</ItemGroup>
--->
+
 </Project>
