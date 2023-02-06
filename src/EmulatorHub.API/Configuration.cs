@@ -5,11 +5,36 @@ using App.Metrics.Formatters.Ascii;
 using App.Metrics.Formatters.Prometheus;
 using EmulatorHub.API.Services.Diagnostics;
 using App.Metrics.Extensions.Configuration;
+using Vayosoft.EntityFramework.MySQL;
+using Vayosoft.Identity.EntityFramework;
+using Vayosoft.Web.Identity;
 
 namespace EmulatorHub.API
 {
     public static class Configuration
     {
+        public static IServiceCollection AddApplicationIdentity(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = configuration.GetConnectionString("RedisConnection");
+                options.InstanceName = "SessionInstance";
+            });
+            services.AddSession(options =>
+            {
+                options.Cookie.Name = ".second_phone.session";
+                options.IdleTimeout = TimeSpan.FromSeconds(3600); //Default is 20 minutes.
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = false;
+            });
+
+            services.AddMySqlContext<IdentityContext>(configuration);
+
+            services.AddIdentityService(configuration);
+
+            return services;
+        }
+
         public static IServiceCollection AddDiagnostics(this WebApplicationBuilder builder)
         {
             var configuration = builder.Configuration;

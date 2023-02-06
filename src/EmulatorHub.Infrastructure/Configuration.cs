@@ -6,11 +6,8 @@ using FluentValidation;
 using Vayosoft;
 using Vayosoft.Caching;
 using Vayosoft.EntityFramework.MySQL;
-using Vayosoft.Identity;
-using Vayosoft.Identity.EntityFramework;
 using Vayosoft.Persistence;
 using Vayosoft.Redis;
-using EmulatorHub.Application.Commons.Services;
 using EmulatorHub.Application.Commons;
 using EmulatorHub.Application.PushGateway;
 using EmulatorHub.Application.PushGateway.Commands;
@@ -74,8 +71,6 @@ namespace EmulatorHub.Infrastructure
                 .AddScoped<IUoW>(s => s.GetRequiredService<HubDbContext>())
                 .AddScoped<IDAO>(s => s.GetRequiredService<HubDbContext>())
                 .AddScoped<ILinqProvider>(s => s.GetRequiredService<HubDbContext>());
-
-            services.AddMySqlContext<IdentityContext>(configuration);
 
             return services;
         }

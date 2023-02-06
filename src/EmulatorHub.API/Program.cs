@@ -2,13 +2,11 @@
 using EmulatorHub.Infrastructure;
 using Serilog;
 using System.Diagnostics;
-using Vayosoft.Web.Identity;
 using EmulatorHub.API.Hubs;
 using System.Text.Json.Serialization;
 using EmulatorHub.API.Services.Monitoring;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using EmulatorHub.API;
-using Vayosoft.Identity;
 using Vayosoft.Web.Swagger;
 using Vayosoft.Web.Identity.Authentication;
 
@@ -44,23 +42,7 @@ try
         builder.Services.AddSwaggerService();
 
         builder.Services.AddHubApplication(builder.Configuration);
-        builder.Services.AddHttpContextAccessor()
-            .AddScoped<IUserContext, UserContext>();
-
-        builder.Services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = configuration.GetConnectionString("RedisConnection");
-            options.InstanceName = "SessionInstance";
-        });
-        builder.Services.AddSession(options =>
-        {
-            options.Cookie.Name = ".second_phone.session";
-            options.IdleTimeout = TimeSpan.FromSeconds(3600); //Default is 20 minutes.
-            options.Cookie.HttpOnly = true;
-            options.Cookie.IsEssential = false;
-        });
-
-        builder.Services.AddIdentityService(configuration);
+        builder.Services.AddApplicationIdentity(configuration);
 
         // HealthCheck
         builder.Services
