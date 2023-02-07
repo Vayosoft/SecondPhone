@@ -26,11 +26,11 @@
     </ItemGroup>
 <!--
     <ItemGroup>
-	  <PackageReference Include="Vayosoft" Version="2.3.1" />
-	  <PackageReference Include="Vayosoft.Identity" Version="2.3.1" />
-	  <PackageReference Include="Vayosoft.PushBrokers" Version="2.3.1" />
-	  <PackageReference Include="Vayosoft.SmsBrokers" Version="2.3.1" />
-	  <PackageReference Include="Vayosoft.Threading" Version="2.3.1" />
+	  <PackageReference Include="Vayosoft" Version="2.4.0" />
+	  <PackageReference Include="Vayosoft.Identity" Version="2.4.0" />
+	  <PackageReference Include="Vayosoft.PushBrokers" Version="2.4.0" />
+	  <PackageReference Include="Vayosoft.SmsBrokers" Version="2.4.0" />
+	  <PackageReference Include="Vayosoft.Threading" Version="2.4.0" />
 	</ItemGroup>
 		-->
 	<ItemGroup>

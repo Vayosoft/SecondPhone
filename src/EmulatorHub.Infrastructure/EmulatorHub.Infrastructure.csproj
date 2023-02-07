@@ -11,11 +11,11 @@
   </ItemGroup>
 	<!--
 	<ItemGroup>
-		<PackageReference Include="Vayosoft.AutoMapper" Version="2.3.1" />
-		<PackageReference Include="Vayosoft.Caching" Version="2.3.1" />
-		<PackageReference Include="Vayosoft.EntityFramework.MySQL" Version="2.3.1" />
-		<PackageReference Include="Vayosoft.Identity.EntityFramework" Version="2.3.1" />
-		<PackageReference Include="Vayosoft.Persistence.EntityFramework" Version="2.3.1" />
+		<PackageReference Include="Vayosoft.AutoMapper" Version="2.4.0" />
+		<PackageReference Include="Vayosoft.Caching" Version="2.4.0" />
+		<PackageReference Include="Vayosoft.EntityFramework.MySQL" Version="2.4.0" />
+		<PackageReference Include="Vayosoft.Identity.EntityFramework" Version="2.4.0" />
+		<PackageReference Include="Vayosoft.Persistence.EntityFramework" Version="2.4.0" />
 	</ItemGroup>
 	-->
 	<ItemGroup>
