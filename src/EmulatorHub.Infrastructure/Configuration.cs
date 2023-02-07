@@ -27,12 +27,6 @@ namespace EmulatorHub.Infrastructure
             services.AddCoreServices();
             services.AddValidation();
 
-            services
-                .AddRedisConnection()
-                .AddCaching(configuration);
-
-            services.AddHubDataContext(configuration);
-
             services.AddPushService();
             services.AddSmsService();
             services.AddAdministrationService();
@@ -45,6 +39,13 @@ namespace EmulatorHub.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services,
             IConfiguration configuration)
         {
+            services
+                .AddHubDataContext(configuration);
+
+            services
+                .AddRedisConnection()
+                .AddCaching(configuration);
+
             var domainAssembly = AppDomain.CurrentDomain.GetAssemblies();
             services.AddSingleton(provider =>
             {
