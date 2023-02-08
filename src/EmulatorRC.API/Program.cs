@@ -13,6 +13,8 @@ using EmulatorRC.API.Protos;
 using EmulatorRC.API.Services;
 using EmulatorRC.API.Services.Handlers;
 using EmulatorRC.API.Services.Interceptors;
+using EmulatorRC.Infrastructure;
+using EmulatorRC.Infrastructure.Persistence;
 using EmulatorRC.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Connections;
@@ -144,6 +146,8 @@ public class Program
 
                 // Bridge services
                 //builder.Services.AddHostedService<BridgeLifetimeEventsService>();
+
+                builder.Services.AddInfrastructure(configuration);
             }
             
             var app = builder.Build();
