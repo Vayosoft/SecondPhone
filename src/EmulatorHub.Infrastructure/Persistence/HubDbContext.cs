@@ -15,7 +15,7 @@ namespace EmulatorHub.Infrastructure.Persistence
             _userContext = userContext;
         }
 
-        public DbSet<UserEntity> Users { set; get; } = null!;
+        public DbSet<ApplicationUser> Users { set; get; } = null!;
         public DbSet<Emulator> Devices { set; get; } = null!;
         public DbSet<MobileClient> Clients { set; get; } = null!;
 

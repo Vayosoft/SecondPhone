@@ -56,7 +56,7 @@ namespace EmulatorHub.API.Testing
 
         public static async Task<Results<Ok<Emulator>, NotFound>> RegisterClient(string clientId, string deviceId, IUoW db, [FromServices] ILogger<Emulator> logger)
         {
-            var user = await db.FindAsync<UserEntity>(1);
+            var user = await db.FindAsync<ApplicationUser>(1);
             if (user is { } item)
             {
                 var client = new MobileClient

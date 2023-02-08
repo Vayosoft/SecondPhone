@@ -8,7 +8,6 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
     {
         public override void Configure(EntityTypeBuilder<Emulator> builder)
         {
-   
 
         }
     }

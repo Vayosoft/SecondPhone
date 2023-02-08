@@ -118,7 +118,7 @@ namespace EmulatorHub.API.Controllers
                 return NotFound();
             }
 
-            client.PushToken = command.Token;
+            //client.PushToken = command.Token;
 
             await _store.SaveChangesAsync(cancellationToken);
             return Ok();

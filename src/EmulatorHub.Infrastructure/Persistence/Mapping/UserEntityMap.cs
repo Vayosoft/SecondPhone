@@ -1,16 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EmulatorHub.Domain.Commons.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Vayosoft.Commons.Enums;
 using Vayosoft.Identity;
-using Vayosoft.Identity.EntityFramework;
 using Vayosoft.Identity.Tokens;
 using Vayosoft.Persistence.EntityFramework;
 
 namespace EmulatorHub.Infrastructure.Persistence.Mapping
 {
-    public partial class UserEntityMap : EntityConfigurationMapper<UserEntity>
+    public partial class UserEntityMap : EntityConfigurationMapper<ApplicationUser>
     {
-        public override void Configure(EntityTypeBuilder<UserEntity> builder)
+        public override void Configure(EntityTypeBuilder<ApplicationUser> builder)
         {
             builder.ToTable("users").HasKey(t => t.Id);
             builder.Property(t => t.Id).HasColumnName("userid");
@@ -29,7 +29,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
                 .HasIndex(u => new { u.Username, u.ProviderId }).IsUnique();
 
             builder.HasData(
-                new UserEntity("su")
+                new ApplicationUser("su")
                 {
                     Id = 1,
                     PasswordHash = "VBbXzW7xlaD3YiqcVrVehA==",
@@ -59,7 +59,7 @@ namespace EmulatorHub.Infrastructure.Persistence.Mapping
             builder.Property(t => t.ReplacedByToken).HasColumnName("replaced_by_token");
             builder.Property(t => t.Expires).HasColumnName("expires");
             builder
-                .HasOne(t => t.User as UserEntity)
+                .HasOne(t => t.User as ApplicationUser)
                 .WithMany(t => t.RefreshTokens)
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);

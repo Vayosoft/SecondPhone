@@ -51,7 +51,7 @@ namespace EmulatorHub.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            var user = await store.FindAsync(new Criteria<UserEntity>(u => u.Phone == command.PhoneNumber), cancellationToken);
+            var user = await store.FindAsync(new Criteria<ApplicationUser>(u => u.Phone == command.PhoneNumber), cancellationToken);
             if (user is { } userEntity)
             {
                 var deviceId = string.IsNullOrEmpty(command.DeviceId) ? GuidUtils.GetStringFromGuid(GuidGenerator.New()) : command.DeviceId;

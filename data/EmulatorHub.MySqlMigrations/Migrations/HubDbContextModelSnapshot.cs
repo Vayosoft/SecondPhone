@@ -19,7 +19,89 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                 .HasAnnotation("ProductVersion", "6.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("EmulatorHub.Domain.Entities.Emulator", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Commons.Entities.ApplicationUser", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("userid");
+
+                    b.Property<string>("CultureId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("longtext")
+                        .HasDefaultValue("he-IL")
+                        .HasColumnName("culture_id");
+
+                    b.Property<DateTime?>("Deregistered")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("enddate");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("longtext")
+                        .HasColumnName("email");
+
+                    b.Property<byte?>("LogLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint unsigned")
+                        .HasDefaultValue((byte)3)
+                        .HasColumnName("log_level");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("longtext")
+                        .HasColumnName("pwdhash");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("phone");
+
+                    b.Property<long>("ProviderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("providerid");
+
+                    b.Property<string>("PushToken")
+                        .HasColumnType("longtext")
+                        .HasColumnName("push_token");
+
+                    b.Property<DateTime?>("Registered")
+                        .IsRequired()
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("regdate");
+
+                    b.Property<byte>("Type")
+                        .HasColumnType("tinyint unsigned")
+                        .HasColumnName("user_type");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("username");
+
+                    b.HasKey("Id")
+                        .HasName("pk_users");
+
+                    b.HasIndex("Username", "ProviderId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_username_providerid");
+
+                    b.ToTable("users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            CultureId = "ru-RU",
+                            Email = "su@vayosoft.com",
+                            PasswordHash = "VBbXzW7xlaD3YiqcVrVehA==",
+                            Phone = "0500000000",
+                            ProviderId = 0L,
+                            Registered = new DateTime(2022, 11, 15, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Type = (byte)4,
+                            Username = "su"
+                        });
+                });
+
+            modelBuilder.Entity("EmulatorHub.Domain.Commons.Entities.Emulator", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("varchar(255)")
@@ -49,7 +131,7 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.ToTable("devices", (string)null);
                 });
 
-            modelBuilder.Entity("EmulatorHub.Domain.Entities.MobileClient", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Commons.Entities.MobileClient", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("varchar(255)")
@@ -62,10 +144,6 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.Property<long>("ProviderId")
                         .HasColumnType("bigint")
                         .HasColumnName("provider_id");
-
-                    b.Property<string>("PushToken")
-                        .HasColumnType("longtext")
-                        .HasColumnName("push_token");
 
                     b.Property<bool>("SoftDeleted")
                         .HasColumnType("tinyint(1)")
@@ -258,87 +336,9 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.ToTable("refresh_tokens", (string)null);
                 });
 
-            modelBuilder.Entity("Vayosoft.Identity.UserEntity", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Commons.Entities.Emulator", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("userid");
-
-                    b.Property<string>("CultureId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("longtext")
-                        .HasDefaultValue("he-IL")
-                        .HasColumnName("culture_id");
-
-                    b.Property<DateTime?>("Deregistered")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("enddate");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("longtext")
-                        .HasColumnName("email");
-
-                    b.Property<byte?>("LogLevel")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint unsigned")
-                        .HasDefaultValue((byte)3)
-                        .HasColumnName("log_level");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("longtext")
-                        .HasColumnName("pwdhash");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("phone");
-
-                    b.Property<long>("ProviderId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("providerid");
-
-                    b.Property<DateTime?>("Registered")
-                        .IsRequired()
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("regdate");
-
-                    b.Property<byte>("Type")
-                        .HasColumnType("tinyint unsigned")
-                        .HasColumnName("user_type");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("username");
-
-                    b.HasKey("Id")
-                        .HasName("pk_users");
-
-                    b.HasIndex("Username", "ProviderId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_users_username_providerid");
-
-                    b.ToTable("users", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1L,
-                            CultureId = "ru-RU",
-                            Email = "su@vayosoft.com",
-                            PasswordHash = "VBbXzW7xlaD3YiqcVrVehA==",
-                            Phone = "0500000000",
-                            ProviderId = 1000L,
-                            Registered = new DateTime(2022, 11, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Type = (byte)4,
-                            Username = "su"
-                        });
-                });
-
-            modelBuilder.Entity("EmulatorHub.Domain.Entities.Emulator", b =>
-                {
-                    b.HasOne("EmulatorHub.Domain.Entities.MobileClient", "Client")
+                    b.HasOne("EmulatorHub.Domain.Commons.Entities.MobileClient", "Client")
                         .WithMany()
                         .HasForeignKey("ClientId")
                         .HasConstraintName("fk_devices_clients_client_id");
@@ -346,9 +346,9 @@ namespace EmulatorHub.MySqlMigrations.Migrations
                     b.Navigation("Client");
                 });
 
-            modelBuilder.Entity("EmulatorHub.Domain.Entities.MobileClient", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Commons.Entities.MobileClient", b =>
                 {
-                    b.HasOne("Vayosoft.Identity.UserEntity", "User")
+                    b.HasOne("EmulatorHub.Domain.Commons.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .HasConstraintName("fk_clients_users_user_id");
@@ -358,17 +358,17 @@ namespace EmulatorHub.MySqlMigrations.Migrations
 
             modelBuilder.Entity("Vayosoft.Identity.Tokens.RefreshToken", b =>
                 {
-                    b.HasOne("Vayosoft.Identity.UserEntity", "User")
+                    b.HasOne("EmulatorHub.Domain.Commons.Entities.ApplicationUser", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_refresh_tokens_users_user_entity_id");
+                        .HasConstraintName("fk_refresh_tokens_users_application_user_id");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Vayosoft.Identity.UserEntity", b =>
+            modelBuilder.Entity("EmulatorHub.Domain.Commons.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("RefreshTokens");
                 });

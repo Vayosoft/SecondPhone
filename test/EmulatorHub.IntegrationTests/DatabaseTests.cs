@@ -1,3 +1,4 @@
+using EmulatorHub.Domain.Commons.Entities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -31,7 +32,7 @@ namespace EmulatorHub.IntegrationTests
         [InlineData("support")]
         public void CreateUsers(string username)
         {
-            var user = new UserEntity($"{username}@vayosoft.com")
+            var user = new ApplicationUser($"{username}@vayosoft.com")
             {
                 Email = $"{username}@vayosoft.com",
                 PasswordHash = "VBbXzW7xlaD3YiqcVrVehA==",
