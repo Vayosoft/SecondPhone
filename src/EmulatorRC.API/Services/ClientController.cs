@@ -1,6 +1,8 @@
 ﻿using EmulatorRC.API.Model.Commands;
 using EmulatorRC.API.Services.Handlers;
 using EmulatorRC.Entities;
+using EmulatorRC.Services;
+using Grpc.Core;
 using Microsoft.AspNetCore.Connections;
 using System.Buffers;
 using System.IO.Pipelines;
@@ -14,6 +16,7 @@ namespace EmulatorRC.API.Services
         private readonly IServiceProvider _services;
         private readonly ILogger<ClientController> _logger;
         private readonly IHostApplicationLifetime _lifetime;
+        private readonly IEmulatorDataRepository _deviceRepository;
 
         private const int MaxStackLength = 128;
         private const int MaxHeaderLength = 1024;
@@ -21,16 +24,20 @@ namespace EmulatorRC.API.Services
         public ClientController(
             IServiceProvider services,
             ILogger<ClientController> logger,
-            IHostApplicationLifetime lifetime)
+            IHostApplicationLifetime lifetime, IEmulatorDataRepository deviceRepository)
         {
             _services = services;
             _logger = logger;
             _lifetime = lifetime;
+            _deviceRepository = deviceRepository;
         }
 
         public override async Task OnConnectedAsync(ConnectionContext connection)
         {
-            _logger.LogInformation("TCP (Client) {ConnectionId} connected", connection.ConnectionId);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogInformation("TCP Connection {ConnectionId} Client connected", connection.ConnectionId);
+            }
 
             var cts = CancellationTokenSource.CreateLinkedTokenSource(
                 connection.ConnectionClosed, _lifetime.ApplicationStopping);
@@ -40,28 +47,36 @@ namespace EmulatorRC.API.Services
             {
                 var command = await GetCommandRequestAsync(connection.Transport, cancellationToken);
 
-                //todo authentication
                 if (string.IsNullOrEmpty(command.DeviceId))
                 {
-                    throw new ApplicationException("Authentication failed");
+                    throw new ApplicationException("Bad request. ClientId is null");
                 }
+
+                var device = await _deviceRepository.GetByClientIdAsync(command.DeviceId);
+                if (device == null)
+                {
+                    throw new ApplicationException("Authentication failed." +
+                                                   $" There are no device found for client {command.DeviceId}");
+                }
+
+                command = command with { DeviceId = device.Id };
 
                 switch (command)
                 {
                     case CameraFrontCommand frontCamCommand:
-                        _logger.LogInformation("TCP (Client) {ConnectionId} => {DeviceId} Front Camera [Write]", connection.ConnectionId, command.DeviceId);
+                        _logger.LogInformation("TCP Connection {ConnectionId}. Client {DeviceId} Front camera (Write)", connection.ConnectionId, command.DeviceId);
 
                         var frontCameraHandler = _services.GetRequiredService<CameraFrontCommandHandler>();
                         await frontCameraHandler.WriteAsync(frontCamCommand, connection.Transport, cancellationToken);
                         break;
                     case CameraRearCommand rearCamCommand:
-                        _logger.LogInformation("TCP (Client) {ConnectionId} => {DeviceId} Rear Camera [Write]", connection.ConnectionId, command.DeviceId);
+                        _logger.LogInformation("TCP Connection {ConnectionId}. Client {DeviceId} Rear camera (Write)", connection.ConnectionId, command.DeviceId);
 
                         var rearCameraHandler = _services.GetRequiredService<CameraRearCommandHandler>();
                         await rearCameraHandler.WriteAsync(rearCamCommand, connection.Transport, cancellationToken);
                         break;
                     case AudioCommand audioCommand:
-                        _logger.LogInformation("TCP (Client) {ConnectionId} => {DeviceId} Mic [Write]", connection.ConnectionId, command.DeviceId);
+                        _logger.LogInformation("TCP Connection {ConnectionId}. Client {DeviceId} Mic (Write)", connection.ConnectionId, command.DeviceId);
 
                         var micHandler = _services.GetRequiredService<MicrophoneCommandHandler>();
                         await micHandler.WriteAsync(audioCommand, connection.Transport, cancellationToken);
@@ -72,14 +87,18 @@ namespace EmulatorRC.API.Services
             catch (OperationCanceledException) { }
             catch (Exception e)
             {
-                _logger.LogError(e, "TCP (Client) {ConnectionId} => {Error}", connection.ConnectionId, e.Message);
+                _logger.LogError(e, "TCP Connection {ConnectionId} Client error occurred: {Error}", connection.ConnectionId, e.Message);
             }
             finally
             {
                 await connection.Transport.Input.CompleteAsync();
                 await connection.Transport.Output.CompleteAsync();
 
-                _logger.LogInformation("TCP (Client) {ConnectionId} disconnected", connection.ConnectionId);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogInformation("TCP Connection {ConnectionId} Client disconnected",
+                        connection.ConnectionId);
+                }
             }
         }
 
@@ -102,7 +121,7 @@ namespace EmulatorRC.API.Services
                 pipe.Input.AdvanceTo(consumed);
 
                 if (status == HandshakeStatus.Failed)
-                    throw new ApplicationException($"Handshake failed." +
+                    throw new ApplicationException("Handshake failed." +
                                                    $" Length: {buffer.Length}." +
                                                    $" Hex: {Convert.ToHexString(buffer.ToArray())}." +
                                                    $" UTF8: {Encoding.UTF8.GetString(buffer)}");

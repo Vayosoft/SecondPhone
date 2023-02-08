@@ -1,7 +1,6 @@
 ﻿namespace EmulatorRC.API.Model.Commands
 {
     public record CommandRequest(string DeviceId);
-    public record SpeakerCommand(string DeviceId) : CommandRequest(DeviceId);
     public record AudioCommand(string DeviceId) : CommandRequest(DeviceId);
     public abstract record CameraCommand() : CommandRequest("")
     {

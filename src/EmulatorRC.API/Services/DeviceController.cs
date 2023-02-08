@@ -27,7 +27,10 @@ namespace EmulatorRC.API.Services
 
         public override async Task OnConnectedAsync(ConnectionContext connection)
         {
-            _logger.LogInformation("TCP (Device) {ConnectionId} connected", connection.ConnectionId);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("TCP Connection {ConnectionId} Device connected", connection.ConnectionId);
+            }
 
             var cts = CancellationTokenSource.CreateLinkedTokenSource(
                 connection.ConnectionClosed, _lifetime.ApplicationStopping);
@@ -46,19 +49,19 @@ namespace EmulatorRC.API.Services
                 switch (command)
                 {
                     case CameraFrontCommand frontCamCommand:
-                        _logger.LogInformation("TCP (Device) {ConnectionId} => {DeviceId} Front Camera [Read]", connection.ConnectionId, command.DeviceId);
+                        _logger.LogInformation("TCP Connection {ConnectionId}. Device {DeviceId} Front camera (Read)", connection.ConnectionId, command.DeviceId);
 
                         var frontCameraHandler = _services.GetRequiredService<CameraFrontCommandHandler>();
                         await frontCameraHandler.ReadAsync(frontCamCommand, connection.Transport, cancellationToken);
                         break;
                     case CameraRearCommand rearCamCommand:
-                        _logger.LogInformation("TCP (Device) {ConnectionId} => {DeviceId} Rear Camera [Read]", connection.ConnectionId, command.DeviceId);
+                        _logger.LogInformation("TCP Connection {ConnectionId}. Device {DeviceId} Rear camera (Read)", connection.ConnectionId, command.DeviceId);
 
                         var rearCameraHandler = _services.GetRequiredService<CameraRearCommandHandler>();
                         await rearCameraHandler.ReadAsync(rearCamCommand, connection.Transport, cancellationToken);
                         break;
                     case AudioCommand audioCommand:
-                        _logger.LogInformation("TCP (Device) {ConnectionId} => {DeviceId} Mic [Read]", connection.ConnectionId, command.DeviceId);
+                        _logger.LogInformation("TCP Connection {ConnectionId}. Device {DeviceId} Mic (Read)", connection.ConnectionId, command.DeviceId);
 
                         var micHandler = _services.GetRequiredService<MicrophoneCommandHandler>();
                         await micHandler.ReadAsync(audioCommand, connection.Transport, cancellationToken);
@@ -69,14 +72,18 @@ namespace EmulatorRC.API.Services
             catch (OperationCanceledException) { }
             catch (Exception e)
             {
-                _logger.LogError(e, "TCP (Device) {ConnectionId} => {Error}", connection.ConnectionId, e.Message);
+                _logger.LogError(e, "TCP Connection {ConnectionId} Device error occurred: {Error}", connection.ConnectionId, e.Message);
             }
             finally
             {
                 await connection.Transport.Input.CompleteAsync();
                 await connection.Transport.Output.CompleteAsync();
 
-                _logger.LogInformation("TCP (Device) {ConnectionId} disconnected", connection.ConnectionId);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("TCP Connection {ConnectionId} Device disconnected", connection.ConnectionId);
+                }
+
             }
         }
 

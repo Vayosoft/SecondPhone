@@ -12,7 +12,6 @@ namespace EmulatorRC.API.Services
     public sealed class OuterService : ClientService.ClientServiceBase
     {
         private readonly IEmulatorDataRepository _deviceRepository;
-        private readonly ILogger<OuterService> _logger;
         private readonly DeviceRpcHandler _deviceHandler;
         private readonly TouchChannel _touchEvents;
         private readonly DeviceInfoChannel _deviceInfo;
@@ -22,13 +21,12 @@ namespace EmulatorRC.API.Services
             DeviceRpcHandler deviceHandler,
             TouchChannel touchEvents, 
             DeviceInfoChannel deviceInfo,
-            IHostApplicationLifetime lifeTime, IEmulatorDataRepository deviceRepository, ILogger<OuterService> logger)
+            IHostApplicationLifetime lifeTime, IEmulatorDataRepository deviceRepository)
         {
             _deviceHandler = deviceHandler;
             _touchEvents = touchEvents;
             _lifeTime = lifeTime;
             _deviceRepository = deviceRepository;
-            _logger = logger;
             _deviceInfo = deviceInfo;
         }
 
