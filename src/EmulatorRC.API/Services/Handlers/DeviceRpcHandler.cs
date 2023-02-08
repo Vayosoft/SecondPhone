@@ -55,17 +55,27 @@ namespace EmulatorRC.API.Services.Handlers
             var emulatorClient = _grpcClientFactory.CreateClient<EmulatorController.EmulatorControllerClient>(deviceId);
 
             using var res = emulatorClient.streamScreenshot(ImageFormat, CallOptions);
-            await foreach (var response in res.ResponseStream.ReadAllAsync(cancellationToken))
+            try
             {
-                if (!TryGetChannel(deviceId, out var channel)) continue;
-
-                var deviceScreen = new DeviceScreen
+                await foreach (var response in res.ResponseStream.ReadAllAsync(cancellationToken))
                 {
-                    Timestamp = response.TimestampUs,
-                    Image = UnsafeByteOperations.UnsafeWrap(PrepareImage(response.Image_.Span)),
-                    //Image = ByteString.FromStream(stream)
-                };
-                await channel.Writer.WriteAsync(deviceScreen, cancellationToken);
+                    if (!TryGetChannel(deviceId, out var channel)) continue;
+
+                    var deviceScreen = new DeviceScreen
+                    {
+                        Timestamp = response.TimestampUs,
+                        Image = UnsafeByteOperations.UnsafeWrap(PrepareImage(response.Image_.Span)),
+                        //Image = ByteString.FromStream(stream)
+                    };
+                    await channel.Writer.WriteAsync(deviceScreen, cancellationToken);
+                }
+            }
+            catch (Exception e)
+            {
+                if (TryRemoveChannel(deviceId, out var channel))
+                {
+                    channel.Writer.Complete(e);
+                }
             }
         }
 

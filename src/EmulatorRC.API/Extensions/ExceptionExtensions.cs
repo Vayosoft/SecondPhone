@@ -56,9 +56,12 @@ namespace EmulatorRC.API.Extensions
                 logger.LogWarning(exception, "gRPC CorrelationId: {CorrelationId} - An error occurred.", correlationId);
             }
 
-            var trailers = exception.Trailers;
-            trailers.Add(CreateTrailers(correlationId)[0]);
-            return new RpcException(new Status(exception.StatusCode, exception.Message), trailers);
+            var metadata = new Metadata {CreateTrailers(correlationId)[0]};
+            foreach (var exceptionTrailer in exception.Trailers)
+            {
+                metadata.Add(exceptionTrailer);
+            }
+            return new RpcException(new Status(exception.StatusCode, exception.Message), metadata);
         }
 
         private static RpcException HandleDefault(Exception exception, ServerCallContext context, ILogger logger, Guid correlationId)
