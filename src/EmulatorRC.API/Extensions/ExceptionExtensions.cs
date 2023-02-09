@@ -51,9 +51,9 @@ namespace EmulatorRC.API.Extensions
 
         private static RpcException HandleRpcException(RpcException exception, ILogger logger, Guid correlationId)
         {
-            if (logger.IsEnabled(LogLevel.Warning))
+            if (logger.IsEnabled(LogLevel.Trace))
             {
-                logger.LogWarning(exception, "gRPC CorrelationId: {CorrelationId} - An error occurred.", correlationId);
+                logger.LogTrace(exception, "gRPC CorrelationId: {CorrelationId} - An error occurred.", correlationId);
             }
 
             var metadata = new Metadata {CreateTrailers(correlationId)[0]};
