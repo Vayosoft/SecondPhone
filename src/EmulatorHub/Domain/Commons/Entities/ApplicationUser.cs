@@ -9,7 +9,5 @@ namespace EmulatorHub.Domain.Commons.Entities
         {
 
         }
-
-        public string PushToken { get; set; }
     }
 }

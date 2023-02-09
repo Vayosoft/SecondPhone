@@ -1,10 +1,11 @@
-﻿using Vayosoft.Identity;
+﻿using EmulatorHub.Domain.Commons.Entities;
+using Vayosoft.Identity;
 using Vayosoft.Persistence.Criterias;
 using Vayosoft.Persistence.Specifications;
 
 namespace EmulatorHub.API.Testing
 {
-    public class UserByTokenCriteria : Criteria<UserEntity>
+    public class UserByTokenCriteria : Criteria<ApplicationUser>
     {
         public UserByTokenCriteria(string token)
         {
@@ -13,7 +14,7 @@ namespace EmulatorHub.API.Testing
         }
     }
 
-    public class UserByNameCriteria : Criteria<UserEntity>
+    public class UserByNameCriteria : Criteria<ApplicationUser>
     {
         public UserByNameCriteria(string name)
         {
@@ -21,7 +22,7 @@ namespace EmulatorHub.API.Testing
         }
     }
 
-    public class GetAllUsersSpec : Specification<UserEntity>
+    public class GetAllUsersSpec : Specification<ApplicationUser>
     {
         public GetAllUsersSpec(string token = default, string username = default)
         {

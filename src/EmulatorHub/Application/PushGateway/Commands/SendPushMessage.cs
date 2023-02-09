@@ -66,15 +66,15 @@ namespace EmulatorHub.Application.PushGateway.Commands
                 return new Result<Unit>(new EntityNotFoundException(nameof(Emulator), request.DeviceId));
             }
 
-            //if (string.IsNullOrEmpty(emulator.Client.PushToken))
-            //{
-            //    return new Result<Unit>(new ValidationException("Invalid Argument", new[]
-            //    {
-            //        new ValidationFailure("PushToken", "The client has no push token")
-            //    }));
-            //}
+            if (string.IsNullOrEmpty(emulator.Client.PushToken))
+            {
+                return new Result<Unit>(new ValidationException("Invalid Argument", new[]
+                {
+                    new ValidationFailure("PushToken", "The client has no push token")
+                }));
+            }
 
-            //_channel.Enqueue(new PushMessage(emulator.Client.PushToken, request.Message));
+            _channel.Enqueue(new PushMessage(emulator.Client.PushToken, request.Message));
 
             return Unit.Value;
         }

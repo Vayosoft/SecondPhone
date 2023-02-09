@@ -15,6 +15,7 @@ namespace EmulatorHub.API.Testing
         {
             routes.MapGet("/get_token", GetToken);
             routes.MapGet("/increment", Increment);
+            routes.MapGet("/users", GetAllUsers);
 
             return routes;
         }
@@ -37,12 +38,12 @@ namespace EmulatorHub.API.Testing
             return TypedResults.Ok(TokenUtils.GenerateToken("qwertyuiopasdfghjklzxcvbnm123456", TimeSpan.FromMinutes(60)));
         }
 
-        public static async Task<Ok<List<UserEntity>>> GetAllUsers(IDAO db)
+        public static async Task<Ok<List<ApplicationUser>>> GetAllUsers(IDAO db)
         {
             var userSpec = new GetAllUsersSpec();
             //var userSpec = new GetAllUsersSpec("ff79465d-0f75-4995-a121-574f292e9406", "su");
 
-            var user = await db.ListAsync<UserEntity>(userSpec);
+            var user = await db.ListAsync(userSpec);
             return TypedResults.Ok(user);
         }
 

@@ -1,5 +1,4 @@
 ﻿using Vayosoft.Commons.Entities;
-using Vayosoft.Identity;
 
 namespace EmulatorHub.Domain.Commons.Entities
 {
@@ -7,6 +6,8 @@ namespace EmulatorHub.Domain.Commons.Entities
     {
         public string Name { get; set; }
         public ApplicationUser User { get; set; } = null!;
+
+        public string PushToken { get; set; }
 
         public long ProviderId { get; set; }
         object IProviderId.ProviderId => ProviderId;
