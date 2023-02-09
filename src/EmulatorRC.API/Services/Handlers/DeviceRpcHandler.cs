@@ -6,11 +6,15 @@ using ImageMagick;
 using Grpc.Core;
 using EmulatorRC.API.Channels;
 using Grpc.Net.ClientFactory;
+using App.Metrics;
+using static EmulatorRC.API.Services.Diagnostics.AppMetricsRegistry.Meters;
 
 namespace EmulatorRC.API.Services.Handlers
 {
     public sealed class DeviceRpcHandler : ChannelBase<DeviceScreen>
     {
+        private readonly IMetrics _metrics;
+
         private readonly GrpcClientFactory _grpcClientFactory;
 
         private static readonly CallOptions CallOptions = new();
@@ -55,17 +59,27 @@ namespace EmulatorRC.API.Services.Handlers
             var emulatorClient = _grpcClientFactory.CreateClient<EmulatorController.EmulatorControllerClient>(deviceId);
 
             using var res = emulatorClient.streamScreenshot(ImageFormat, CallOptions);
-            await foreach (var response in res.ResponseStream.ReadAllAsync(cancellationToken))
+            try
             {
-                if (!TryGetChannel(deviceId, out var channel)) continue;
-
-                var deviceScreen = new DeviceScreen
+                await foreach (var response in res.ResponseStream.ReadAllAsync(cancellationToken))
                 {
-                    Timestamp = response.TimestampUs,
-                    Image = UnsafeByteOperations.UnsafeWrap(PrepareImage(response.Image_.Span)),
-                    //Image = ByteString.FromStream(stream)
-                };
-                await channel.Writer.WriteAsync(deviceScreen, cancellationToken);
+                    if (!TryGetChannel(deviceId, out var channel)) continue;
+
+                    var deviceScreen = new DeviceScreen
+                    {
+                        Timestamp = response.TimestampUs,
+                        Image = UnsafeByteOperations.UnsafeWrap(PrepareImage(response.Image_.Span)),
+                        //Image = ByteString.FromStream(stream)
+                    };
+                    await channel.Writer.WriteAsync(deviceScreen, cancellationToken);
+                }
+            }
+            catch (Exception e)
+            {
+                if (TryRemoveChannel(deviceId, out var channel))
+                {
+                    channel.Writer.Complete(e);
+                }
             }
         }
 
@@ -74,9 +88,10 @@ namespace EmulatorRC.API.Services.Handlers
             OptimizeCoding = true
         };
 
-        public DeviceRpcHandler(GrpcClientFactory grpcClientFactory)
+        public DeviceRpcHandler(GrpcClientFactory grpcClientFactory, IMetrics metrics)
         {
             _grpcClientFactory = grpcClientFactory;
+            _metrics = metrics;
         }
 
         //private static readonly RecyclableMemoryStreamManager RecyclableMemoryStreamManager = new();

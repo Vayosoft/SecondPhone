@@ -1,5 +1,6 @@
 ﻿using App.Metrics;
 using App.Metrics.Gauge;
+using App.Metrics.Meter;
 
 namespace EmulatorRC.API.Services.Diagnostics
 {
@@ -35,6 +36,18 @@ namespace EmulatorRC.API.Services.Diagnostics
                 Context = ContextName,
                 Name = "max",
                 MeasurementUnit = Unit.Items
+            };
+        }
+
+        public static class Meters
+        {
+            public static readonly string ContextName = "device_rpc_controller";
+
+            public static MeterOptions Screens => new()
+            {
+                Context = ContextName,
+                Name = "screen hits",
+                MeasurementUnit = Unit.Calls
             };
         }
     }

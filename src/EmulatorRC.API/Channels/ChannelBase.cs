@@ -28,6 +28,11 @@ namespace EmulatorRC.API.Channels
             return _channels.TryGetValue(name, out channel);
         }
 
+        protected bool TryRemoveChannel(string name, out Channel<T> channel)
+        {
+            return _channels.TryRemove(name, out channel);
+        }
+
         protected Channel<T> GetOrCreateChannel(string name)
         {
             if (_channels.TryGetValue(name, out var channel)) return channel;

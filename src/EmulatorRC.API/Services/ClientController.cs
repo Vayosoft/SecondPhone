@@ -45,7 +45,7 @@ namespace EmulatorRC.API.Services
 
             try
             {
-                var command = await GetCommandRequestAsync(connection.Transport, cancellationToken);
+                var command = await GetCommandRequestAsync(connection.Transport, connection.ConnectionId, cancellationToken);
 
                 if (string.IsNullOrEmpty(command.DeviceId))
                 {
@@ -96,22 +96,25 @@ namespace EmulatorRC.API.Services
 
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogInformation("TCP Connection {ConnectionId} Client disconnected",
+                    _logger.LogDebug("TCP Connection {ConnectionId} Client disconnected",
                         connection.ConnectionId);
                 }
             }
         }
 
-        public async Task<CommandRequest> GetCommandRequestAsync(IDuplexPipe pipe, CancellationToken cancellationToken)
+        public async Task<CommandRequest> GetCommandRequestAsync(IDuplexPipe pipe, string id, CancellationToken cancellationToken)
         {
             CommandRequest command = null;
             HandshakeStatus status = default;
+            var payloadLength = 0;
             while (status != HandshakeStatus.Successful)
             {
                 var result = await pipe.Input.ReadAsync(cancellationToken);
                 var buffer = result.Buffer;
 
-                var consumed = ProcessHandshake(ref buffer, out status, out command);
+                var consumed = ProcessHandshake(ref buffer, out status, out command, ref payloadLength);
+
+                _logger.LogDebug("DEBUG:{ID}, {DATA}", id, Encoding.UTF8.GetString(buffer));
 
                 if (result.IsCompleted)
                 {
@@ -132,42 +135,45 @@ namespace EmulatorRC.API.Services
             return command;
         }
 
-        private SequencePosition ProcessHandshake(ref ReadOnlySequence<byte> buffer, out HandshakeStatus status, out CommandRequest command)
+        private SequencePosition ProcessHandshake(ref ReadOnlySequence<byte> buffer, out HandshakeStatus status, out CommandRequest command, ref int payloadLength)
         {
             var reader = new SequenceReader<byte>(buffer);
             try
             {
-                if (!reader.TryReadLittleEndian(out int length) || length > MaxHeaderLength)
+                if (payloadLength == 0)
                 {
-                    command = null;
-                    status = HandshakeStatus.Failed;
-                    return reader.Position;
+                    if (!reader.TryReadLittleEndian(out payloadLength) || payloadLength > MaxHeaderLength)
+                    {
+                        command = null;
+                        status = HandshakeStatus.Failed;
+                        return reader.Position;
+                    }
                 }
-
-                if (!reader.TryReadExact(length, out var header))
+                
+                if (!reader.TryReadExact(payloadLength, out var header))
                 {
                     //todo security issue
                     command = null;
                     status = HandshakeStatus.Pending;
-                    return buffer.Start;
+                    return reader.Position;
                 }
 
                 DeviceSession session;
-                if (length < MaxStackLength)
+                if (payloadLength < MaxStackLength)
                 {
-                    Span<byte> payload = stackalloc byte[length];
+                    Span<byte> payload = stackalloc byte[payloadLength];
                     header.CopyTo(payload);
                     session = JsonSerializer.Deserialize(payload,
                         DeviceSessionJsonContext.Default.DeviceSession);
                 }
                 else
                 {
-                    var payload = ArrayPool<byte>.Shared.Rent(length);
+                    var payload = ArrayPool<byte>.Shared.Rent(payloadLength);
 
                     try
                     {
                         header.CopyTo(payload);
-                        session = JsonSerializer.Deserialize(payload.AsSpan()[..length],
+                        session = JsonSerializer.Deserialize(payload.AsSpan()[..payloadLength],
                             DeviceSessionJsonContext.Default.DeviceSession);
                     }
                     finally
