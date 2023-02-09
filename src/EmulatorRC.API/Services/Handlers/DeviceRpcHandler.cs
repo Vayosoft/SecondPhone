@@ -6,11 +6,15 @@ using ImageMagick;
 using Grpc.Core;
 using EmulatorRC.API.Channels;
 using Grpc.Net.ClientFactory;
+using App.Metrics;
+using static EmulatorRC.API.Services.Diagnostics.AppMetricsRegistry.Meters;
 
 namespace EmulatorRC.API.Services.Handlers
 {
     public sealed class DeviceRpcHandler : ChannelBase<DeviceScreen>
     {
+        private readonly IMetrics _metrics;
+
         private readonly GrpcClientFactory _grpcClientFactory;
 
         private static readonly CallOptions CallOptions = new();
@@ -84,9 +88,10 @@ namespace EmulatorRC.API.Services.Handlers
             OptimizeCoding = true
         };
 
-        public DeviceRpcHandler(GrpcClientFactory grpcClientFactory)
+        public DeviceRpcHandler(GrpcClientFactory grpcClientFactory, IMetrics metrics)
         {
             _grpcClientFactory = grpcClientFactory;
+            _metrics = metrics;
         }
 
         //private static readonly RecyclableMemoryStreamManager RecyclableMemoryStreamManager = new();
