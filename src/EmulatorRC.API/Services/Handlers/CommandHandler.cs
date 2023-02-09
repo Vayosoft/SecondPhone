@@ -250,8 +250,46 @@ namespace EmulatorRC.API.Services.Handlers
         public MicrophoneCommandHandler(ILogger<CommandHandler> logger)
             : base(logger) { }
 
+        //public Task WriteAsync(AudioCommand command, IDuplexPipe pipe, CancellationToken cancellationToken) =>
+        //    WriteAsync(Channels, command.DeviceId, pipe, cancellationToken: cancellationToken);
+
         public Task WriteAsync(AudioCommand command, IDuplexPipe pipe, CancellationToken cancellationToken) =>
             WriteAsync(Channels, command.DeviceId, pipe, cancellationToken: cancellationToken);
+
+        //public async Task Write2Async(ConcurrentDictionary<string, IDuplexPipe> channels, string name, IDuplexPipe pipe,
+        //    [CallerMemberName] string callerType = "", CancellationToken cancellationToken = default)
+        //{
+        //    var reader = pipe.Input;
+        //    while (true)
+        //    {
+        //        var result = await reader.ReadAsync(cancellationToken);
+        //        var buffer = result.Buffer;
+
+        //        if (channels.TryGetValue(name, out var channel))
+        //        {
+        //            try
+        //            {
+        //                foreach (var segment in buffer)
+        //                {
+        //                    Logger.LogDebug("MIC WRITE => {Length}", segment.Length);
+        //                    await channel.Output.WriteAsync(segment, cancellationToken);
+        //                }
+        //            }
+        //            catch (OperationCanceledException) { }
+        //            catch (Exception e)
+        //            {
+        //                Logger.LogWarning(e, "{ChannelType} => {ChannelName} - {Error}", callerType, name, e.Message);
+        //            }
+        //        }
+
+        //        if (result.IsCompleted)
+        //        {
+        //            break;
+        //        }
+
+        //        reader.AdvanceTo(buffer.End);
+        //    }
+        //}
 
         public async Task ReadAsync(AudioCommand command, IDuplexPipe pipe, CancellationToken cancellationToken)
         {

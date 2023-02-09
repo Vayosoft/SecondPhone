@@ -17,12 +17,18 @@ namespace EmulatorRC.API.Services.Handlers
 
         private readonly GrpcClientFactory _grpcClientFactory;
 
+        // Common configurations (w x h) are:
+        // - 480p  (480x720)   142 dpi
+        // - 720p  (720x1280)  213 dpi
+        // - 1080p (1080x1920) 320 dpi
+        // - 4K  (2160x3840) 320 dpi
+
         private static readonly CallOptions CallOptions = new();
         private static readonly ImageFormat ImageFormat = new()
         {
             Format = ImageFormat.Types.ImgFormat.Png,
-            Width = 480,
-            Height = 720
+            Width = 486,
+            Height = 1053
         };
 
         public async IAsyncEnumerable<DeviceAudio> ReadAllAudioAsync(string deviceId, [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -100,7 +106,7 @@ namespace EmulatorRC.API.Services.Handlers
         {
             using var image = new MagickImage(imageSpan);
             image.Format = image.Format;
-            image.Quality = 60;
+            image.Quality = 50;
 
             //using var stream = RecyclableMemoryStreamManager.GetStream();
             //image.Write(stream);
